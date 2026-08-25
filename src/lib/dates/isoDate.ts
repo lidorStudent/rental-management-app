@@ -54,3 +54,21 @@ export function assertValidIsoDate(value: string, fieldName: string): void {
     throw new Error(`${fieldName} must be a calendar date in YYYY-MM-DD form, and was "${value}".`);
   }
 }
+
+/**
+ * The calendar day after this one.
+ *
+ * Used to tell a landlord the earliest date a new tenancy on a unit could start, given that the
+ * outgoing tenancy owns its own end date. Date arithmetic is the one thing text cannot do, so this
+ * is the single place a Date object is built, and it is built in UTC with every field supplied.
+ */
+export function nextDay(value: IsoDate): IsoDate {
+  assertValidIsoDate(value, "The date");
+
+  const year = Number(value.slice(0, 4));
+  const month = Number(value.slice(5, 7));
+  const day = Number(value.slice(8, 10));
+  const theNextDay = new Date(Date.UTC(year, month - 1, day + 1));
+
+  return theNextDay.toISOString().slice(0, 10);
+}

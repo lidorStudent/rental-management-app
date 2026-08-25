@@ -10,6 +10,7 @@ import {
   type ActionResult,
 } from "@/lib/actionResult";
 import { requireLandlordProfile } from "@/lib/authentication/requireLandlordProfile";
+import { nextDay } from "@/lib/dates/isoDate";
 import { findConflictingLease, type ExistingLease } from "@/lib/leases/findConflictingLease";
 import { firstDayOfTheMonthOf } from "@/lib/rent/isPeriodMonthWithinLease";
 import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
@@ -270,9 +271,14 @@ async function refuseIfDatesAreTaken(
     return null;
   }
 
+  const earliestFreeDate = nextDay(conflict.endDate);
+
   return errorResult(
-    `This unit is already let from ${conflict.startDate} to ${conflict.endDate}. A tenancy occupies both of those days, so the next one can start the day after.`,
-    { startDate: "These dates overlap an existing tenancy." },
+    `This unit is already let from ${conflict.startDate} to ${conflict.endDate}. Both of those days belong to that tenancy, so a new one can start on ${earliestFreeDate} at the earliest.`,
+    {
+      startDate: `Occupied until ${conflict.endDate}. Free from ${earliestFreeDate}.`,
+      endDate: `Overlaps the tenancy running to ${conflict.endDate}.`,
+    },
   );
 }
 
