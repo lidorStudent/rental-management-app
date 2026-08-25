@@ -10,9 +10,12 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:e2e": "playwright test",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "db:seed": "node --env-file=.env.test --experimental-strip-types supabase/seed.ts",
+    "db:seed:production": "node --env-file=.env.local --experimental-strip-types supabase/seed.ts --confirm-production"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.34.0",

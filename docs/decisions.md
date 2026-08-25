@@ -211,3 +211,35 @@ first and then to production. The alternative was running SQL in the Supabase da
 statement executed in a dashboard exists in one project and in no file, which is how two databases
 that are supposed to be identical stop being identical.
 
+### 2026-08-25 - Tenant predicates are security definer functions
+
+Decided that the tenant policies call helper functions such as is_current_tenant_lease, defined as
+security definer with an empty search_path. The alternative was an inline EXISTS against leases in
+each policy. An inline subquery is itself subject to the referenced table's policies, which couples
+every policy to every other one and can recurse on profiles; running the predicate as the owner
+removes that coupling, and each helper is scoped to auth.uid() internally so it grants nothing.
+
+### 2026-08-25 - Every landlord policy tests the role as well as the owner
+
+Decided that landlord policies require current_profile_role() = 'landlord' in addition to
+landlord_id = auth.uid(). The owner test alone would already be sufficient for existing rows, but
+an insert policy is checked against a row the client supplied, so without the role test a tenant
+account could create a property naming itself as landlord. Gating the role in the policy means a
+landlord-only operation is landlord-only in the database, not merely in the routing.
+
+### 2026-08-25 - profiles.role is frozen by a trigger, not by a policy
+
+Decided to block role changes with a before-update trigger. A policy decides which rows an
+operation may touch, not which columns, so profiles_update_own must allow a user to update their own
+row and therefore cannot by itself stop that user setting role to landlord. The alternative,
+splitting the profile into two tables to make the column unwritable, adds a join to every session
+lookup to solve a problem one trigger solves.
+
+### 2026-08-25 - The seed is a Node script using the Auth admin API
+
+Decided to write supabase/seed.ts rather than seed.sql. The alternative, inserting into auth.users
+directly, means reproducing the password hashing and the internal columns of a schema owned by
+another service; getting any of it wrong produces accounts that exist but cannot sign in. The script
+also lets the seed be idempotent, target either project from an environment variable, and refuse to
+run against production without an explicit flag.
+

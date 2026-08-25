@@ -66,4 +66,45 @@ about before reading it:
   created in `auth.users`, reading `role` and `full_name` from the signup metadata. An Auth user
   therefore cannot exist without a profile.
 - **Row Level Security is enabled on all six tables with no policy attached**, which denies
-  everything that is not the service role. The policies are the next migration.
+  everything that is not the service role. The policies arrive in the next migration.
+
+## What the second migration contains
+
+`20260825122721_row_level_security.sql` is the authorisation boundary: 27 policies across the six
+tables, one per operation per role, each carrying a comment naming the mistake or attack it
+prevents. Read the header of that file first; it maps each of the five domain invariants to the
+thing that actually enforces it, including the two that are constraints rather than policies.
+
+The tenant predicates are `security definer` helper functions, so a policy never depends on another
+table's policies being correct. `profiles.role` is additionally frozen by the
+`profiles_role_is_immutable` trigger, because a policy cannot say "this row, but not this column".
+
+## Seeding
+
+`seed.ts` fills a project with two landlords who share no data, four tenants, leases in every
+lifecycle state, a ledger that produces a paid, a partial and an overdue month, and maintenance
+requests in every status. It is a Node script rather than SQL because accounts have to be created
+through the Auth admin API; writing `auth.users` by hand produces accounts that cannot sign in.
+
+```sh
+npm run db:seed              # seeds the project in .env.test
+npm run db:seed:production   # seeds the project in .env.local, passing --confirm-production
+```
+
+The script reads its target from `NEXT_PUBLIC_SUPABASE_URL` and refuses to touch the production
+project unless `--confirm-production` is passed, so the ordinary command cannot reach production by
+accident. It is idempotent: accounts are created only if the email address is not already
+registered, portfolio rows are upserted by fixed identifier, and the ledger and requests are
+rebuilt each run.
+
+Every seeded account uses the same password, `Demo-Rental-2026!`, unless `SEED_USER_PASSWORD` is
+set. The seeded accounts are:
+
+| Email | Role | What they show |
+| --- | --- | --- |
+| `noa.bendavid@example.co.il` | Landlord | Two buildings, five units, four leases |
+| `eitan.shapira@example.co.il` | Landlord | A separate portfolio, used to prove the two never see each other |
+| `maya.levi@example.co.il` | Tenant | Active lease with an overdue month |
+| `yonatan.azoulay@example.co.il` | Tenant | Active lease, current period part paid |
+| `shira.mizrahi@example.co.il` | Tenant | Ended lease, fully paid, history still readable |
+| `dana.peretz@example.co.il` | Tenant | The second landlord's tenant |
