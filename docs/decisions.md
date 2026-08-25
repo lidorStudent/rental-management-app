@@ -445,3 +445,27 @@ rent ledger and a maintenance list grow for as long as a tenancy lasts, and a po
 landlord buys; the units in one building are fixed by the building. Page controls under a table of
 three rows are furniture, not function.
 
+### 2026-08-25 - The overlap refusal names the earliest date that would work
+
+Decided that a rejected lease is told which tenancy is in the way, with its dates, and the first day
+the unit is free: "already let from 2025-12-01 to 2026-12-31, so a new one can start on 2027-01-01 at
+the earliest". The alternative was reporting that the dates overlap. This rule is the one a landlord
+is most likely to hit and least likely to have thought about, because the end date belongs to the
+outgoing tenant, and a refusal that does not say what to do instead is a refusal they will argue
+with.
+
+### 2026-08-25 - Forms validate with the schema but submit what was typed
+
+Decided to build every resolver with zodResolver(schema, undefined, { raw: true }). The schemas
+transform: "6,500.50" becomes 650050 agorot. Without raw, react-hook-form would hand the submit
+handler the transformed values and the action would then be parsing numbers with a schema that
+expects the text a person typed. The client validates, the server parses, and the value that travels
+between them is the one from the input.
+
+### 2026-08-25 - The unit's occupancy is shown while the tenancy is being written
+
+Decided that choosing a unit on the new lease form shows what that unit is currently doing and
+until when, from data the server sent with the page. The alternative was letting the landlord find
+out by being refused. The two commonest mistakes here are letting a flat that is already let and not
+knowing when the current tenancy ends, and both are answered before the form is submitted.
+

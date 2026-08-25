@@ -203,10 +203,11 @@ Every page listed here is a server component unless the table says otherwise.
 | `/landlord/properties/[propertyId]/units/new` | Add a unit to a property | Property |
 | `/landlord/units/[unitId]` | One unit, with its full lease history | Unit, leases |
 | `/landlord/units/[unitId]/edit` | Edit or delete a unit | Unit |
-| `/landlord/leases` | Every lease, filterable by state through the URL query | Leases, units, properties |
+| `/landlord/leases` | Every lease, filtered by lifecycle through the URL query with the same comparison `describeLeaseLifecycle` makes | Leases, units, properties, tenant names |
 | `/landlord/leases/new` | Create a lease, optionally pre-filled with a unit from the query string | Units without a current lease |
 | `/landlord/leases/[leaseId]` | The centre of the landlord's day: lease terms, the derived rent schedule with a status per period, the payment ledger, tenant access, and the link to the statement | Lease, unit, property, tenant profile, payments |
-| `/landlord/leases/[leaseId]/edit` | Edit lease terms, including ending a lease early by changing its end date | Lease |
+| `/landlord/leases/[leaseId]/end` | End a tenancy early. Only the end date moves | Lease |
+| `/landlord/leases/[leaseId]/renew` | Record the next tenancy on the same unit for the same tenant, offered from the day after this one ends | Lease, tenant |
 | `/landlord/leases/[leaseId]/payments/new` | Record a payment received, pre-selecting the oldest unpaid period | Lease, derived schedule |
 | `/landlord/leases/[leaseId]/payments/[paymentId]/edit` | Correct or delete a recorded payment | Payment, lease |
 | `/landlord/leases/[leaseId]/statement` | Print-optimised rent statement for a date range taken from the URL query (C10) | Lease, payments in range |
@@ -546,9 +547,11 @@ rental-management-app/
     │   │   ├── DeleteUnitButton.tsx
     │   │   └── UnitForm.tsx
     │   ├── leases/
+    │   │   ├── EndLeaseForm.tsx
     │   │   ├── LeaseForm.tsx
-    │   │   ├── LeaseList.tsx
-    │   │   ├── LeaseTermsPanel.tsx
+    │   │   ├── LeaseStatusBadge.tsx
+    │   │   ├── LeaseStatusFilter.tsx
+    │   │   ├── RenewLeaseForm.tsx
     │   │   ├── RentScheduleTable.tsx
     │   │   ├── RentStatusBadge.tsx
     │   │   └── TenantAccessPanel.tsx
