@@ -61,3 +61,40 @@ export function findActiveLease<TLease extends { startDate: IsoDate; endDate: Is
 
   return active.reduce((latest, lease) => (lease.startDate > latest.startDate ? lease : latest));
 }
+
+/**
+ * The tenancy a tenant's portal should be about.
+ *
+ * A tenant usually has exactly one. Where they have several, because a tenancy was renewed, the one
+ * that is running wins; failing that the one about to start, because that is the news; failing that
+ * the one that ended most recently, because their own history stays theirs after they move out.
+ */
+export function chooseCurrentLease<TLease extends { startDate: IsoDate; endDate: IsoDate }>(
+  leases: readonly TLease[],
+  currentDate: IsoDate,
+): TLease | null {
+  const active = findActiveLease(leases, currentDate);
+  if (active !== null) {
+    return active;
+  }
+
+  const upcoming = leases.filter(
+    (lease) =>
+      describeLeaseLifecycle({
+        startDate: lease.startDate,
+        endDate: lease.endDate,
+        currentDate,
+      }) === "upcoming",
+  );
+  if (upcoming.length > 0) {
+    return upcoming.reduce((soonest, lease) =>
+      lease.startDate < soonest.startDate ? lease : soonest,
+    );
+  }
+
+  if (leases.length === 0) {
+    return null;
+  }
+
+  return leases.reduce((latest, lease) => (lease.endDate > latest.endDate ? lease : latest));
+}
