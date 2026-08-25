@@ -5,15 +5,17 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
 import { registerLandlordAccount } from "@/actions/authenticationActions";
-import { FieldError } from "@/components/shared/FieldError";
+import { applyServerFieldErrors } from "@/components/forms/applyServerFieldErrors";
+import { TextField } from "@/components/forms/TextField";
 import { FormErrorSummary } from "@/components/shared/FormErrorSummary";
 import { SubmitButton } from "@/components/shared/SubmitButton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   registerLandlordSchema,
   type RegisterLandlordInput,
 } from "@/lib/validation/authenticationSchemas";
+
+const PASSWORD_HINT =
+  "At least 10 characters, with an uppercase letter, a lowercase letter and a digit.";
 
 export function RegisterLandlordForm() {
   const [formMessage, setFormMessage] = useState<string | null>(null);
@@ -29,9 +31,7 @@ export function RegisterLandlordForm() {
       const result = await registerLandlordAccount(values);
       if (result.status === "error") {
         setFormMessage(result.message);
-        for (const [fieldName, message] of Object.entries(result.fieldErrors ?? {})) {
-          setError(fieldName as keyof RegisterLandlordInput, { message });
-        }
+        applyServerFieldErrors(setError, result.fieldErrors);
       }
     });
   }
@@ -40,42 +40,37 @@ export function RegisterLandlordForm() {
     <form onSubmit={handleSubmit(submit)} className="space-y-4" noValidate>
       <FormErrorSummary message={formMessage} />
 
-      <div className="space-y-2">
-        <Label htmlFor="fullName">Full name</Label>
-        <Input id="fullName" autoComplete="name" {...register("fullName")} />
-        <FieldError message={formState.errors.fullName?.message} />
-      </div>
+      <TextField
+        label="Full name"
+        autoComplete="name"
+        error={formState.errors.fullName?.message}
+        {...register("fullName")}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email address</Label>
-        <Input id="email" type="email" autoComplete="email" {...register("email")} />
-        <FieldError message={formState.errors.email?.message} />
-      </div>
+      <TextField
+        label="Email address"
+        type="email"
+        autoComplete="email"
+        error={formState.errors.email?.message}
+        {...register("email")}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="new-password"
-          {...register("password")}
-        />
-        <p className="text-sm text-muted-foreground">
-          At least 10 characters, with an uppercase letter, a lowercase letter and a digit.
-        </p>
-        <FieldError message={formState.errors.password?.message} />
-      </div>
+      <TextField
+        label="Password"
+        type="password"
+        autoComplete="new-password"
+        hint={PASSWORD_HINT}
+        error={formState.errors.password?.message}
+        {...register("password")}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Repeat password</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          autoComplete="new-password"
-          {...register("confirmPassword")}
-        />
-        <FieldError message={formState.errors.confirmPassword?.message} />
-      </div>
+      <TextField
+        label="Repeat password"
+        type="password"
+        autoComplete="new-password"
+        error={formState.errors.confirmPassword?.message}
+        {...register("confirmPassword")}
+      />
 
       <SubmitButton isSubmitting={isSubmitting}>Create account</SubmitButton>
     </form>

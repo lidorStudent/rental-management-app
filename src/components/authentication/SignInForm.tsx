@@ -5,11 +5,10 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
 import { signIn } from "@/actions/authenticationActions";
-import { FieldError } from "@/components/shared/FieldError";
+import { applyServerFieldErrors } from "@/components/forms/applyServerFieldErrors";
+import { TextField } from "@/components/forms/TextField";
 import { FormErrorSummary } from "@/components/shared/FormErrorSummary";
 import { SubmitButton } from "@/components/shared/SubmitButton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { signInSchema, type SignInInput } from "@/lib/validation/authenticationSchemas";
 
 export function SignInForm() {
@@ -27,9 +26,7 @@ export function SignInForm() {
       const result = await signIn(values);
       if (result.status === "error") {
         setFormMessage(result.message);
-        for (const [fieldName, message] of Object.entries(result.fieldErrors ?? {})) {
-          setError(fieldName as keyof SignInInput, { message });
-        }
+        applyServerFieldErrors(setError, result.fieldErrors);
       }
     });
   }
@@ -38,22 +35,21 @@ export function SignInForm() {
     <form onSubmit={handleSubmit(submit)} className="space-y-4" noValidate>
       <FormErrorSummary message={formMessage} />
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email address</Label>
-        <Input id="email" type="email" autoComplete="email" {...register("email")} />
-        <FieldError message={formState.errors.email?.message} />
-      </div>
+      <TextField
+        label="Email address"
+        type="email"
+        autoComplete="email"
+        error={formState.errors.email?.message}
+        {...register("email")}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          {...register("password")}
-        />
-        <FieldError message={formState.errors.password?.message} />
-      </div>
+      <TextField
+        label="Password"
+        type="password"
+        autoComplete="current-password"
+        error={formState.errors.password?.message}
+        {...register("password")}
+      />
 
       <SubmitButton isSubmitting={isSubmitting}>Sign in</SubmitButton>
     </form>

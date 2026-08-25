@@ -5,15 +5,17 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
 import { changePassword } from "@/actions/authenticationActions";
-import { FieldError } from "@/components/shared/FieldError";
+import { applyServerFieldErrors } from "@/components/forms/applyServerFieldErrors";
+import { TextField } from "@/components/forms/TextField";
 import { FormErrorSummary } from "@/components/shared/FormErrorSummary";
 import { SubmitButton } from "@/components/shared/SubmitButton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   changePasswordSchema,
   type ChangePasswordInput,
 } from "@/lib/validation/authenticationSchemas";
+
+const PASSWORD_HINT =
+  "At least 10 characters, with an uppercase letter, a lowercase letter and a digit.";
 
 export function ChangePasswordForm() {
   const [formMessage, setFormMessage] = useState<string | null>(null);
@@ -29,9 +31,7 @@ export function ChangePasswordForm() {
       const result = await changePassword(values);
       if (result.status === "error") {
         setFormMessage(result.message);
-        for (const [fieldName, message] of Object.entries(result.fieldErrors ?? {})) {
-          setError(fieldName as keyof ChangePasswordInput, { message });
-        }
+        applyServerFieldErrors(setError, result.fieldErrors);
       }
     });
   }
@@ -40,30 +40,22 @@ export function ChangePasswordForm() {
     <form onSubmit={handleSubmit(submit)} className="space-y-4" noValidate>
       <FormErrorSummary message={formMessage} />
 
-      <div className="space-y-2">
-        <Label htmlFor="newPassword">New password</Label>
-        <Input
-          id="newPassword"
-          type="password"
-          autoComplete="new-password"
-          {...register("newPassword")}
-        />
-        <p className="text-sm text-muted-foreground">
-          At least 10 characters, with an uppercase letter, a lowercase letter and a digit.
-        </p>
-        <FieldError message={formState.errors.newPassword?.message} />
-      </div>
+      <TextField
+        label="New password"
+        type="password"
+        autoComplete="new-password"
+        hint={PASSWORD_HINT}
+        error={formState.errors.newPassword?.message}
+        {...register("newPassword")}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Repeat new password</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          autoComplete="new-password"
-          {...register("confirmPassword")}
-        />
-        <FieldError message={formState.errors.confirmPassword?.message} />
-      </div>
+      <TextField
+        label="Repeat new password"
+        type="password"
+        autoComplete="new-password"
+        error={formState.errors.confirmPassword?.message}
+        {...register("confirmPassword")}
+      />
 
       <SubmitButton isSubmitting={isSubmitting}>Set password</SubmitButton>
     </form>
