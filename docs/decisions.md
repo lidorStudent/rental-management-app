@@ -288,3 +288,42 @@ Decided to commit the nextjs-agent-rules block that next dev appends to CLAUDE.m
 was deleting it after each run. The generator re-adds it every time the dev server starts, so
 deleting it produces a permanently dirty working tree; committing it keeps git status meaningful.
 
+### 2026-08-25 - A lease occupies both of its endpoint dates
+
+Decided that a lease ending on the 31st still owns the 31st, so the next tenancy on that unit may
+start no earlier than the 1st. The alternative was an exclusive end date, where a handover day
+belongs to the incoming tenant. The inclusive rule matches the leases_no_overlap exclusion
+constraint already in the database, and the outgoing tenant is paying rent for a month that includes
+that day. The decision was confirmed by the project owner when the phase instruction and the shipped
+constraint disagreed.
+
+### 2026-08-25 - Calendar dates are YYYY-MM-DD strings, never Date objects
+
+Decided that every business rule handles dates as text. The alternative was Date objects, which is
+what most JavaScript code does. A rent due date is a calendar fact rather than an instant, and a
+Date carries a time and a timezone that can silently move it across a day boundary. The format also
+sorts chronologically as text, so the overlap and overdue rules compare with < and <= and parse
+nothing.
+
+### 2026-08-25 - Money is parsed from text, never multiplied as a float
+
+Decided that parseCurrencyInputToCents reads the digits and assembles an integer number of agorot.
+The alternative, Math.round(amount * 100), is one line shorter and wrong: 6500.10 * 100 is
+650009.9999999999 in JavaScript. A ledger that is out by an agora is a ledger a tenant can argue
+with, which is the opposite of what the product is for.
+
+### 2026-08-25 - The rent payment schema is built, not exported
+
+Decided that buildRecordRentPaymentSchema takes the current date and returns a schema, because the
+rule "a payment cannot have been received in the future" needs to know what today is. The
+alternative was calling new Date() inside the schema, which would make that one rule untestable on
+any day but today and would break the promise that no rule in this codebase reads the clock.
+
+### 2026-08-25 - Email is normalised; there is no phone number to normalise
+
+Decided that every email field is trimmed and lowercased, so that one tenant cannot end up with two
+accounts spelled differently, matching how Supabase Auth stores addresses. There is no phone number
+anywhere in the data model: the product records tenancies and money, and the landlord passes a
+temporary password on through whatever channel they already use. Adding a phone column would be a
+migration and a new field on a form, not a normalisation rule.
+

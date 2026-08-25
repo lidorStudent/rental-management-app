@@ -435,7 +435,7 @@ rental-management-app/
 ├── next.config.ts
 ├── tailwind.config.ts
 ├── tsconfig.json
-├── vitest.config.ts
+├── vitest.config.mts
 ├── playwright.config.ts
 ├── .env.example                       every variable, with an explanation and no values
 ├── docs/
@@ -571,6 +571,8 @@ rental-management-app/
     │   │   ├── redirectDestination.ts
     │   │   ├── requireLandlordProfile.ts
     │   │   └── requireTenantProfile.ts
+    │   ├── dates/
+    │   │   └── isoDate.ts             calendar dates as YYYY-MM-DD text
     │   ├── leases/
     │   │   ├── findConflictingLease.ts
     │   │   └── describeLeaseLifecycle.ts
@@ -584,6 +586,7 @@ rental-management-app/
     │   │   ├── formatCentsAsCurrency.ts
     │   │   └── parseCurrencyInputToCents.ts
     │   ├── validation/
+    │   │   ├── fieldSchemas.ts        the field types that carry logic
     │   │   ├── propertySchemas.ts
     │   │   ├── unitSchemas.ts
     │   │   ├── leaseSchemas.ts
@@ -940,7 +943,7 @@ passed, **partial** if something has been paid, otherwise **due**.
 | File | Responsibility |
 | --- | --- |
 | `src/lib/rent/buildRentSchedule.ts` | Turns a lease into its list of periods. A pure function of four lease fields |
-| `src/lib/rent/deriveRentStatus.ts` | Turns one period plus its payments plus today into a status and an outstanding amount. Pure, and takes today as an argument rather than reading the clock, which is what makes it testable |
+| `src/lib/rent/deriveRentStatus.ts` | Turns one period plus its payments plus today into one of the four statuses. Pure, and takes today as an argument rather than reading the clock, which is what makes it testable. The amount outstanding is a subtraction the caller does |
 | `src/lib/rent/summariseOutstandingRent.ts` | Totals outstanding across many leases for the dashboard |
 
 The ordering matters and is the part to be able to explain: a part-paid period that is past its due
