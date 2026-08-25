@@ -152,6 +152,13 @@ export type Database = {
             foreignKeyName: "maintenance_requests_lease_id_fkey";
             columns: ["lease_id"];
             isOneToOne: false;
+            referencedRelation: "lease_rent_summary";
+            referencedColumns: ["lease_id"];
+          },
+          {
+            foreignKeyName: "maintenance_requests_lease_id_fkey";
+            columns: ["lease_id"];
+            isOneToOne: false;
             referencedRelation: "leases";
             referencedColumns: ["id"];
           },
@@ -287,6 +294,13 @@ export type Database = {
             foreignKeyName: "rent_payments_lease_id_fkey";
             columns: ["lease_id"];
             isOneToOne: false;
+            referencedRelation: "lease_rent_summary";
+            referencedColumns: ["lease_id"];
+          },
+          {
+            foreignKeyName: "rent_payments_lease_id_fkey";
+            columns: ["lease_id"];
+            isOneToOne: false;
             referencedRelation: "leases";
             referencedColumns: ["id"];
           },
@@ -346,7 +360,79 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      lease_period_totals: {
+        Row: {
+          lease_id: string | null;
+          paid_cents: number | null;
+          payment_count: number | null;
+          period_month: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rent_payments_lease_id_fkey";
+            columns: ["lease_id"];
+            isOneToOne: false;
+            referencedRelation: "lease_rent_summary";
+            referencedColumns: ["lease_id"];
+          },
+          {
+            foreignKeyName: "rent_payments_lease_id_fkey";
+            columns: ["lease_id"];
+            isOneToOne: false;
+            referencedRelation: "leases";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      lease_rent_summary: {
+        Row: {
+          end_date: string | null;
+          landlord_id: string | null;
+          last_received_on: string | null;
+          lease_id: string | null;
+          payment_count: number | null;
+          property_id: string | null;
+          property_name: string | null;
+          rent_amount_cents: number | null;
+          rent_due_day: number | null;
+          start_date: string | null;
+          tenant_full_name: string | null;
+          tenant_profile_id: string | null;
+          total_paid_cents: number | null;
+          unit_id: string | null;
+          unit_label: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "leases_landlord_id_fkey";
+            columns: ["landlord_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "leases_tenant_profile_id_fkey";
+            columns: ["tenant_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "leases_unit_id_fkey";
+            columns: ["unit_id"];
+            isOneToOne: false;
+            referencedRelation: "units";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "units_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "properties";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Functions: {
       current_profile_role: {
