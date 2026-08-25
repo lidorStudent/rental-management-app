@@ -12,7 +12,7 @@ Ten items must be submitted.
 - [ ] 1. Live Vercel URL, publicly reachable.
 - [ ] 2. GitHub repository.
 - [x] 3. Product specification document.
-- [ ] 4. Technical planning document.
+- [x] 4. Technical planning document.
 - [ ] 5. Test specification document.
 - [ ] 6. Test code.
 - [ ] 7. Basic scale document.
@@ -43,24 +43,24 @@ Must cover:
 
 Must cover:
 
-- [ ] System components.
-- [ ] Use of a database.
-- [ ] Central entities.
-- [ ] All pages.
-- [ ] Server actions and route handlers.
-- [ ] Data flow between frontend, backend, and database.
-- [ ] Users and permissions.
-- [ ] External libraries and services, each with a reason.
-- [ ] Folder structure.
-- [ ] Component structure.
-- [ ] Database structure.
-- [ ] Central CRUD operations.
-- [ ] API description.
-- [ ] Central business logic.
-- [ ] State management.
-- [ ] Error handling.
-- [ ] Input validation.
-- [ ] The core user experience.
+- [x] System components.
+- [x] Use of a database.
+- [x] Central entities.
+- [x] All pages.
+- [x] Server actions and route handlers.
+- [x] Data flow between frontend, backend, and database.
+- [x] Users and permissions.
+- [x] External libraries and services, each with a reason.
+- [x] Folder structure.
+- [x] Component structure.
+- [x] Database structure.
+- [x] Central CRUD operations.
+- [x] API description.
+- [x] Central business logic.
+- [x] State management.
+- [x] Error handling.
+- [x] Input validation.
+- [x] The core user experience.
 
 ## 5. Test Coverage
 
