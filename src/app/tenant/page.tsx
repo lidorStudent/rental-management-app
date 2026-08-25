@@ -1,15 +1,19 @@
+import { Suspense } from "react";
+
 import { PageHeader } from "@/components/shared/PageHeader";
-import { requireTenantProfile } from "@/lib/authentication/requireTenantProfile";
+import { PanelSkeleton } from "@/components/shared/PanelSkeleton";
+import { TenancySummary } from "@/components/tenant/TenancySummary";
 
-export default async function TenantPortalPage() {
-  const profile = await requireTenantProfile();
+export const metadata = { title: "Your tenancy" };
 
+export default function TenantPortalPage() {
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Your tenancy"
-        description={`Signed in as ${profile.email}. Your rent status, lease terms and maintenance requests arrive in the phases that follow.`}
-      />
+      <PageHeader title="Your tenancy" description="What you rent, and what you owe." />
+
+      <Suspense fallback={<PanelSkeleton lineCount={4} />}>
+        <TenancySummary />
+      </Suspense>
     </div>
   );
 }
