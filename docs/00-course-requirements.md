@@ -11,7 +11,7 @@ Ten items must be submitted.
 
 - [ ] 1. Live Vercel URL, publicly reachable.
 - [ ] 2. GitHub repository.
-- [ ] 3. Product specification document.
+- [x] 3. Product specification document.
 - [ ] 4. Technical planning document.
 - [ ] 5. Test specification document.
 - [ ] 6. Test code.
@@ -32,12 +32,12 @@ Ten items must be submitted.
 
 Must cover:
 
-- [ ] The problem solved.
-- [ ] The users.
-- [ ] The customer.
-- [ ] The business goals.
-- [ ] The software capabilities needed to achieve those goals.
-- [ ] The central processes users carry out, end to end.
+- [x] The problem solved.
+- [x] The users.
+- [x] The customer.
+- [x] The business goals.
+- [x] The software capabilities needed to achieve those goals.
+- [x] The central processes users carry out, end to end.
 
 ## 4. Technical Planning Document
 
