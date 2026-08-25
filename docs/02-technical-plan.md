@@ -195,7 +195,7 @@ Every page listed here is a server component unless the table says otherwise.
 
 | Route | Purpose | Data read |
 | --- | --- | --- |
-| `/landlord` | The attention dashboard (C7). Overdue periods, leases ending within sixty days, open maintenance requests, and total outstanding across the portfolio | Leases with their payments, open requests |
+| `/landlord` | The attention dashboard (C7). Rent collected this month, what is outstanding, open problems, occupancy, and tenancies ending within sixty days. Four database round trips, three of them aggregates, and no payment row | `rent_collected_by_month`, `lease_rent_summary`, two counts |
 | `/landlord/rent` | What every tenancy has been charged so far, what has arrived and what is left, read from the `lease_rent_summary` aggregate rather than from the payments | One aggregate row per tenancy |
 | `/landlord/properties` | Every property, with unit counts | Properties, unit counts |
 | `/landlord/properties/new` | Create a property | None |
@@ -562,16 +562,15 @@ rental-management-app/
     │   ├── payments/
     │   │   └── RentPaymentForm.tsx
     │   ├── maintenance/
+    │   │   ├── MaintenanceFilters.tsx
     │   │   ├── MaintenanceRequestForm.tsx
-    │   │   ├── MaintenanceRequestList.tsx
+    │   │   ├── MaintenanceStatusBadge.tsx
     │   │   └── MaintenanceStatusControl.tsx
     │   ├── statement/
     │   │   ├── RentStatement.tsx
     │   │   └── StatementDateRangeForm.tsx
     │   └── dashboard/
-    │       ├── AttentionPanel.tsx
-    │       ├── OutstandingTotal.tsx
-    │       └── LeasesEndingSoonList.tsx
+    │       └── DashboardOverview.tsx
     ├── lib/
     │   ├── supabase/
     │   │   ├── environment.ts         the two public values, read with a useful failure
@@ -796,6 +795,7 @@ that a view would be a hole straight through the policies underneath it.
 | View | One row per | Why it exists |
 | --- | --- | --- |
 | `lease_rent_summary` | Tenancy | The rent overview lists every tenancy with what has been received against it. Reading the payments to total them would pull three years of rows to show one number per tenancy, and would get slower every month the product is used |
+| `rent_collected_by_month` | Landlord and month | The dashboard opens with what arrived this month. Grouping by month in the database makes that figure cost one row instead of one row per payment |
 | `lease_period_totals` | Tenancy and month | The lease page shows a status for every month. The status needs how much arrived for that month, not the payments that made it up, and a three-year tenancy has thirty-six months however many payments went into them |
 
 The rule that turns a total into arrears stays in TypeScript, in `summariseOutstandingRent.ts`,

@@ -498,3 +498,26 @@ Decided that the portfolio total adds up arrears only. A tenant who paid next mo
 reduce what a different tenant owes, and a headline figure that pretended otherwise would be the
 wrong number to act on. Credit is still shown, per tenancy, where it belongs.
 
+### 2026-08-25 - The dashboard makes four round trips, not seven
+
+Decided that one query for lease_rent_summary answers three of the five dashboard figures: what is
+overdue, how many units are occupied, and which tenancies end soon. The first draft had a separate
+query for the occupied unit count and another for the tenancies ending soon, both of which were
+re-reading rows already on their way. Counting the round trips is what made that visible; the
+figures themselves did not change.
+
+### 2026-08-25 - Occupancy is counted by counting active tenancies
+
+Decided that the number of occupied units is the number of tenancies that are running today. That is
+only true because the exclusion constraint makes two overlapping tenancies on one unit impossible,
+which is worth saying out loud: a constraint in the database is what lets a count in the application
+be correct without a distinct.
+
+### 2026-08-25 - Illegal status moves are not rendered and are also refused
+
+Decided that MaintenanceStatusControl builds its buttons from allowedStatusTransitions, the same
+constant updateMaintenanceRequestStatus checks against. Rendering only the legal moves means the
+interface cannot express an illegal one. Refusing them in the action as well means a control that is
+not rendered is not being relied on as a rule, which is the same reasoning as the rest of this
+project.
+
