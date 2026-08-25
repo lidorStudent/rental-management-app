@@ -181,3 +181,33 @@ and to let route directories under src/app appear with the pages that fill them.
 creating every planned route directory immediately. An app directory holding empty folders with no
 page is decorative structure, and Next.js infers routes from files, so the folders would carry no
 meaning until their pages arrive.
+
+### 2026-08-25 - updated_at is maintained by a database trigger
+
+Decided that every table carries updated_at and that a before-update trigger sets it. The
+alternative was setting it in each server action, which is what most application code does. A
+trigger cannot be forgotten by a new code path, and the column is only useful if it is true on
+every row, so the guarantee belongs next to the data rather than in twenty call sites.
+
+### 2026-08-25 - The profile row is created by a trigger on auth.users
+
+Decided that inserting into auth.users creates the matching public.profiles row, reading role and
+full_name from the signup metadata. The alternative was having the registration action insert the
+profile after signing the user up. That is two writes across two systems with no transaction around
+them, so a failure between them leaves an account that can sign in but has no role; the trigger
+makes the pair atomic.
+
+### 2026-08-25 - Row Level Security is enabled before any policy exists
+
+Decided to enable RLS on all six tables in the schema migration, one phase before the policies are
+written. The alternative was enabling it together with the policies. A table with RLS on and no
+policy denies everything except the service role, so the window between the two migrations is
+closed rather than open, and the safer of the two states is the one to be in by accident.
+
+### 2026-08-25 - One timestamped migration per phase, applied to both projects by the CLI
+
+Decided to keep migrations as timestamped files applied with supabase db push to the test project
+first and then to production. The alternative was running SQL in the Supabase dashboard editor. A
+statement executed in a dashboard exists in one project and in no file, which is how two databases
+that are supposed to be identical stop being identical.
+

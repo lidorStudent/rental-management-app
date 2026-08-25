@@ -434,15 +434,11 @@ rental-management-app/
 │   ├── 06-technical-explainer.md
 │   └── decisions.md
 ├── supabase/
+│   ├── README.md                      how a migration reaches each of the two projects
 │   ├── config.toml
-│   ├── migrations/
-│   │   ├── 0001_enums_and_profiles.sql
-│   │   ├── 0002_properties_and_units.sql
-│   │   ├── 0003_leases.sql
-│   │   ├── 0004_rent_payments.sql
-│   │   ├── 0005_maintenance_requests.sql
-│   │   ├── 0006_row_level_security.sql
-│   │   └── 0007_indexes.sql
+│   ├── migrations/                    <utc timestamp>_<name>.sql, applied in filename order
+│   │   ├── 20260825122011_core_schema.sql
+│   │   └── ...                        one migration per phase that changes the database
 │   └── seed.sql                       development data only, never run against production
 ├── e2e/
 │   ├── landlord-records-payment.spec.ts
@@ -613,6 +609,11 @@ Files that do the same job have the same shape, so learning one teaches all of t
 
 All tables live in the `public` schema. Every table has RLS enabled. Every `id` is
 `uuid primary key default gen_random_uuid()` except `profiles`, which reuses the Auth user id.
+
+Every table also carries `created_at` and `updated_at`, both `timestamptz not null default now()`.
+`updated_at` is maintained by the `set_updated_at` trigger rather than by application code, so a
+write that forgets it cannot exist. The per-table listings below name `created_at` only, to avoid
+repeating a column that is identical on all six.
 
 ### 11.1 Enum types
 
