@@ -469,3 +469,32 @@ until when, from data the server sent with the page. The alternative was letting
 out by being refused. The two commonest mistakes here are letting a flat that is already let and not
 knowing when the current tenancy ends, and both are answered before the form is submitted.
 
+### 2026-08-25 - Rent totals are summed by Postgres, in security_invoker views
+
+Decided to add lease_rent_summary and lease_period_totals, two views that group rent_payments, and to
+read those from the screens instead of the payments. The alternative was fetching a tenancy's
+payments and adding them up in JavaScript, which works on day one and gets slower every month the
+product is used. The views are declared security_invoker so the policies on the tables underneath
+still apply to whoever selects from them; a view without that would return everybody's ledger.
+
+### 2026-08-25 - Postgres adds the rows, the application applies the rule
+
+Decided that the arrears calculation stays in TypeScript even though the totals come from SQL. The
+alternative was computing outstanding rent in the view. Outstanding depends on the rent schedule,
+and the schedule is derived from the lease rather than stored, so putting it in SQL would mean the
+same rule written twice in two languages with nothing keeping them in step. The database aggregates
+what is proportional to the payments; the rule runs over one row per tenancy.
+
+### 2026-08-25 - A total is allocated to the oldest unpaid month first
+
+Decided that where only a lease total is available, as on the rent overview, it is applied to the
+oldest period first. That is what a ledger does anyway: money that arrives settles the oldest
+arrears. The lease page does not need the assumption, because lease_period_totals says exactly how
+much arrived for each month.
+
+### 2026-08-25 - Credit on one tenancy is not netted against arrears on another
+
+Decided that the portfolio total adds up arrears only. A tenant who paid next month early does not
+reduce what a different tenant owes, and a headline figure that pretended otherwise would be the
+wrong number to act on. Credit is still shown, per tenancy, where it belongs.
+

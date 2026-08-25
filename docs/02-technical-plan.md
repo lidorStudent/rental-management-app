@@ -196,6 +196,7 @@ Every page listed here is a server component unless the table says otherwise.
 | Route | Purpose | Data read |
 | --- | --- | --- |
 | `/landlord` | The attention dashboard (C7). Overdue periods, leases ending within sixty days, open maintenance requests, and total outstanding across the portfolio | Leases with their payments, open requests |
+| `/landlord/rent` | What every tenancy has been charged so far, what has arrived and what is left, read from the `lease_rent_summary` aggregate rather than from the payments | One aggregate row per tenancy |
 | `/landlord/properties` | Every property, with unit counts | Properties, unit counts |
 | `/landlord/properties/new` | Create a property | None |
 | `/landlord/properties/[propertyId]` | One property and its units, each showing its occupancy derived from its tenancies. Units are a plain table: a building has as many as it has, and the number does not grow with time | Property, units, their leases and tenant names |
@@ -548,6 +549,9 @@ rental-management-app/
     │   │   └── UnitForm.tsx
     │   ├── leases/
     │   │   ├── EndLeaseForm.tsx
+    │   │   ├── LeasePaymentHistory.tsx
+    │   │   ├── LeaseRentSchedule.tsx
+    │   │   ├── LeaseTermsPanel.tsx
     │   │   ├── LeaseForm.tsx
     │   │   ├── LeaseStatusBadge.tsx
     │   │   ├── LeaseStatusFilter.tsx
@@ -556,8 +560,7 @@ rental-management-app/
     │   │   ├── RentStatusBadge.tsx
     │   │   └── TenantAccessPanel.tsx
     │   ├── payments/
-    │   │   ├── RentPaymentForm.tsx
-    │   │   └── RentPaymentList.tsx
+    │   │   └── RentPaymentForm.tsx
     │   ├── maintenance/
     │   │   ├── MaintenanceRequestForm.tsx
     │   │   ├── MaintenanceRequestList.tsx
@@ -783,6 +786,22 @@ Primary keys and unique constraints already create indexes; only the additions a
 | `maintenance_requests_lease_id_idx` | `maintenance_requests(lease_id)` | The tenant's list, and the tenant policy's lease lookup |
 
 No index is added speculatively. Each one above has a query in this document that uses it.
+
+### 11.9 Aggregate views
+
+Two views exist so that no screen has to read a ledger row by row to add it up. Both are declared
+`security_invoker`, so they run with the Row Level Security of whoever selects from them; without
+that a view would be a hole straight through the policies underneath it.
+
+| View | One row per | Why it exists |
+| --- | --- | --- |
+| `lease_rent_summary` | Tenancy | The rent overview lists every tenancy with what has been received against it. Reading the payments to total them would pull three years of rows to show one number per tenancy, and would get slower every month the product is used |
+| `lease_period_totals` | Tenancy and month | The lease page shows a status for every month. The status needs how much arrived for that month, not the payments that made it up, and a three-year tenancy has thirty-six months however many payments went into them |
+
+The rule that turns a total into arrears stays in TypeScript, in `summariseOutstandingRent.ts`,
+because it depends on the rent schedule and the schedule is a function of the lease rather than of
+the payments. So the split is: Postgres adds up rows, the application applies the rule to a handful
+of aggregates.
 
 ## 12. Central CRUD operations per entity
 
