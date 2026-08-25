@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import {
   errorResult,
   successResult,
+  unexpectedFailureResult,
   validationErrorResult,
   type ActionResult,
 } from "@/lib/actionResult";
@@ -42,12 +43,13 @@ export type TemporaryPasswordIssued = {
 export async function createTenantAccountForLease(
   input: CreateTenantAccountInput,
 ): Promise<ActionResult<TemporaryPasswordIssued>> {
+  await requireLandlordProfile();
+
   const parsed = createTenantAccountSchema.safeParse(input);
   if (!parsed.success) {
     return validationErrorResult(parsed.error);
   }
 
-  await requireLandlordProfile();
   const supabaseClient = await createSupabaseServerClient();
 
   // Read as the landlord, so Row Level Security decides whether this lease is theirs. A lease that
@@ -59,10 +61,7 @@ export async function createTenantAccountForLease(
     .maybeSingle();
 
   if (leaseError !== null) {
-    console.error("createTenantAccountForLease could not read the lease", {
-      code: leaseError.code,
-    });
-    return errorResult("The lease could not be read. Try again.");
+    return unexpectedFailureResult("createTenantAccountForLease", leaseError);
   }
   if (lease === null) {
     return errorResult("That lease was not found.");
@@ -120,12 +119,13 @@ export async function createTenantAccountForLease(
 export async function regenerateTenantPassword(
   input: RegenerateTenantPasswordInput,
 ): Promise<ActionResult<TemporaryPasswordIssued>> {
+  await requireLandlordProfile();
+
   const parsed = regenerateTenantPasswordSchema.safeParse(input);
   if (!parsed.success) {
     return validationErrorResult(parsed.error);
   }
 
-  await requireLandlordProfile();
   const supabaseClient = await createSupabaseServerClient();
 
   const { data: lease, error: leaseError } = await supabaseClient
@@ -135,8 +135,7 @@ export async function regenerateTenantPassword(
     .maybeSingle();
 
   if (leaseError !== null) {
-    console.error("regenerateTenantPassword could not read the lease", { code: leaseError.code });
-    return errorResult("The lease could not be read. Try again.");
+    return unexpectedFailureResult("regenerateTenantPassword", leaseError);
   }
   if (lease === null) {
     return errorResult("That lease was not found.");
