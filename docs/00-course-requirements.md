@@ -9,8 +9,8 @@ Deadline: 6 September 2026.
 
 Ten items must be submitted.
 
-- [ ] 1. Live Vercel URL, publicly reachable.
-- [ ] 2. GitHub repository.
+- [x] 1. Live Vercel URL, publicly reachable.
+- [x] 2. GitHub repository.
 - [x] 3. Product specification document.
 - [x] 4. Technical planning document.
 - [ ] 5. Test specification document.

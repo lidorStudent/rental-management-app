@@ -7,6 +7,15 @@ Each entry states what was decided, what the alternatives were, and why this one
 three or four lines. The purpose is to make the project explainable under interview-style
 questioning: if a choice cannot be justified here, it should not be in the codebase.
 
+## Project links
+
+| What | Where |
+| --- | --- |
+| Live application | https://rental-management-app-wine.vercel.app |
+| Repository | https://github.com/lidorStudent/rental-management-app |
+| Supabase project, production | `jarkqjrfuzvvrbietxve`, region `eu-central-1` |
+| Supabase project, tests only | `attddpdrjaftdbgzlzmv`, region `eu-central-1` |
+
 ## Entries
 
 ### 2026-08-25 - Record payments rather than process them
@@ -148,3 +157,27 @@ Decided to configure components.json so generated shadcn components import their
 lib/classNames.ts. The alternative was the default lib/utils.ts. A file named utils attracts
 unrelated functions until it is a dumping ground; naming it for the one thing it does keeps that
 from starting.
+
+### 2026-08-25 - Deploy the empty scaffold before writing any feature
+
+Decided to push a placeholder page to production as the last step of scaffolding, rather than after
+the first feature. The alternative was deploying once there was something worth showing. A build
+pipeline fails for reasons unrelated to the feature being built, so proving it works while the
+project is one static page makes the next failure attributable to the code that caused it. It also
+puts the graded live URL in place on day one.
+
+### 2026-08-25 - vercel.json declares the framework
+
+Decided to commit a vercel.json containing only the Next.js framework preset. The Vercel project was
+created from the CLI before any code existed, so it defaulted to a static site and the first deploy
+failed on an empty public directory. The alternative was changing the setting in the dashboard, which
+leaves the repository unable to explain its own deployment; a committed file is visible and travels
+with the code.
+
+### 2026-08-25 - The folder skeleton is created only where files will live
+
+Decided to create the structural directories from the technical plan now, each holding a .gitkeep,
+and to let route directories under src/app appear with the pages that fill them. The alternative was
+creating every planned route directory immediately. An app directory holding empty folders with no
+page is decorative structure, and Next.js infers routes from files, so the folders would carry no
+meaning until their pages arrive.
