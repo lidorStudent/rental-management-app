@@ -433,6 +433,23 @@ export type Database = {
           },
         ];
       };
+      rent_collected_by_month: {
+        Row: {
+          collected_cents: number | null;
+          landlord_id: string | null;
+          month: string | null;
+          payment_count: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rent_payments_landlord_id_fkey";
+            columns: ["landlord_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Functions: {
       current_profile_role: {

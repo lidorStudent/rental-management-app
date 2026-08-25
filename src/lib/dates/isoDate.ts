@@ -63,12 +63,24 @@ export function assertValidIsoDate(value: string, fieldName: string): void {
  * is the single place a Date object is built, and it is built in UTC with every field supplied.
  */
 export function nextDay(value: IsoDate): IsoDate {
+  return addDays(value, 1);
+}
+
+/**
+ * A number of calendar days later, used for windows such as "ending in the next sixty days". The
+ * one place a Date object is built, in UTC, with every field supplied.
+ */
+export function addDays(value: IsoDate, dayCount: number): IsoDate {
   assertValidIsoDate(value, "The date");
+
+  if (!Number.isInteger(dayCount)) {
+    throw new Error(`A number of days must be whole, and this one is ${dayCount}.`);
+  }
 
   const year = Number(value.slice(0, 4));
   const month = Number(value.slice(5, 7));
   const day = Number(value.slice(8, 10));
-  const theNextDay = new Date(Date.UTC(year, month - 1, day + 1));
+  const shifted = new Date(Date.UTC(year, month - 1, day + dayCount));
 
-  return theNextDay.toISOString().slice(0, 10);
+  return shifted.toISOString().slice(0, 10);
 }
