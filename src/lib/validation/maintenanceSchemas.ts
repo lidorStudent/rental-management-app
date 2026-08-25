@@ -52,3 +52,13 @@ export type SubmitMaintenanceRequestInput = z.input<typeof submitMaintenanceRequ
 export type UpdateMaintenanceRequestStatusInput = z.input<
   typeof updateMaintenanceRequestStatusSchema
 >;
+
+/**
+ * Confirming carries nothing but the request, because there is nothing for a tenant to decide: the
+ * confirmation is that it is fixed, and the moment is recorded by the server.
+ */
+export const confirmMaintenanceResolutionSchema = z.object({
+  requestId: uuidField,
+});
+
+export type ConfirmMaintenanceResolutionInput = z.input<typeof confirmMaintenanceResolutionSchema>;
