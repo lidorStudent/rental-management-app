@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { emailField, personNameField, uuidField } from "@/lib/validation/fieldSchemas";
+
 /**
  * One schema per input, imported by both the form and the server action. The form runs it for fast
  * feedback and the action runs it as the trust boundary, and because there is only one definition
@@ -16,22 +18,10 @@ const passwordSchema = z
   .regex(/[A-Z]/, "Include at least one uppercase letter.")
   .regex(/[0-9]/, "Include at least one digit.");
 
-const emailSchema = z
-  .string()
-  .min(1, "Enter an email address.")
-  .email("Enter a valid email address.")
-  .max(320, "That email address is too long.");
-
-const fullNameSchema = z
-  .string()
-  .trim()
-  .min(2, "Enter a full name.")
-  .max(120, "Use at most 120 characters.");
-
 export const registerLandlordSchema = z
   .object({
-    fullName: fullNameSchema,
-    email: emailSchema,
+    fullName: personNameField,
+    email: emailField,
     password: passwordSchema,
     confirmPassword: z.string(),
   })
@@ -41,7 +31,7 @@ export const registerLandlordSchema = z
   });
 
 export const signInSchema = z.object({
-  email: emailSchema,
+  email: emailField,
   password: z.string().min(1, "Enter your password."),
 });
 
@@ -56,13 +46,13 @@ export const changePasswordSchema = z
   });
 
 export const createTenantAccountSchema = z.object({
-  leaseId: z.string().uuid("That is not a valid lease."),
-  tenantFullName: fullNameSchema,
-  tenantEmail: emailSchema,
+  leaseId: uuidField,
+  tenantFullName: personNameField,
+  tenantEmail: emailField,
 });
 
 export const regenerateTenantPasswordSchema = z.object({
-  leaseId: z.string().uuid("That is not a valid lease."),
+  leaseId: uuidField,
 });
 
 export type RegisterLandlordInput = z.infer<typeof registerLandlordSchema>;
