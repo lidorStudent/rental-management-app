@@ -16,6 +16,7 @@ const LANDLORD_LINKS = [
   { href: "/landlord", label: "Dashboard" },
   { href: "/landlord/properties", label: "Properties" },
   { href: "/landlord/leases", label: "Leases" },
+  { href: "/landlord/rent", label: "Rent" },
   { href: "/landlord/maintenance", label: "Maintenance" },
 ];
 

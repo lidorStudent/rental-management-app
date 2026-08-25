@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
+import { LeasePaymentHistory } from "@/components/leases/LeasePaymentHistory";
+import { LeaseRentSchedule } from "@/components/leases/LeaseRentSchedule";
 import { LeaseStatusBadge } from "@/components/leases/LeaseStatusBadge";
+import { LeaseTermsPanel } from "@/components/leases/LeaseTermsPanel";
 import { TenantAccessPanel } from "@/components/leases/TenantAccessPanel";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { currentIsoDateInUtc } from "@/lib/dates/currentDate";
 import { describeLeaseLifecycle } from "@/lib/leases/describeLeaseLifecycle";
-import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
 import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
 
 /**
@@ -19,10 +23,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
  */
 export default async function LeaseDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ leaseId: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { leaseId } = await params;
+  const { page } = await searchParams;
   const supabaseClient = await createSupabaseServerClient();
 
   const { data: lease } = await supabaseClient
@@ -75,25 +82,49 @@ export default async function LeaseDetailPage({
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium">Terms</h2>
-        <dl className="divide-y rounded-md border text-sm">
-          <Row label="Runs from" value={lease.start_date} />
-          <Row label="Until, inclusive" value={lease.end_date} />
-          <Row label="Monthly rent" value={formatCentsAsCurrency(lease.rent_amount_cents)} />
-          <Row label="Rent due" value={`Day ${lease.rent_due_day} of each month`} />
-          <Row
-            label="Deposit"
-            value={
-              lease.deposit_amount_cents === 0
-                ? "None recorded"
-                : formatCentsAsCurrency(lease.deposit_amount_cents)
-            }
+        <LeaseTermsPanel
+          lease={{
+            startDate: lease.start_date,
+            endDate: lease.end_date,
+            rentAmountInAgorot: lease.rent_amount_cents,
+            depositAmountInAgorot: lease.deposit_amount_cents,
+            rentDueDay: lease.rent_due_day,
+            unitLabel: lease.units.label,
+            propertyId: lease.units.property_id,
+          }}
+        />
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-medium">Rent</h2>
+          <Link
+            href={`/landlord/leases/${lease.id}/payments/new`}
+            className="hover:bg-accent inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium"
+          >
+            Record a payment
+          </Link>
+        </div>
+        {/* Each section reads its own data behind its own boundary, so a slow ledger does not hold
+            up the terms above it. */}
+        <Suspense fallback={<TableSkeleton columnCount={6} />}>
+          <LeaseRentSchedule
+            leaseId={lease.id}
+            lease={{
+              startDate: lease.start_date,
+              endDate: lease.end_date,
+              rentAmountInAgorot: lease.rent_amount_cents,
+              rentDueDay: lease.rent_due_day,
+            }}
           />
-          <Row
-            label="Unit"
-            value={lease.units.label}
-            href={`/landlord/properties/${lease.units.property_id}`}
-          />
-        </dl>
+        </Suspense>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-medium">Payments received</h2>
+        <Suspense fallback={<TableSkeleton columnCount={6} rowCount={3} />}>
+          <LeasePaymentHistory leaseId={lease.id} page={page} />
+        </Suspense>
       </section>
 
       <section className="space-y-3">
@@ -111,23 +142,6 @@ export default async function LeaseDetailPage({
           }
         />
       </section>
-    </div>
-  );
-}
-
-function Row({ label, value, href }: { label: string; value: string; href?: string }) {
-  return (
-    <div className="flex flex-wrap justify-between gap-2 px-4 py-2.5">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium">
-        {href === undefined ? (
-          value
-        ) : (
-          <Link href={href} className="underline">
-            {value}
-          </Link>
-        )}
-      </dd>
     </div>
   );
 }
