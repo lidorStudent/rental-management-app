@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Next.js build output
+.next
+out
+next-env.d.ts
+
+# Environment variables. Real values never belong in the repository.
+.env
+.env.local
+.env.test
+.env*.local
+
+# Test output
+coverage
+playwright-report
+test-results
+blob-report
+.playwright
+
+# Deployment and tooling
+.vercel
+supabase/.temp
+*.tsbuildinfo
+
+# macOS
+.DS_Store
