@@ -342,7 +342,7 @@ account is created and is never changed by any code path in the product.
 | Properties and units | Full control of their own | No access at all |
 | Leases | Full control of their own | Read the lease they are the tenant of |
 | Rent payments | Full control of payments on their own leases | Read payments on their own lease. Never write |
-| Maintenance requests | Read all on their own leases, update status | Create on their own active lease, read their own. Cannot change status |
+| Maintenance requests | Read all on their own leases, update status | Create on their own active lease, read their own, and confirm that a resolved one was fixed. Cannot change status |
 
 ### 7.4 The policies that implement it
 
@@ -360,6 +360,7 @@ Written per table and per operation, so that each policy expresses one sentence.
 | `maintenance_requests` | `maintenance_requests_select_own`, `_update_own` | `landlord_id = auth.uid()` |
 | `maintenance_requests` | `maintenance_requests_select_as_tenant` | The request's lease has `tenant_profile_id = auth.uid()` |
 | `maintenance_requests` | `maintenance_requests_insert_as_tenant` | The target lease has `tenant_profile_id = auth.uid()` and today falls inside the lease dates |
+| `maintenance_requests` | `maintenance_requests_confirm_as_tenant` | The request is on the tenant's own lease, is resolved, and has not been confirmed. A trigger keeps the update to the confirmation column alone |
 
 A tenant has no policy at all on `properties` or `units`, which is stronger than a restrictive
 policy: there is no path that returns a row.
@@ -575,6 +576,7 @@ rental-management-app/
     │   │   ├── currentDate.ts         the only place the clock is read
     │   │   └── isoDate.ts             calendar dates as YYYY-MM-DD text
     │   ├── leases/
+    │   │   ├── describeLeaseLifecycle.ts
     │   │   ├── findConflictingLease.ts
     │   │   └── describeLeaseLifecycle.ts
     │   ├── rent/
@@ -917,8 +919,16 @@ return value and in the Auth password hash, and nowhere else.
 
 | Action | Caller | Input | Output | Specific failures |
 | --- | --- | --- | --- | --- |
-| `submitMaintenanceRequest` | Tenant | `title`, `description`, `urgency` | Redirect to `/tenant/maintenance` | No active lease today; description shorter than the minimum. The lease is resolved from the session, never submitted by the client |
-| `updateMaintenanceRequestStatus` | Landlord | `requestId`, `nextStatus` | `ActionResult` | Request not owned; the transition is not permitted from the current status |
+| `submitMaintenanceRequest` | Tenant | `title`, `description`, `urgency` | `ActionResult<{ requestId }>` | No active tenancy today, answered with the reason: none recorded yet, one that has not started, or one that has ended. Description shorter than the minimum. The lease, the landlord and the reporter all come from the session, never from the input |
+| `confirmMaintenanceRequestResolved` | Tenant | `requestId` | `ActionResult<{ requestId }>` | Request not theirs, reported as not found; request not resolved yet. Confirming twice succeeds without writing |
+| `updateMaintenanceRequestStatus` | Landlord | `requestId`, `nextStatus` | `ActionResult<{ requestId }>` | Request not owned; the transition is not permitted from the current status. Any status change clears the tenant's confirmation |
+
+Confirming is the only write a tenant has besides reporting a problem, and it reaches exactly one
+column. `maintenance_requests_confirm_as_tenant` decides which rows they may touch, and the
+`maintenance_requests_tenant_confirms_only` trigger compares the rest of the row, because a policy
+restricts rows and never columns. Adding further detail to a request afterwards is not part of this
+product: the scope boundary on messaging in the product specification rules it out, and a comment
+thread is how maintenance became unfindable in the first place.
 
 ## 14. Central business logic
 

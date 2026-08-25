@@ -358,3 +358,28 @@ read as the acting landlord, so it is subject to Row Level Security, and a landl
 else's unit sees a count of zero. That does not matter, because the delete that follows is refused by
 the same policies, which is the point of putting the boundary in the database.
 
+### 2026-08-25 - A tenant confirms a resolution, in one column
+
+Decided to add tenant_confirmed_at to maintenance_requests, so the record of a fixed problem carries
+the word of the person standing in the flat rather than only the landlord's. The alternatives were
+leaving resolution entirely to the landlord, which is what the plan had, or a comment thread, which
+the product specification rules out because a thread is how maintenance became unfindable in the
+first place. Any status change clears the confirmation, because a request that was reopened is not
+one the tenant agreed was finished.
+
+### 2026-08-25 - The confirmation is guarded by a policy and a trigger, not a policy alone
+
+Decided that maintenance_requests_confirm_as_tenant decides which rows a tenant may update, and
+maintenance_requests_tenant_confirms_only compares every other column and refuses if anything else
+moved. A policy restricts rows and never columns, so on its own it would have let a tenant rewrite
+the title of their own resolved request. Column-level grants cannot help, because the landlord and
+the tenant are the same database role. This is the same shape as profiles_role_is_immutable, which
+is already in the schema for the same reason.
+
+### 2026-08-25 - A tenant without an active tenancy gets a sentence, not an error
+
+Decided that submitMaintenanceRequest answers "no tenancy recorded yet", "your tenancy starts on X"
+or "your tenancy ended on X" rather than throwing. A tenant whose lease has ended is an ordinary
+state, not a fault: the product specification requires their history to stay reachable, and an
+error page would tell them something has broken when nothing has.
+
