@@ -220,7 +220,7 @@ Every page listed here is a server component unless the table says otherwise.
 | Route | Purpose | Data read |
 | --- | --- | --- |
 | `/tenant` | The answer to the only question most tenants have: the current period, its status, and the amount outstanding, with the lease summary underneath | Own lease, own payments |
-| `/tenant/lease` | Full lease terms: unit, address, dates, rent, due day, deposit | Own lease, unit, property |
+| `/tenant/lease` | Full lease terms: unit, address, dates, rent, due day, deposit, and the landlord's name and email | Own lease, unit, property, landlord profile |
 | `/tenant/payments` | The full schedule and every payment recorded against it | Own lease, own payments |
 | `/tenant/statement` | The same print-optimised statement page, scoped to the tenant's own lease | Own lease, own payments |
 | `/tenant/maintenance` | The tenant's own requests and their current statuses | Own requests |
@@ -339,6 +339,7 @@ account is created and is never changed by any code path in the product.
 | Data | Landlord | Tenant |
 | --- | --- | --- |
 | Own profile | Read, update own name and password | Read, update own name and password |
+| The other party on a lease | Read the tenant's profile | Read the landlord's profile |
 | Tenant profile of one of their leases | Read only | Not applicable |
 | Any other profile | None | None |
 | Properties and units | Full control of their own | No access at all |
@@ -354,6 +355,7 @@ Written per table and per operation, so that each policy expresses one sentence.
 | --- | --- | --- |
 | `profiles` | `profiles_select_own` | `id = auth.uid()` |
 | `profiles` | `profiles_select_tenant_of_own_lease` | A landlord may read a profile that is the `tenant_profile_id` of one of their leases |
+| `profiles` | `profiles_select_landlord_of_own_lease` | A tenant may read the profile named as `landlord_id` on a lease they are the tenant of, and no other |
 | `profiles` | `profiles_update_own` | `id = auth.uid()`, and the `role` column cannot be changed |
 | `properties`, `units`, `leases` | `*_select_own`, `*_insert_own`, `*_update_own`, `*_delete_own` | `landlord_id = auth.uid()` |
 | `leases` | `leases_select_as_tenant` | `tenant_profile_id = auth.uid()` |
@@ -562,6 +564,7 @@ rental-management-app/
     │   ├── payments/
     │   │   └── RentPaymentForm.tsx
     │   ├── maintenance/
+    │   │   ├── ConfirmResolutionButton.tsx
     │   │   ├── MaintenanceFilters.tsx
     │   │   ├── MaintenanceRequestForm.tsx
     │   │   ├── MaintenanceStatusBadge.tsx

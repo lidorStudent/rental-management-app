@@ -521,3 +521,20 @@ interface cannot express an illegal one. Refusing them in the action as well mea
 not rendered is not being relied on as a rule, which is the same reasoning as the rest of this
 project.
 
+### 2026-08-25 - A tenant may read their own landlord's contact details
+
+Decided to add profiles_select_landlord_of_own_lease, so the tenant portal can show who to contact.
+The landlord has been able to read their tenant's profile since the first policy migration, and the
+other direction was simply missing. It is the narrowest form of the rule: it answers for the profile
+named as landlord on a lease this tenant is the tenant of, and for no other profile. Verified by
+signing in as a tenant and finding exactly two profiles visible, their own and their landlord's.
+
+### 2026-08-25 - No tenant page takes an identifier from the URL except one
+
+Decided that the tenant portal resolves the tenancy from the session, in loadTenantLease, rather
+than from a lease id in the address. The only tenant route carrying an identifier is a single
+maintenance request, and it is not checked against the session by hand: the query runs as the tenant
+and the policy returns nothing for somebody else's request, which the page answers with the same
+not-found response as an identifier that matches nothing. Verified in a browser: the two pages are
+byte for byte identical.
+
