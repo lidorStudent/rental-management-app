@@ -31,7 +31,7 @@ export function UnitForm(props: UnitFormProps) {
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const [isSubmitting, startSubmitting] = useTransition();
   const { register, handleSubmit, setError, formState } = useForm<UnitFormValues>({
-    resolver: zodResolver(updateUnitSchema.omit({ unitId: true })),
+    resolver: zodResolver(updateUnitSchema.omit({ unitId: true }), undefined, { raw: true }),
     defaultValues: props.mode === "edit" ? props.initialValues : EMPTY_UNIT,
   });
 

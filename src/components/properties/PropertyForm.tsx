@@ -35,7 +35,7 @@ export function PropertyForm(props: PropertyFormProps) {
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const [isSubmitting, startSubmitting] = useTransition();
   const { register, handleSubmit, setError, formState } = useForm<CreatePropertyInput>({
-    resolver: zodResolver(createPropertySchema),
+    resolver: zodResolver(createPropertySchema, undefined, { raw: true }),
     defaultValues: props.mode === "edit" ? props.initialValues : EMPTY_PROPERTY,
   });
 
