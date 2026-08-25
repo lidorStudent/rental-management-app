@@ -107,6 +107,7 @@ export type Database = {
           resolved_at: string | null;
           status: Database["public"]["Enums"]["maintenance_status"];
           submitted_by: string;
+          tenant_confirmed_at: string | null;
           title: string;
           updated_at: string;
           urgency: Database["public"]["Enums"]["maintenance_urgency"];
@@ -120,6 +121,7 @@ export type Database = {
           resolved_at?: string | null;
           status?: Database["public"]["Enums"]["maintenance_status"];
           submitted_by: string;
+          tenant_confirmed_at?: string | null;
           title: string;
           updated_at?: string;
           urgency?: Database["public"]["Enums"]["maintenance_urgency"];
@@ -133,6 +135,7 @@ export type Database = {
           resolved_at?: string | null;
           status?: Database["public"]["Enums"]["maintenance_status"];
           submitted_by?: string;
+          tenant_confirmed_at?: string | null;
           title?: string;
           updated_at?: string;
           urgency?: Database["public"]["Enums"]["maintenance_urgency"];
