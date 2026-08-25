@@ -243,3 +243,48 @@ another service; getting any of it wrong produces accounts that exist but cannot
 also lets the seed be idempotent, target either project from an environment variable, and refuse to
 run against production without an explicit flag.
 
+### 2026-08-25 - The role is read from the profiles table, never from the token
+
+Decided that both the proxy and getSignedInProfile read the role out of public.profiles, at the cost
+of one primary-key lookup per request. The alternative was reading it from the JWT's user metadata,
+which is free because the token is already decoded. A signed-in user can rewrite their own user
+metadata through the Auth API and cannot rewrite their profile row, so the free answer is the one an
+attacker controls. For the same reason every check uses auth.getUser(), which verifies the token
+with the Auth service, rather than auth.getSession(), which only decodes the cookie.
+
+### 2026-08-25 - There is no public landing page
+
+Decided that every route requires a session except /login and /register, with / redirecting rather
+than describing the product. The alternative was a marketing-style landing page, as the technical
+plan first assumed. A landing page is a second public surface to reason about for a product nobody
+discovers by browsing: every user either registers as a landlord or is handed an account.
+
+### 2026-08-25 - Email confirmation is off, and the password policy lives in config.toml
+
+Decided to disable email confirmation on both Supabase projects and to require ten characters with
+mixed case and a digit, pushing both settings from supabase/config.toml with supabase config push.
+Confirmation had to go because there is no email service in this project, so a landlord who
+registered could never confirm and never sign in. Putting the policy in config.toml rather than
+clicking it in the dashboard keeps the two projects identical and keeps the setting in the
+repository, where the Zod schema that mirrors it can be read next to it.
+
+### 2026-08-25 - The service role client is fenced off with the server-only package
+
+Decided to add the server-only package and import it at the top of adminClient.ts, temporaryPassword
+and the authentication helpers. The alternative was relying on discipline and code review. Importing
+one of those files into a client component is now a build error rather than a leak nobody notices,
+which is the right failure mode for the one key that bypasses Row Level Security.
+
+### 2026-08-25 - The middleware file is src/proxy.ts
+
+Decided to use Next.js 16's proxy file convention rather than the deprecated middleware one, and to
+place it inside src/ because that is where Next looks in a project with a src directory. The build
+warns about the old name, and the first attempt at this phase put middleware.ts in the repository
+root, where Next silently ignored it and every guard appeared to pass while protecting nothing.
+
+### 2026-08-25 - The Next.js agent block in CLAUDE.md is committed
+
+Decided to commit the nextjs-agent-rules block that next dev appends to CLAUDE.md. The alternative
+was deleting it after each run. The generator re-adds it every time the dev server starts, so
+deleting it produces a permanently dirty working tree; committing it keeps git status meaningful.
+

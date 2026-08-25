@@ -186,7 +186,7 @@ Every page listed here is a server component unless the table says otherwise.
 
 | Route | Purpose | Who reaches it |
 | --- | --- | --- |
-| `/` | States what the product does and links to sign in and register. Redirects a signed-in user to their own area | Anyone |
+| `/` | Not a landing page. A signed-out visitor is sent to `/login` by the middleware, and a signed-in one is sent to their own area | Anyone |
 | `/login` | Email and password sign in for both roles | Signed-out users |
 | `/register` | Landlord registration. Tenants cannot register here; they are created by their landlord (P1) | Signed-out users |
 | `/change-password` | Sets a new password. Forced for any profile with `must_change_password` set, and reachable voluntarily afterwards | Any signed-in user |
@@ -258,9 +258,9 @@ That is a finding, not an omission, and it follows from product decisions alread
 | Public read API for another client | There is no other client |
 
 If any of those five ever became true, the corresponding route handler would be added and this table
-is where the reason would be recorded. `middleware.ts` also runs on every request, but middleware is
-not a route handler: it refreshes the Supabase session cookie and redirects unauthenticated or
-wrong-role requests before a page renders.
+is where the reason would be recorded. `src/proxy.ts` also runs on every request, but the proxy file
+(Next.js 16's renamed middleware convention) is not a route handler: it refreshes the Supabase
+session cookie and redirects unauthenticated or wrong-role requests before a page renders.
 
 ### 5.3 The actions themselves
 
@@ -275,7 +275,7 @@ share one shape, described in section 13.1.
 A landlord opens `/landlord/leases/[leaseId]`.
 
 1. The browser sends a GET request carrying the Supabase session cookie.
-2. `middleware.ts` runs. It creates a Supabase server client bound to the request cookies, refreshes
+2. `src/proxy.ts` runs, which is Next.js 16's renamed middleware convention. It creates a Supabase server client bound to the request cookies, refreshes
    the session if the access token is close to expiry, writes any refreshed cookie back onto the
    response, and lets the request continue. If there is no session it redirects to `/login`.
 3. The `/landlord` layout, a server component, loads the signed-in profile and checks that the role
@@ -431,7 +431,6 @@ any email service, any component library beyond the copied shadcn source, any da
 rental-management-app/
 ├── CLAUDE.md
 ├── README.md                          local run instructions and env var explanation
-├── middleware.ts                      session refresh and area guards
 ├── components.json                    shadcn generator config, aliases cn to lib/classNames
 ├── next.config.ts
 ├── tailwind.config.ts
@@ -461,6 +460,7 @@ rental-management-app/
 │   ├── lease-overlap-is-rejected.spec.ts
 │   └── tenant-onboarding.spec.ts
 └── src/
+    ├── proxy.ts                        session refresh and the area guards
     ├── app/
     │   ├── layout.tsx
     │   ├── page.tsx
@@ -519,8 +519,13 @@ rental-management-app/
     │   ├── layout/
     │   │   ├── AreaNavigation.tsx
     │   │   └── SignOutButton.tsx
+    │   ├── authentication/
+    │   │   ├── ChangePasswordForm.tsx
+    │   │   ├── RegisterLandlordForm.tsx
+    │   │   └── SignInForm.tsx
     │   ├── shared/
     │   │   ├── EmptyState.tsx
+    │   │   ├── FieldError.tsx
     │   │   ├── FormErrorSummary.tsx
     │   │   ├── PageHeader.tsx
     │   │   ├── MoneyAmount.tsx
@@ -554,12 +559,16 @@ rental-management-app/
     │       └── LeasesEndingSoonList.tsx
     ├── lib/
     │   ├── supabase/
+    │   │   ├── environment.ts         the two public values, read with a useful failure
     │   │   ├── serverClient.ts        for server components and server actions
     │   │   ├── browserClient.ts       session only, never application data
     │   │   ├── adminClient.ts         service role, one caller only
     │   │   └── middlewareClient.ts    cookie refresh inside middleware
     │   ├── authentication/
+    │   │   ├── authenticationErrors.ts
     │   │   ├── getSignedInProfile.ts
+    │   │   ├── homePathForRole.ts
+    │   │   ├── redirectDestination.ts
     │   │   ├── requireLandlordProfile.ts
     │   │   └── requireTenantProfile.ts
     │   ├── leases/
@@ -602,7 +611,7 @@ Files that do the same job have the same shape, so learning one teaches all of t
 | Shape | Structure | Files that follow it |
 | --- | --- | --- |
 | **List page** | Server component. Loads rows, renders `PageHeader` with a single primary action, then either the list component or `EmptyState`. Filters read from `searchParams` | Properties, leases, maintenance, payments |
-| **Form component** | Client component. `react-hook-form` with `zodResolver` against the shared schema, `FormErrorSummary` at the top, `SubmitButton` reading `useFormStatus`, calls one server action, handles the returned result | Every form in the product |
+| **Form component** | Client component. `react-hook-form` with `zodResolver` against the shared schema, `FormErrorSummary` at the top, `FieldError` under each field, `SubmitButton` taking the transition's pending state, calls one server action, handles the returned result | Every form in the product |
 | **Server action** | `"use server"`, parse input with Zod, resolve the profile from the session, re-check ownership, write, `revalidatePath`, return `ActionResult` | Every action in section 13 |
 | **Detail page** | Server component. Loads one row by id, calls `notFound()` if the query returns nothing, renders panels and the forms that act on it | Property, unit, lease, request |
 
