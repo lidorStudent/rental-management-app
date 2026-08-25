@@ -327,3 +327,34 @@ anywhere in the data model: the product records tenancies and money, and the lan
 temporary password on through whatever channel they already use. Adding a phone column would be a
 migration and a new field on a form, not a normalisation rule.
 
+### 2026-08-25 - Actions return a result; they never redirect
+
+Decided that every landlord action returns an ActionResult carrying the identifier the caller needs,
+and that navigation is the calling component's decision. The technical plan originally had several
+of them redirecting. A redirect inside an action throws a control-flow exception, which makes the
+action awkward to call from anywhere but the one form it was written for, and impossible to assert on
+in a test without rendering a page.
+
+### 2026-08-25 - A lease is ended or renewed, never edited
+
+Decided against a general updateLease. Ending brings the end date forward and changes nothing else;
+renewing writes a new lease on the same unit for the same tenant. The alternative was one action
+that re-writes every field. A lease is a record of what was agreed, and a form that re-types the
+rent on a running tenancy invites exactly the quiet rewriting of history the ledger exists to
+prevent. The cost is real and recorded as a limitation: a lease typed in wrongly cannot be removed.
+
+### 2026-08-25 - Action parameters are the schema's input type, not its output
+
+Decided that every action's parameter type is z.input<typeof schema>, because a form holds the text
+a person typed and the schema is what turns "6,500.50" into 650050 agorot. Using z.infer, which is
+the output type, compiled while describing a shape no caller could actually produce. The action's
+parsed.data is the output type, and the difference between the two is where the parsing happens.
+
+### 2026-08-25 - Counting dependants before a delete is a message, not a guarantee
+
+Decided that deleteProperty and deleteUnit count the leases that would be orphaned and refuse with a
+sentence naming the number. The guarantee is still the on delete restrict foreign key: the count is
+read as the acting landlord, so it is subject to Row Level Security, and a landlord probing somebody
+else's unit sees a count of zero. That does not matter, because the delete that follows is refused by
+the same policies, which is the point of putting the boundary in the database.
+

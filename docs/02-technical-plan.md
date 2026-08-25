@@ -572,11 +572,13 @@ rental-management-app/
     │   │   ├── requireLandlordProfile.ts
     │   │   └── requireTenantProfile.ts
     │   ├── dates/
+    │   │   ├── currentDate.ts         the only place the clock is read
     │   │   └── isoDate.ts             calendar dates as YYYY-MM-DD text
     │   ├── leases/
     │   │   ├── findConflictingLease.ts
     │   │   └── describeLeaseLifecycle.ts
     │   ├── rent/
+    │   │   ├── isPeriodMonthWithinLease.ts
     │   │   ├── buildRentSchedule.ts
     │   │   ├── deriveRentStatus.ts
     │   │   └── summariseOutstandingRent.ts
@@ -836,21 +838,29 @@ export type ActionResult<TValue = undefined> =
   | { status: "error"; message: string; fieldErrors?: Record<string, string> };
 ```
 
-Every action, without exception:
+Every landlord action, without exception, in this order:
 
-1. Declares `"use server"`.
+1. Resolves the acting profile from the session, with `requireLandlordProfile`, which also refuses
+   anyone who is not a landlord. Identity is established before anything else is even parsed.
 2. Parses its input with a Zod schema from `src/lib/validation`.
-3. Resolves the acting profile from the session via `requireLandlordProfile` or
-   `requireTenantProfile`, which redirect to `/login` when there is no session and to the other area
-   when the role is wrong.
-4. Re-checks ownership of the parent row in application code.
-5. Performs the write, letting RLS and the constraints have the last word.
-6. Calls `revalidatePath` on every route whose rendered output changed.
-7. Returns `ActionResult`, or redirects on success where the user should land elsewhere.
+3. Enforces the rules that need other rows, using the pure functions in `src/lib/`, including the
+   lease overlap check before any lease is written.
+4. Performs the write, letting RLS and the constraints have the last word.
+5. Calls `revalidatePath` on every route whose rendered output changed.
+6. Returns an `ActionResult`: success carrying the identifier the caller needs, or a failure with a
+   sentence that can be displayed. Actions never redirect; navigation is the caller's decision.
+
+No action reads an owner identifier from its input. `landlord_id` and `recorded_by` always come from
+the session, and a parent row's owner is proven by reading that row as the acting user before
+anything is written to it.
 
 Every action can fail in three ways that are therefore not repeated in the tables below: **invalid
-input** returns field errors, **no session or wrong role** redirects, and **an unexpected database
-error** is logged server-side and returns a generic message.
+input** returns field errors, **no session or wrong role** is refused before parsing, and **an
+unexpected database error** is logged server-side and returns one generic sentence.
+
+A row that belongs to another landlord is invisible to these queries, so it produces the same "not
+found" result as a row that never existed. The two are indistinguishable on purpose: a different
+message would confirm that somebody else's record exists.
 
 ### 13.2 Authentication, `src/actions/authenticationActions.ts`
 
@@ -865,25 +875,25 @@ error** is logged server-side and returns a generic message.
 
 | Action | Input | Output | Specific failures |
 | --- | --- | --- | --- |
-| `createProperty` | `name`, `addressLine`, `city`, `postalCode?` | Redirect to the new property | None beyond validation |
+| `createProperty` | `name`, `addressLine`, `city`, `postalCode?` | `ActionResult<{ propertyId }>` | None beyond validation |
 | `updateProperty` | `propertyId`, same fields | `ActionResult` | Property not found or not owned, reported as not found |
-| `deleteProperty` | `propertyId` | Redirect to `/landlord/properties` | Refused when any unit has lease history, with a message naming the count |
+| `deleteProperty` | `propertyId` | `ActionResult` | Refused when any unit has lease history, with a message naming the count. Units with no history are cascaded with the property |
 
 ### 13.4 Units, `src/actions/unitActions.ts`
 
 | Action | Input | Output | Specific failures |
 | --- | --- | --- | --- |
-| `createUnit` | `propertyId`, `label`, `bedroomCount?` | Redirect to the property | Duplicate label within the property, caught as a unique violation and reported against the label field |
+| `createUnit` | `propertyId`, `label`, `bedroomCount?` | `ActionResult<{ unitId }>` | Property not owned, reported as not found. Duplicate label within the property, caught as a unique violation and reported against the label field |
 | `updateUnit` | `unitId`, `label`, `bedroomCount?` | `ActionResult` | Same duplicate-label case |
-| `deleteUnit` | `unitId` | Redirect to the property | Refused when the unit has any lease, because the ledger hangs off it |
+| `deleteUnit` | `unitId` | `ActionResult` | Refused when the unit has any lease, because the ledger hangs off it |
 
 ### 13.5 Leases, `src/actions/leaseActions.ts`
 
 | Action | Input | Output | Specific failures |
 | --- | --- | --- | --- |
-| `createLease` | `unitId`, `startDate`, `endDate`, `rentAmount`, `rentDueDay`, `depositAmount?` | Redirect to the new lease | End date not after start date; due day outside 1 to 28; **an overlapping lease on the unit, reported with the conflicting lease's dates** |
-| `updateLease` | `leaseId` and the same fields | `ActionResult` | The same three, with the overlap check excluding the lease being edited. Shortening the end date below the last paid period is allowed but warned about |
-| `deleteLease` | `leaseId` | Redirect to `/landlord/leases` | Refused when payments or maintenance requests exist, with a message naming both counts |
+| `createLease` | `unitId`, `startDate`, `endDate`, `rentAmount`, `rentDueDay`, `depositAmount?` | `ActionResult<{ leaseId }>` | Unit not owned, reported as not found; end date not after start date; due day outside 1 to 28; **an overlapping lease on the unit, reported with the conflicting lease's dates** |
+| `endLease` | `leaseId`, `endDate` | `ActionResult<{ leaseId, recordedPaymentsAfterNewEndDate }>` | Lease not owned; an end date on or before the start date; an end date that is not earlier than the current one, which would be an extension. The count of payments now beyond the end date is returned so the landlord can be told |
+| `renewLease` | `leaseId`, `startDate`, `endDate`, `rentAmount`, `rentDueDay`, `depositAmount?` | `ActionResult<{ leaseId }>` | Lease not owned; the same date rules as a creation; an overlap with the lease being renewed if the new dates start too early. The unit and the tenant are taken from the lease being renewed, never from the input |
 
 ### 13.6 Tenant accounts, `src/actions/tenantAccountActions.ts`
 
@@ -900,9 +910,8 @@ return value and in the Auth password hash, and nowhere else.
 
 | Action | Input | Output | Specific failures |
 | --- | --- | --- | --- |
-| `recordRentPayment` | `leaseId`, `periodMonth`, `amount`, `receivedOn`, `method`, `reference?` | Redirect to the lease | Lease not owned; amount not positive; received date in the future; period month outside the lease's date range |
-| `updateRentPayment` | `paymentId` and the same fields | `ActionResult` | The same, plus payment not found or not owned. This is how P4's "recorded against the wrong period" is corrected without deleting history |
-| `deleteRentPayment` | `paymentId` | Redirect to the lease | Payment not found or not owned |
+| `recordRentPayment` | `leaseId`, `periodMonth`, `amount`, `receivedOn`, `method`, `reference?` | `ActionResult<{ paymentId }>` | Lease not owned; amount not positive; received date in the future; period month outside the lease's date range |
+| `correctRentPayment` | `paymentId` and the same fields, without the lease | `ActionResult<{ paymentId }>` | The same, plus payment not found or not owned. This is how P4's "recorded against the wrong period" is corrected without deleting history. The lease cannot be changed, so a payment can never be moved onto another tenancy |
 
 ### 13.8 Maintenance, `src/actions/maintenanceRequestActions.ts`
 
@@ -1087,5 +1096,8 @@ Recorded here so they are not discovered during questioning.
   period.
 - **One tenant account per lease**, following the product specification's assumption.
 - **Rent is monthly only.** `buildRentSchedule` assumes a monthly cadence throughout.
+- **A lease cannot be deleted, and a payment cannot be deleted.** A lease recorded in error can only
+  be ended, and a payment entered in error can only be corrected. Both are records that other rows
+  point at, and both are what a dispute would be settled with, so removal is not offered.
 - **The dashboard informs a landlord who opens it.** With no email or push, an inactive landlord is
   not reached. This is the accepted consequence of the product's scope boundary on reminders.
