@@ -27,5 +27,9 @@ export const updateUnitSchema = createUnitSchema.omit({ propertyId: true }).exte
   unitId: uuidField,
 });
 
-export type CreateUnitInput = z.infer<typeof createUnitSchema>;
-export type UpdateUnitInput = z.infer<typeof updateUnitSchema>;
+export type CreateUnitInput = z.input<typeof createUnitSchema>;
+export type UpdateUnitInput = z.input<typeof updateUnitSchema>;
+
+export const deleteUnitSchema = z.object({ unitId: uuidField });
+
+export type DeleteUnitInput = z.input<typeof deleteUnitSchema>;

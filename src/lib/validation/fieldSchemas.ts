@@ -90,7 +90,7 @@ export function wholeNumberField({
   maximum: number;
   outOfRangeMessage: string;
 }) {
-  return z.coerce
+  return z
     .number({ invalid_type_error: "Enter a whole number." })
     .int("Enter a whole number.")
     .min(minimum, outOfRangeMessage)

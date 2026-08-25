@@ -55,5 +55,5 @@ export function buildUpdateRentPaymentSchema(currentDate: IsoDate) {
     .extend({ paymentId: uuidField });
 }
 
-export type RecordRentPaymentInput = z.infer<ReturnType<typeof buildRecordRentPaymentSchema>>;
-export type UpdateRentPaymentInput = z.infer<ReturnType<typeof buildUpdateRentPaymentSchema>>;
+export type RecordRentPaymentInput = z.input<ReturnType<typeof buildRecordRentPaymentSchema>>;
+export type UpdateRentPaymentInput = z.input<ReturnType<typeof buildUpdateRentPaymentSchema>>;

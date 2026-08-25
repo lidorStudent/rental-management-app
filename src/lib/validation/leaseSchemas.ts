@@ -51,9 +51,26 @@ export const createLeaseSchema = z
   .object({ unitId: uuidField, ...leaseTermsShape })
   .refine(endsAfterItStarts, endsAfterItStartsMessage);
 
-export const updateLeaseSchema = z
+export type CreateLeaseInput = z.input<typeof createLeaseSchema>;
+
+/**
+ * Ending a lease early. Only the end date moves, because everything else about a tenancy that is
+ * already running is a matter of record: the rent that was agreed, the day it falls due, and the
+ * unit it is on all stay as they were.
+ */
+export const endLeaseSchema = z.object({
+  leaseId: uuidField,
+  endDate: isoDateField,
+});
+
+/**
+ * Renewing is creating the next lease, not editing this one. The unit and the tenant are taken from
+ * the lease being renewed on the server, so they are not in this schema: a client that could name
+ * them could renew somebody else's tenancy onto its own unit.
+ */
+export const renewLeaseSchema = z
   .object({ leaseId: uuidField, ...leaseTermsShape })
   .refine(endsAfterItStarts, endsAfterItStartsMessage);
 
-export type CreateLeaseInput = z.infer<typeof createLeaseSchema>;
-export type UpdateLeaseInput = z.infer<typeof updateLeaseSchema>;
+export type EndLeaseInput = z.input<typeof endLeaseSchema>;
+export type RenewLeaseInput = z.input<typeof renewLeaseSchema>;

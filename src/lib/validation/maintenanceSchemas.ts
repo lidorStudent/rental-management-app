@@ -48,7 +48,7 @@ export const updateMaintenanceRequestStatusSchema = z.object({
   }),
 });
 
-export type SubmitMaintenanceRequestInput = z.infer<typeof submitMaintenanceRequestSchema>;
-export type UpdateMaintenanceRequestStatusInput = z.infer<
+export type SubmitMaintenanceRequestInput = z.input<typeof submitMaintenanceRequestSchema>;
+export type UpdateMaintenanceRequestStatusInput = z.input<
   typeof updateMaintenanceRequestStatusSchema
 >;

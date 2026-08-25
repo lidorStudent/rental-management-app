@@ -55,8 +55,8 @@ export const regenerateTenantPasswordSchema = z.object({
   leaseId: uuidField,
 });
 
-export type RegisterLandlordInput = z.infer<typeof registerLandlordSchema>;
-export type SignInInput = z.infer<typeof signInSchema>;
-export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
-export type CreateTenantAccountInput = z.infer<typeof createTenantAccountSchema>;
-export type RegenerateTenantPasswordInput = z.infer<typeof regenerateTenantPasswordSchema>;
+export type RegisterLandlordInput = z.input<typeof registerLandlordSchema>;
+export type SignInInput = z.input<typeof signInSchema>;
+export type ChangePasswordInput = z.input<typeof changePasswordSchema>;
+export type CreateTenantAccountInput = z.input<typeof createTenantAccountSchema>;
+export type RegenerateTenantPasswordInput = z.input<typeof regenerateTenantPasswordSchema>;

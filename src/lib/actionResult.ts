@@ -38,3 +38,22 @@ export function validationErrorResult(parseError: ZodError): ActionResult<never>
 
   return errorResult("Some of the details need correcting.", fieldErrors);
 }
+
+/**
+ * The result for a failure nobody designed for: the database is unreachable, or it refused a write
+ * for a reason the action did not anticipate.
+ *
+ * The cause is written to the server log with enough context to find it, and the caller is given one
+ * plain sentence. A Postgres message names tables, columns and constraints, and none of that is any
+ * of a browser's business.
+ */
+export function unexpectedFailureResult(
+  actionName: string,
+  failure: { code?: string; message: string } | null,
+): ActionResult<never> {
+  console.error(`${actionName} failed unexpectedly`, {
+    code: failure?.code,
+    message: failure?.message,
+  });
+  return errorResult("That could not be completed. Try again.");
+}

@@ -26,5 +26,9 @@ export const updatePropertySchema = createPropertySchema.extend({
   propertyId: uuidField,
 });
 
-export type CreatePropertyInput = z.infer<typeof createPropertySchema>;
-export type UpdatePropertyInput = z.infer<typeof updatePropertySchema>;
+export type CreatePropertyInput = z.input<typeof createPropertySchema>;
+export type UpdatePropertyInput = z.input<typeof updatePropertySchema>;
+
+export const deletePropertySchema = z.object({ propertyId: uuidField });
+
+export type DeletePropertyInput = z.input<typeof deletePropertySchema>;
