@@ -421,3 +421,27 @@ shadcn select built on a Radix popover. The lists are three to five words long, 
 is denser, and it works with a keyboard and on a phone with nothing added. A custom listbox would be
 more code to explain for a control nobody will notice.
 
+### 2026-08-25 - Occupancy is derived from tenancies, never stored on the unit
+
+Decided that whether a unit is let is worked out from its leases every time it is shown, by
+describeUnitOccupancy. The alternative was an is_occupied column updated whenever a lease is written.
+A flag is a cached answer that something has to remember to update: end a tenancy early and it is
+wrong, record one starting next month and it is wrong, and nothing tells you it is wrong. The leases
+already hold the answer. It is the same reasoning that keeps rent status and lease lifecycle
+derived.
+
+### 2026-08-25 - Deleting takes two steps and states the consequence
+
+Decided that a delete control reveals a panel naming exactly what goes with the record, then asks
+again. The alternative was window.confirm, which cannot say anything specific, cannot be styled, and
+cannot be exercised by a browser test. The panel also does the arithmetic in advance: it says how
+many units a building would take with it, and it disables the confirmation outright for a unit that
+has tenancies, so the refusal is visible before anything is clicked.
+
+### 2026-08-25 - Buildings are paginated, units are not
+
+Decided that the property list uses the paginated table and the units inside a property do not. A
+rent ledger and a maintenance list grow for as long as a tenancy lasts, and a portfolio grows as a
+landlord buys; the units in one building are fixed by the building. Page controls under a table of
+three rows are furniture, not function.
+

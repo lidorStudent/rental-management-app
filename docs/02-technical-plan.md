@@ -198,7 +198,7 @@ Every page listed here is a server component unless the table says otherwise.
 | `/landlord` | The attention dashboard (C7). Overdue periods, leases ending within sixty days, open maintenance requests, and total outstanding across the portfolio | Leases with their payments, open requests |
 | `/landlord/properties` | Every property, with unit counts | Properties, unit counts |
 | `/landlord/properties/new` | Create a property | None |
-| `/landlord/properties/[propertyId]` | One property, its units, and each unit's current lease | Property, units, current leases |
+| `/landlord/properties/[propertyId]` | One property and its units, each showing its occupancy derived from its tenancies. Units are a plain table: a building has as many as it has, and the number does not grow with time | Property, units, their leases and tenant names |
 | `/landlord/properties/[propertyId]/edit` | Edit or delete a property | Property |
 | `/landlord/properties/[propertyId]/units/new` | Add a unit to a property | Property |
 | `/landlord/units/[unitId]` | One unit, with its full lease history | Unit, leases |
@@ -540,11 +540,11 @@ rental-management-app/
     │   │   ├── TableSkeleton.tsx
     │   │   └── SubmitButton.tsx
     │   ├── properties/
-    │   │   ├── PropertyForm.tsx
-    │   │   └── PropertyList.tsx
+    │   │   ├── DeletePropertyButton.tsx
+    │   │   └── PropertyForm.tsx
     │   ├── units/
-    │   │   ├── UnitForm.tsx
-    │   │   └── UnitList.tsx
+    │   │   ├── DeleteUnitButton.tsx
+    │   │   └── UnitForm.tsx
     │   ├── leases/
     │   │   ├── LeaseForm.tsx
     │   │   ├── LeaseList.tsx
@@ -585,6 +585,7 @@ rental-management-app/
     │   │   └── isoDate.ts             calendar dates as YYYY-MM-DD text
     │   ├── leases/
     │   │   ├── describeLeaseLifecycle.ts
+    │   │   ├── describeUnitOccupancy.ts
     │   │   ├── findConflictingLease.ts
     │   │   └── describeLeaseLifecycle.ts
     │   ├── rent/
