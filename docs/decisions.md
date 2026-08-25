@@ -383,3 +383,41 @@ or "your tenancy ended on X" rather than throwing. A tenant whose lease has ende
 state, not a fault: the product specification requires their history to stay reachable, and an
 error page would tell them something has broken when nothing has.
 
+### 2026-08-25 - The two areas have separate navigations
+
+Decided on LandlordNavigation and TenantNavigation rather than one component with a list of links
+passed in. They are not the same component wearing different labels: the landlord's is four
+destinations they visit several times a week, and the tenant's is three, seen a few times a year by
+someone who has forgotten the product exists. Sharing them would mean every later change to one
+having to be reasoned about for the other.
+
+### 2026-08-25 - The paginated table is a server component and the page number lives in the URL
+
+Decided that PaginatedTable receives already-fetched rows and renders its controls as links, so the
+page number is a query parameter the server reads on the next request. The alternative was a client
+table holding the page in state and fetching as the reader moves. Nothing in this product fetches
+from the browser, and a page in the URL can be linked, bookmarked and reloaded, which a page in a
+component's state cannot.
+
+### 2026-08-25 - A page number past the end sends the reader back to the first page
+
+Decided that a list page detects PostgREST's PGRST103 and redirects to page one. PostgREST refuses a
+range starting past the last row and returns no count with the refusal, so the table would otherwise
+show its empty state and tell a tenant with a payment history that they have none. This was found by
+asking for page 99 of a three-row list.
+
+### 2026-08-25 - Form fields take what register returns
+
+Decided that TextField, TextAreaField and SelectField accept the props react-hook-form's register
+produces and forward them to the input, rather than reading the form through a context. The
+alternative, useFormContext inside each field, needs the form's type at every call site and hides
+where the field state comes from. Spreading register keeps the call site one line and the wiring
+visible.
+
+### 2026-08-25 - Selects are the browser's own
+
+Decided to use a native select for the closed lists that come from database enums, rather than the
+shadcn select built on a Radix popover. The lists are three to five words long, the native control
+is denser, and it works with a keyboard and on a phone with nothing added. A custom listbox would be
+more code to explain for a control nobody will notice.
+

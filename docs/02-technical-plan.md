@@ -518,18 +518,26 @@ rental-management-app/
     ├── components/
     │   ├── ui/                        shadcn output, unmodified
     │   ├── layout/
-    │   │   ├── AreaNavigation.tsx
+    │   │   ├── LandlordNavigation.tsx
+    │   │   ├── TenantNavigation.tsx
     │   │   └── SignOutButton.tsx
     │   ├── authentication/
     │   │   ├── ChangePasswordForm.tsx
     │   │   ├── RegisterLandlordForm.tsx
     │   │   └── SignInForm.tsx
+    │   ├── forms/                     the field set every form is built from
+    │   │   ├── SelectField.tsx
+    │   │   ├── TextAreaField.tsx
+    │   │   ├── TextField.tsx
+    │   │   └── applyServerFieldErrors.ts
     │   ├── shared/
     │   │   ├── EmptyState.tsx
     │   │   ├── FieldError.tsx
     │   │   ├── FormErrorSummary.tsx
     │   │   ├── PageHeader.tsx
-    │   │   ├── MoneyAmount.tsx
+    │   │   ├── PaginatedTable.tsx
+    │   │   ├── PanelSkeleton.tsx
+    │   │   ├── TableSkeleton.tsx
     │   │   └── SubmitButton.tsx
     │   ├── properties/
     │   │   ├── PropertyForm.tsx
@@ -586,6 +594,10 @@ rental-management-app/
     │   │   └── summariseOutstandingRent.ts
     │   ├── maintenance/
     │   │   └── allowedStatusTransitions.ts
+    │   ├── pagination/
+    │   │   ├── describePage.ts
+    │   │   ├── isPageBeyondTheEnd.ts
+    │   │   └── parsePageNumber.ts
     │   ├── money/
     │   │   ├── formatCentsAsCurrency.ts
     │   │   └── parseCurrencyInputToCents.ts
@@ -617,10 +629,11 @@ Files that do the same job have the same shape, so learning one teaches all of t
 
 | Shape | Structure | Files that follow it |
 | --- | --- | --- |
-| **List page** | Server component. Loads rows, renders `PageHeader` with a single primary action, then either the list component or `EmptyState`. Filters read from `searchParams` | Properties, leases, maintenance, payments |
+| **List page** | Server component. Reads the page number from `searchParams`, loads exactly that page of rows with its total count, renders `PageHeader` and then `PaginatedTable`, which shows `EmptyState` when the list is empty | Properties, leases, maintenance, payments |
 | **Form component** | Client component. `react-hook-form` with `zodResolver` against the shared schema, `FormErrorSummary` at the top, `FieldError` under each field, `SubmitButton` taking the transition's pending state, calls one server action, handles the returned result | Every form in the product |
 | **Server action** | `"use server"`, parse input with Zod, resolve the profile from the session, re-check ownership, write, `revalidatePath`, return `ActionResult` | Every action in section 13 |
 | **Detail page** | Server component. Loads one row by id, calls `notFound()` if the query returns nothing, renders panels and the forms that act on it | Property, unit, lease, request |
+| **Section** | Async server component behind its own `<Suspense>` boundary with a skeleton fallback, reading its own data. A slow query draws one skeleton instead of holding up the page | Dashboard panels, tenancy summary |
 
 ### 10.2 What the non-obvious components do
 
