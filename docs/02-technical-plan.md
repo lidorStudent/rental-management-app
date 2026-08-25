@@ -364,6 +364,21 @@ Written per table and per operation, so that each policy expresses one sentence.
 A tenant has no policy at all on `properties` or `units`, which is stronger than a restrictive
 policy: there is no path that returns a row.
 
+Three details of the implementation are worth stating, because the table above does not show them:
+
+- Every landlord policy also tests `current_profile_role() = 'landlord'`, so a landlord-only
+  operation is gated by role inside the database and not only by the area a page sits in.
+- Every insert and update policy carries a `with check` that re-tests the parent row's owner, so a
+  row cannot be created under, or moved into, a portfolio that is not the acting user's.
+- The tenant predicates are `security definer` functions (`is_current_tenant_lease` and its three
+  siblings). Running them as the owner means a policy never depends on another table's policies
+  being correct, and a policy on `profiles` that reads `profiles` cannot recurse. Each function is
+  scoped to `auth.uid()` internally, so running as the owner grants the caller nothing extra.
+
+`profiles.role` is additionally protected by a trigger, `profiles_role_is_immutable`, because
+`profiles_update_own` legitimately allows a user to update their own row and a policy cannot
+express "any column except this one".
+
 ### 7.5 The one place that bypasses RLS
 
 Creating a tenant's account requires the Supabase Auth admin API, which uses the service role key
@@ -439,7 +454,7 @@ rental-management-app/
 │   ├── migrations/                    <utc timestamp>_<name>.sql, applied in filename order
 │   │   ├── 20260825122011_core_schema.sql
 │   │   └── ...                        one migration per phase that changes the database
-│   └── seed.sql                       development data only, never run against production
+│   └── seed.ts                        seeds either project through the Auth admin API
 ├── e2e/
 │   ├── landlord-records-payment.spec.ts
 │   ├── tenant-sees-only-own-lease.spec.ts
