@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { AreaNavigation } from "@/components/layout/AreaNavigation";
+import { TenantNavigation } from "@/components/layout/TenantNavigation";
 import { requireTenantProfile } from "@/lib/authentication/requireTenantProfile";
 
 /** The role check for everything under /tenant, on the server. See the landlord layout. */
@@ -9,8 +9,8 @@ export default async function TenantLayout({ children }: { children: ReactNode }
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <AreaNavigation areaLabel="Tenant" signedInAs={profile.fullName} />
-      <div className="mx-auto w-full max-w-3xl flex-1 p-6">{children}</div>
+      <TenantNavigation signedInAs={profile.fullName} />
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">{children}</main>
     </div>
   );
 }
