@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -35,7 +36,15 @@ type RequestRow = {
 };
 
 const COLUMNS: readonly TableColumn<RequestRow>[] = [
-  { key: "title", header: "Problem", cell: (row) => row.title },
+  {
+    key: "title",
+    header: "Problem",
+    cell: (row) => (
+      <Link href={`/tenant/maintenance/${row.id}`} className="font-medium underline">
+        {row.title}
+      </Link>
+    ),
+  },
   { key: "reported", header: "Reported", cell: (row) => row.created_at.slice(0, 10) },
   { key: "urgency", header: "Urgency", cell: (row) => URGENCY_WORDS[row.urgency] ?? row.urgency },
   {
@@ -79,10 +88,18 @@ export default async function TenantMaintenancePage({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Problems"
-        description="What you have reported, and where each one has got to."
-      />
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <PageHeader
+          title="Problems"
+          description="What you have reported, and where each one has got to."
+        />
+        <Link
+          href="/tenant/maintenance/new"
+          className="hover:bg-accent inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium"
+        >
+          Report a problem
+        </Link>
+      </div>
 
       <PaginatedTable
         caption="Maintenance requests you have reported"

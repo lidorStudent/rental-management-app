@@ -1,8 +1,12 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { PaginatedTable, type TableColumn } from "@/components/shared/PaginatedTable";
+import { PanelSkeleton } from "@/components/shared/PanelSkeleton";
+import { TenantRentPosition } from "@/components/tenant/TenantRentPosition";
+import { loadTenantLease } from "@/components/tenant/loadTenantLease";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
 import { pageRange } from "@/lib/pagination/describePage";
 import { isPageBeyondTheEnd } from "@/lib/pagination/isPageBeyondTheEnd";
@@ -59,6 +63,7 @@ export default async function TenantPaymentsPage({
   const page = parsePageNumber(pageParameter);
   const { startIndex, endIndex } = pageRange({ page, pageSize: PAGE_SIZE });
 
+  const lease = await loadTenantLease();
   const supabaseClient = await createSupabaseServerClient();
   const {
     data: payments,
@@ -82,6 +87,12 @@ export default async function TenantPaymentsPage({
         title="Payments"
         description="Everything your landlord has recorded as received from you."
       />
+
+      {lease === null ? null : (
+        <Suspense fallback={<PanelSkeleton lineCount={2} />}>
+          <TenantRentPosition lease={lease} />
+        </Suspense>
+      )}
 
       <PaginatedTable
         caption="Rent payments recorded against your tenancy"

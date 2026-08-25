@@ -15,6 +15,7 @@ import { cn } from "@/lib/classNames";
  */
 const TENANT_LINKS = [
   { href: "/tenant", label: "Overview" },
+  { href: "/tenant/lease", label: "Lease" },
   { href: "/tenant/payments", label: "Payments" },
   { href: "/tenant/maintenance", label: "Problems" },
 ];
