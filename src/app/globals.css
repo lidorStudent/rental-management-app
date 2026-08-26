@@ -128,3 +128,23 @@
     @apply font-sans;
   }
 }
+
+/* Printing a rent statement.
+   The navigation, the range form and the print button carry print:hidden, so what is left is the
+   document itself. These rules give it margins and a white page, and stop the browser writing every
+   link's address into the text. */
+@media print {
+  @page {
+    margin: 16mm;
+  }
+
+  html,
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  a[href]::after {
+    content: "";
+  }
+}

@@ -24,7 +24,7 @@ export function TenantNavigation({ signedInAs }: { signedInAs: string }) {
   const currentPath = usePathname();
 
   return (
-    <header className="border-b">
+    <header className="border-b print:hidden">
       <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-2.5">
         <nav aria-label="Tenant" className="flex items-center gap-1">
           {TENANT_LINKS.map((link) => (
