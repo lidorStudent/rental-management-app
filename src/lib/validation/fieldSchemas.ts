@@ -98,8 +98,11 @@ export function wholeNumberField({
 }
 
 /**
- * Optional free text where an empty box and an absent value mean the same thing. Without this, a
- * cleared field would be stored as an empty string, which is a second way of saying "nothing".
+ * Optional free text where an empty box, an absent value and a null all mean the same thing.
+ *
+ * Without this, a cleared field would be stored as an empty string, which is a second way of saying
+ * "nothing". Null is the third: it is what the database holds for these columns, so a caller that
+ * has read a row and hands it back should not be told a null is the wrong type.
  */
 export function optionalTextField({
   maximum,
@@ -112,6 +115,8 @@ export function optionalTextField({
     .string()
     .trim()
     .max(maximum, tooLongMessage)
-    .optional()
-    .transform((value) => (value === undefined || value === "" ? undefined : value));
+    .nullish()
+    .transform((value) =>
+      value === undefined || value === null || value === "" ? undefined : value,
+    );
 }
