@@ -690,3 +690,18 @@ server component, which is how the rest of this application already works. It wa
 the real cookie on the deployed site while writing the security document, after two documents had
 already claimed the flag was set; both were corrected.
 
+
+### 2026-08-26 - The scale document was measured rather than reasoned, and the two defects it found were left for their own phase
+
+Decided to build synthetic portfolios in the test project, time the real queries against them as an
+ordinary signed-in user, and write docs/06-scale.md from those numbers. The alternative was to
+reason from the schema, which is what a scale document usually is. Measuring found two things
+reasoning had missed: the row-level security on rent_payments cannot be answered from an index, so a
+query that supplies no filter of its own reads the whole table (566 ms against 100 ms for the same
+288 rows), and the deployed functions run in Washington while the database is in Frankfurt.
+
+Decided to record both as findings with their measurements rather than fix them in a documentation
+phase. The tenant payment list and the dashboard's collected-this-month read are two-line changes
+with measured before and after figures; lease_rent_summary needs its definition changed and a
+measurement of its own. Changing behaviour while writing the document that describes the behaviour
+would leave the document describing something that was never tested.
