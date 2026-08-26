@@ -189,6 +189,12 @@ set, so the browser tests run against the test project even though `.env.local` 
 Four suites, run separately on purpose: the fast one stays offline and finishes in seconds, and the
 ones that need a database or a browser are asked for by name.
 
+**One caution before you run them back to back.** Supabase throttles authentication: thirty sign-in
+or sign-up requests per five minutes per IP address, set in `supabase/config.toml`. The database
+suite signs in twelve times and the browser suite twenty-three, so running both inside five minutes
+can exceed it and produce timeouts that look like product failures and are not. Leave a few minutes
+between them, or run them one at a time.
+
 ### `npm test` - unit and component tests
 
 343 tests in 31 files, no network, about three seconds. Vitest, with React Testing Library for the
