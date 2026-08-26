@@ -247,11 +247,18 @@ API for another client, or a response that is a file rather than a page.
 
 ### 5.2 Which route handlers this project needs
 
-None.
+One: `GET /api/health`.
 
-That is a finding, not an omission, and it follows from product decisions already made:
+It is the case the rule describes: something that is not our own React tree speaking HTTP to us. A
+scheduled GitHub Actions workflow calls it once a day, and it answers with JSON. It exists because a
+Supabase project on the free plan is paused after about a week without activity, so it makes a real
+query against Postgres rather than answering statically. It needs no session, exposes nothing, and
+is the only path the proxy lets through unauthenticated. See
+[docs/04-deployment.md](04-deployment.md).
 
-| Case that would need a route handler | Why it does not arise here |
+Everything else the product does is a page render or a form submission, so nothing else is one:
+
+| Case that would otherwise need a route handler | Why it does not arise here |
 | --- | --- |
 | Payment provider webhook | The product records payments and never processes them, so no provider ever calls us |
 | Email or magic-link callback | There is no email service anywhere in this project. Sign-in is email and password against Supabase Auth, and the session cookie is set inside a server action |
@@ -260,7 +267,7 @@ That is a finding, not an omission, and it follows from product decisions alread
 | Public read API for another client | There is no other client |
 
 If any of those five ever became true, the corresponding route handler would be added and this table
-is where the reason would be recorded. `src/proxy.ts` also runs on every request, but the proxy file
+is where the reason would be recorded, as the health check is recorded above it. `src/proxy.ts` also runs on every request, but the proxy file
 (Next.js 16's renamed middleware convention) is not a route handler: it refreshes the Supabase
 session cookie and redirects unauthenticated or wrong-role requests before a page renders.
 
@@ -445,14 +452,17 @@ rental-management-app/
 ├── vitest.setup.ts                    unmounts each rendered component, adds the DOM matchers
 ├── playwright.config.ts
 ├── .env.example                       every variable, with an explanation and no values
+├── .github/workflows/health-check.yml  calls the health endpoint daily
 ├── docs/
 │   ├── 00-course-requirements.md
 │   ├── 01-product-specification.md
 │   ├── 02-technical-plan.md
 │   ├── 03-test-specification.md
-│   ├── 04-security.md
-│   ├── 05-scale.md
-│   ├── 06-technical-explainer.md
+│   ├── 04-deployment.md
+│   ├── 05-security.md
+│   ├── 06-scale.md
+│   ├── 07-technical-explainer.md
+│   ├── learning/                      study notes, one per subject
 │   └── decisions.md
 ├── supabase/
 │   ├── README.md                      how a migration reaches each of the two projects
@@ -470,6 +480,7 @@ rental-management-app/
 │   └── tenantIsolation.test.ts
 ├── e2e/                               browser tests, run with npm run test:e2e
 │   ├── support/portfolio.ts           builds and removes a test's own landlord and portfolio
+│   ├── deploymentSmoke.spec.ts        read only, against a deployed address
 │   ├── landlordGoldenPath.spec.ts
 │   ├── tenantGoldenPath.spec.ts
 │   └── negativePaths.spec.ts
@@ -482,7 +493,8 @@ rental-management-app/
     │   ├── error.tsx
     │   ├── not-found.tsx
     │   ├── globals.css
-    │   ├── login/page.tsx
+    │   ├── api/health/route.ts             the one route handler: a scheduler asks whether the database is awake
+│   ├── login/page.tsx
     │   ├── register/page.tsx
     │   ├── change-password/page.tsx
     │   ├── landlord/

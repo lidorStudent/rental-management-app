@@ -647,3 +647,28 @@ running the manual screen reader check, which is the reason that check is on the
 in the suite noticed, because the message was on the page and visible. It is asserted now, through
 the accessible description of a field, in all three field types.
 
+### 2026-08-26 - There is exactly one route handler, and it queries the database
+
+Decided that /api/health is a route handler rather than a page, and that it makes a real query
+rather than answering statically. The rule recorded in the technical plan is that a route handler
+exists when something other than our own React tree speaks HTTP to us, and a scheduled workflow is
+exactly that. It queries because the point is to keep the Supabase project from being paused for
+inactivity, and a static answer would keep Vercel warm while the database went to sleep. It is the
+only path the proxy lets through unauthenticated, and it returns no data at all.
+
+### 2026-08-26 - No external uptime monitor
+
+Decided against a third layer. The daily workflow runs against a seven-day pause window, so it would
+take a week of consecutive missed runs to matter, and GitHub only disables scheduled workflows in a
+repository with no activity for sixty days. A monitor would add an account, a browser signup and
+another thing to explain, for a risk the workflow already covers. If the project were ever to sit
+untouched for two months, that is the decision to revisit.
+
+### 2026-08-26 - The deployment smoke check is read only and opt in
+
+Decided that e2e/deploymentSmoke.spec.ts skips unless PLAYWRIGHT_BASE_URL names an address, and that
+it only reads. It runs against the project real people are shown, so it signs in as the seeded
+accounts and looks at pages rather than creating a portfolio the way the rest of the browser suite
+does. Keeping it in the repository rather than typing it out after each deployment means the check
+after a deployment is the same check every time.
+
