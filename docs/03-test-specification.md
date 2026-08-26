@@ -514,7 +514,7 @@ PLAYWRIGHT_BASE_URL=https://rental-management-app-wine.vercel.app npx playwright
 | Core features | Section 1, CORE-01 to CORE-27 |
 | Invalid inputs | Section 2, INV-01 to INV-52, every field of every form |
 | Central business processes | Section 3, PROC-01 to PROC-18: lease lifecycle, rent lifecycle with a month going overdue, maintenance lifecycle |
-| Permission differences between user types | Section 4, PERM-01 to PERM-31 |
+| Permission differences between user types | Section 4, PERM-01 to PERM-35 |
 | Database | Section 5, DB-01 to DB-22: constraints, the overlap guarantee, cascades |
 | Edge cases | Section 6, EDGE-01 to EDGE-18 |
 | Basic UI | Section 7, UI-01 to UI-11 |

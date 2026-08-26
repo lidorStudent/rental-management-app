@@ -332,9 +332,9 @@ chooses rows; it does not choose columns.
 
 | Suite | Command | Size | What it proves |
 | --- | --- | --- | --- |
-| Unit and component | `npm test` | 325 tests, 29 files, ~3s | The derived rules are right, including their boundaries: the day a tenancy ends is still occupied, a partial payment is partial and not overdue until its due day passes, money parses without floating point. Then that forms render their fields, announce their errors to a screen reader, and put a server-side error next to the right input |
-| Database and permissions | `npm run test:db` | 98 tests, 5 files, ~25s | That the policies and constraints actually hold, against a real Postgres, as real signed-in users |
-| End to end | `npm run test:e2e` | 15 tests, ~2min | That the whole processes work in a browser: the landlord's golden path, the tenant's, and the negative paths - an overlapping tenancy refused, invalid forms, a tenant sent out of a landlord route, every protected route while signed out |
+| Unit and component | `npm test` | 343 tests, 31 files, ~3s | The derived rules are right, including their boundaries: the day a tenancy ends is still occupied, a partial payment is partial and not overdue until its due day passes, money parses without floating point. Then that forms render their fields, announce their errors to a screen reader, and put a server-side error next to the right input |
+| Database and permissions | `npm run test:db` | 118 tests, 6 files, ~30s | That the policies and constraints actually hold, against a real Postgres, as real signed-in users |
+| End to end | `npm run test:e2e` | 22 tests, ~3min | That the whole processes work in a browser: the landlord's golden path, the tenant's, and the negative paths - an overlapping tenancy refused, invalid forms, a tenant sent out of a landlord route, every protected route while signed out |
 | Deployment smoke | `PLAYWRIGHT_BASE_URL=… npx playwright test e2e/deploymentSmoke.spec.ts` | 5 tests | That the deployed thing works at its real address, read only. Skipped in an ordinary run for the reasons recorded under MAN-05 in the test specification |
 
 ### Why the authorisation tests attack the database, not the interface

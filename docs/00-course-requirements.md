@@ -15,18 +15,18 @@ Ten items must be submitted.
 - [x] 4. Technical planning document.
 - [x] 5. Test specification document.
 - [x] 6. Test code.
-- [ ] 7. Basic scale document.
-- [ ] 8. Basic security document.
-- [ ] 9. Local run instructions, including an explanation of every environment variable.
-- [ ] 10. Presentation deck for a 10 to 15 minute presentation.
+- [x] 7. Basic scale document.
+- [x] 8. Basic security document.
+- [x] 9. Local run instructions, including an explanation of every environment variable.
+- [x] 10. Presentation deck for a 10 to 15 minute presentation.
 
 ## 2. Required Stack
 
-- [ ] Next.js.
-- [ ] TypeScript.
-- [ ] Supabase for database and authentication.
-- [ ] Vercel for deployment.
-- [ ] The application is reachable at a public URL, not only on localhost.
+- [x] Next.js.
+- [x] TypeScript.
+- [x] Supabase for database and authentication.
+- [x] Vercel for deployment.
+- [x] The application is reachable at a public URL, not only on localhost.
 
 ## 3. Product Specification Document
 
@@ -79,59 +79,59 @@ acceptable where automation is not appropriate.
 
 Must cover:
 
-- [ ] How authentication works.
-- [ ] How authorisation works.
-- [ ] Which actions require login.
-- [ ] How one user is prevented from reaching another user's data.
-- [ ] How inputs are validated.
-- [ ] How API calls are protected.
-- [ ] How secrets such as API keys are stored.
-- [ ] Which risks remain.
+- [x] How authentication works.
+- [x] How authorisation works.
+- [x] Which actions require login.
+- [x] How one user is prevented from reaching another user's data.
+- [x] How inputs are validated.
+- [x] How API calls are protected.
+- [x] How secrets such as API keys are stored.
+- [x] Which risks remain.
 
 ## 7. Scale Document
 
 Must cover:
 
-- [ ] Behaviour at tens or hundreds of users.
-- [ ] Which queries are heavy.
-- [ ] Whether indexes are needed.
-- [ ] How unnecessary data loading is avoided.
-- [ ] Correct use of pagination.
-- [ ] Separation of client and server responsibilities.
-- [ ] Current limitations.
-- [ ] What would be improved for larger scale.
+- [x] Behaviour at tens or hundreds of users.
+- [x] Which queries are heavy.
+- [x] Whether indexes are needed.
+- [x] How unnecessary data loading is avoided.
+- [x] Correct use of pagination.
+- [x] Separation of client and server responsibilities.
+- [x] Current limitations.
+- [x] What would be improved for larger scale.
 
 ## 8. Internal Technical Explainer (recommended by the course)
 
 Must cover:
 
-- [ ] The architecture.
-- [ ] The key files.
-- [ ] The code behind the flows.
-- [ ] The database.
-- [ ] The tests.
-- [ ] The technical decisions.
+- [x] The architecture.
+- [x] The key files.
+- [x] The code behind the flows.
+- [x] The database.
+- [x] The tests.
+- [x] The technical decisions.
 
 ## 9. Presentation
 
 Must cover:
 
-- [ ] What the product is.
-- [ ] The problem.
-- [ ] The users.
-- [ ] The business value.
-- [ ] How the system is built.
-- [ ] The architecture.
-- [ ] The database.
-- [ ] The central flows.
-- [ ] The tests.
-- [ ] Scale thinking.
-- [ ] Security thinking.
-- [ ] What would be improved with more time.
+- [x] What the product is.
+- [x] The problem.
+- [x] The users.
+- [x] The business value.
+- [x] How the system is built.
+- [x] The architecture.
+- [x] The database.
+- [x] The central flows.
+- [x] The tests.
+- [x] Scale thinking.
+- [x] Security thinking.
+- [x] What would be improved with more time.
 
 ## 10. Grading Priority
 
-- [ ] Quality of thinking is graded above feature count. A small, clear, useful, secure, well-built
+- [x] Quality of thinking is graded above feature count. A small, clear, useful, secure, well-built
       product beats a large, messy, unstable one.
-- [ ] The student must understand the code deeply enough to explain every library, component,
+- [x] The student must understand the code deeply enough to explain every library, component,
       method, and technical decision under questioning.

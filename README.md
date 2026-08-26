@@ -191,7 +191,7 @@ ones that need a database or a browser are asked for by name.
 
 ### `npm test` - unit and component tests
 
-325 tests in 29 files, no network, about three seconds. Vitest, with React Testing Library for the
+343 tests in 31 files, no network, about three seconds. Vitest, with React Testing Library for the
 components. They live beside what they test, as `<name>.test.ts` next to `<name>.ts`.
 
 Covers the derived rules, which is where the product's thinking lives: the rent schedule and the
@@ -202,7 +202,7 @@ a submit button disables itself while a submission is in flight.
 
 ### `npm run test:db` - permission and database tests
 
-98 tests in 5 files, about 25 seconds, against the **test** Supabase project with real credentials
+118 tests in 6 files, about 30 seconds, against the **test** Supabase project with real credentials
 and real policies. Refuses to run if `.env.test` points at the deployed project.
 
 | File | Covers |
@@ -212,10 +212,11 @@ and real policies. Refuses to run if `.env.test` points at the deployed project.
 | `tests/anonymousAccess.test.ts` | The anonymous key, which is in the browser bundle, reads and writes nothing anywhere |
 | `tests/serverActions.test.ts` | Actions refuse the wrong role, answer another landlord's identifier exactly as they answer one that does not exist, and take ownership from the session rather than from the payload |
 | `tests/domainInvariants.test.ts` | The five domain invariants at the database level, including the exclusion constraint that refuses overlapping tenancies |
+| `tests/schemaGuarantees.test.ts` | What the schema refuses on its own: the check constraints, the per-building uniqueness of a flat label, every cascade and restrict, and the two triggers |
 
 ### `npm run test:e2e` - browser tests
 
-15 tests in a real Chromium against the test project, about two minutes. Playwright starts the dev
+22 tests in a real Chromium against the test project, about three minutes. Playwright starts the dev
 server itself. Each test builds its own landlord, building and tenant through the admin API and
 removes them afterwards, so the suite can be run twice in a row in any order.
 
@@ -225,6 +226,7 @@ removes them afterwards, so the suite can be run twice in a row in any order.
 | `e2e/tenantGoldenPath.spec.ts` | Arrive with a temporary password, be forced to change it, find the tenancy and the ledger, report a problem, confirm the repair |
 | `e2e/negativePaths.spec.ts` | Overlapping tenancies, invalid forms, a tenant reaching for a landlord route, one tenant naming another's record, every protected route while signed out |
 | `e2e/sessionCookie.spec.ts` | The session cookie is HTTP-only and unreadable by page JavaScript, sign-out ends it, and an expired access token is refreshed rather than signing the user out |
+| `e2e/interfaceStates.spec.ts` | The current link is marked, a delete states its consequence before acting, and a tenancy that has ended or has not started explains itself |
 | `e2e/deploymentSmoke.spec.ts` | Skipped unless `PLAYWRIGHT_BASE_URL` is set. Read-only checks against a deployed address, including the cookie's `secure` flag, which only turns on in a production build |
 
 Against a deployed address:

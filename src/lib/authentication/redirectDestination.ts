@@ -3,8 +3,8 @@ import type { Database } from "@/types/database";
 
 type UserRole = Database["public"]["Enums"]["user_role"];
 
-export const PUBLIC_PATHS = ["/login", "/register"];
-export const CHANGE_PASSWORD_PATH = "/change-password";
+const PUBLIC_PATHS = ["/login", "/register"];
+const CHANGE_PASSWORD_PATH = "/change-password";
 
 export function isPublicPath(path: string): boolean {
   return PUBLIC_PATHS.includes(path);

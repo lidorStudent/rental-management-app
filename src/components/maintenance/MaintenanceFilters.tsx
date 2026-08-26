@@ -6,8 +6,8 @@ import { cn } from "@/lib/classNames";
  * Two filters, both in the URL: what state a problem is in and how urgent it is. Links rather than
  * a control with state, so a landlord can bookmark "everything urgent and still open".
  */
-export const STATUS_FILTERS = ["all", "open", "resolved"] as const;
-export const URGENCY_FILTERS = ["all", "urgent", "normal", "low"] as const;
+const STATUS_FILTERS = ["all", "open", "resolved"] as const;
+const URGENCY_FILTERS = ["all", "urgent", "normal", "low"] as const;
 
 export type MaintenanceStatusFilter = (typeof STATUS_FILTERS)[number];
 export type MaintenanceUrgencyFilter = (typeof URGENCY_FILTERS)[number];

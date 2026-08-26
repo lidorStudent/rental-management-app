@@ -166,6 +166,7 @@ and throws before a single test executes.
 | `tests/anonymousAccess.test.ts` | 12 | The anonymous key, which is in the browser bundle, selects nothing, inserts nothing, updates nothing and deletes nothing anywhere |
 | `tests/serverActions.test.ts` | 15 | Actions refuse the wrong role, answer another landlord's identifier exactly as they answer one that does not exist, and stamp ownership from the session rather than from the payload |
 | `tests/domainInvariants.test.ts` | 13 | The five domain invariants, including the overlap exclusion constraint that Postgres enforces regardless of application code |
+| `tests/schemaGuarantees.test.ts` | 20 | What the schema refuses with the application out of the way: the check constraints, the per-building uniqueness of a flat label, every cascade and restrict the foreign keys declare, and the two triggers |
 
 A refused authorisation and a missing record are deliberately indistinguishable to the caller.
 Actions read through the user's own client, so somebody else's row comes back as no rows, and the

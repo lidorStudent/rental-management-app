@@ -7,7 +7,7 @@ import { cn } from "@/lib/classNames";
  * who wants to look at what is ending can bookmark it, and the server reads it back on the next
  * request. There is no client state here at all.
  */
-export const LEASE_STATUS_FILTERS = ["all", "active", "upcoming", "ended"] as const;
+const LEASE_STATUS_FILTERS = ["all", "active", "upcoming", "ended"] as const;
 
 export type LeaseStatusFilter = (typeof LEASE_STATUS_FILTERS)[number];
 

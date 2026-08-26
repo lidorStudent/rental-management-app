@@ -444,7 +444,6 @@ rental-management-app/
 ├── README.md                          local run instructions and env var explanation
 ├── components.json                    shadcn generator config, aliases cn to lib/classNames
 ├── next.config.ts
-├── tailwind.config.ts
 ├── tsconfig.json
 ├── vitest.config.mts
 ├── vitest.database.config.mts         the suite that runs against the test Supabase project
@@ -604,7 +603,6 @@ rental-management-app/
     │   ├── supabase/
     │   │   ├── environment.ts         the two public values, read with a useful failure
     │   │   ├── serverClient.ts        for server components and server actions
-    │   │   ├── browserClient.ts       session only, never application data
     │   │   ├── adminClient.ts         service role, one caller only
     │   │   └── middlewareClient.ts    cookie refresh inside middleware
     │   ├── authentication/

@@ -139,9 +139,9 @@ const slides = [
   bulletSlide({
     title: "The tests",
     bullets: [
-      "325 unit and component tests — the rules at their boundaries",
-      "98 permission and database tests — against a real Postgres",
-      "15 end-to-end tests — whole processes in a browser",
+      "343 unit and component tests — the rules at their boundaries",
+      "118 permission and database tests — against a real Postgres",
+      "22 end-to-end tests — whole processes in a browser",
       "5 documented manual checks — print, layout, screen reader",
     ],
     closing: "The permission tests attack the database, not the interface.",
@@ -162,7 +162,7 @@ const slides = [
     title: "Security",
     bullets: [
       "Session in one HTTP-only cookie, against the library default",
-      "29 Row Level Security policies, proved by 98 tests",
+      "29 Row Level Security policies, proved by 118 tests",
       "Validation always runs on the server",
       "Service role key: one caller, unreachable from the browser",
     ],
