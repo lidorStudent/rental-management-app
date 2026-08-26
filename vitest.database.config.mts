@@ -1,6 +1,8 @@
-import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+
 import { defineConfig } from "vitest/config";
+
+import { readEnvironmentFile } from "./tests/support/environmentFile";
 
 /**
  * The suite that runs against a real Postgres, because policies and constraints cannot be proved
@@ -10,28 +12,6 @@ import { defineConfig } from "vitest/config";
  * The connection details come from .env.test and from nowhere else. Vite only exposes variables it
  * recognises, so the file is read here and handed to the tests explicitly.
  */
-function readEnvironmentFile(path: string): Record<string, string> {
-  let contents: string;
-  try {
-    contents = readFileSync(path, "utf8");
-  } catch {
-    throw new Error(
-      `${path} was not found. The database tests need the test Supabase project's details; copy .env.example and fill them in.`,
-    );
-  }
-
-  const values: Record<string, string> = {};
-  for (const line of contents.split("\n")) {
-    const trimmed = line.trim();
-    if (trimmed === "" || trimmed.startsWith("#") || !trimmed.includes("=")) {
-      continue;
-    }
-    const [name, ...rest] = trimmed.split("=");
-    values[name] = rest.join("=");
-  }
-  return values;
-}
-
 export default defineConfig({
   test: {
     environment: "node",

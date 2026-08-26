@@ -4,12 +4,9 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { cn } from "@/lib/classNames";
 import { currentIsoDateInUtc } from "@/lib/dates/currentDate";
 import { addDays } from "@/lib/dates/isoDate";
-import { describeLeaseLifecycle } from "@/lib/leases/describeLeaseLifecycle";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
-import {
-  summariseLeaseRentFromTotal,
-  totalArrearsInAgorot,
-} from "@/lib/rent/summariseOutstandingRent";
+import { describeTenancyRent } from "@/lib/rent/describeTenancyRent";
+import { totalArrearsInAgorot } from "@/lib/rent/summariseOutstandingRent";
 import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
 import { firstDayOfTheMonthOf } from "@/lib/rent/isPeriodMonthWithinLease";
 
@@ -70,20 +67,13 @@ export async function DashboardOverview() {
     );
   }
 
-  const summaries = (tenancies.data ?? []).map((tenancy) => describeTenancy(tenancy, today));
+  const summaries = (tenancies.data ?? []).map((tenancy) => describeTenancyRent(tenancy, today));
 
   const arrears = totalArrearsInAgorot(summaries.map((tenancy) => tenancy.summary));
 
   // One active tenancy means one occupied unit: the exclusion constraint on leases makes two
   // overlapping tenancies on a unit impossible, so counting the active ones counts the units.
-  const occupiedUnits = summaries.filter(
-    (tenancy) =>
-      describeLeaseLifecycle({
-        startDate: tenancy.startDate,
-        endDate: tenancy.endDate,
-        currentDate: today,
-      }) === "active",
-  ).length;
+  const occupiedUnits = summaries.filter((tenancy) => tenancy.lifecycle === "active").length;
 
   const endingSoon = summaries
     .filter((tenancy) => tenancy.endDate >= today && tenancy.endDate <= endingBefore)
@@ -185,62 +175,8 @@ function Figure({
   );
 }
 
-type TenancyFigure = {
-  leaseId: string;
-  unitLabel: string;
-  propertyName: string;
-  tenantName: string | null;
-  startDate: string;
-  endDate: string;
-  summary: ReturnType<typeof summariseLeaseRentFromTotal>;
-};
-
-/**
- * A view's columns arrive as nullable, because Postgres does not promise a view's shape the way it
- * promises a table's. The fallbacks live here, in one place, rather than scattered through the page.
- */
-function describeTenancy(
-  tenancy: {
-    lease_id: string | null;
-    unit_label: string | null;
-    property_name: string | null;
-    tenant_full_name: string | null;
-    start_date: string | null;
-    end_date: string | null;
-    rent_amount_cents: number | null;
-    rent_due_day: number | null;
-    total_paid_cents: number | null;
-  },
-  today: string,
-): TenancyFigure {
-  const lease = {
-    startDate: orText(tenancy.start_date, today),
-    endDate: orText(tenancy.end_date, today),
-    rentAmountInAgorot: orZero(tenancy.rent_amount_cents),
-    rentDueDay: orOne(tenancy.rent_due_day),
-  };
-
-  return {
-    leaseId: orText(tenancy.lease_id, ""),
-    unitLabel: orText(tenancy.unit_label, ""),
-    propertyName: orText(tenancy.property_name, ""),
-    tenantName: tenancy.tenant_full_name,
-    startDate: lease.startDate,
-    endDate: lease.endDate,
-    summary: summariseLeaseRentFromTotal({
-      lease,
-      totalPaidInAgorot: orZero(tenancy.total_paid_cents),
-      currentDate: today,
-    }),
-  };
-}
-
 function orZero(value: number | null | undefined): number {
   return value ?? 0;
-}
-
-function orText(value: string | null | undefined, fallback: string): string {
-  return value ?? fallback;
 }
 
 function describePaymentCount(paymentCount: number): string {
@@ -248,9 +184,4 @@ function describePaymentCount(paymentCount: number): string {
     return "Nothing recorded yet this month";
   }
   return paymentCount === 1 ? "1 payment recorded" : `${paymentCount} payments recorded`;
-}
-
-/** A missing due day is the first of the month, which is the commonest one anyway. */
-function orOne(value: number | null | undefined): number {
-  return value ?? 1;
 }

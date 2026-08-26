@@ -1,5 +1,6 @@
-import { readFileSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
+
+import { readEnvironmentFile } from "./tests/support/environmentFile";
 
 /**
  * The end-to-end suite runs a real browser against the running application and the **test** Supabase
@@ -10,28 +11,6 @@ import { defineConfig, devices } from "@playwright/test";
  * override variables that are already set, so .env.local, which points at production, is ignored.
  */
 const PRODUCTION_PROJECT_REFERENCE = "jarkqjrfuzvvrbietxve";
-
-function readEnvironmentFile(path: string): Record<string, string> {
-  let contents: string;
-  try {
-    contents = readFileSync(path, "utf8");
-  } catch {
-    throw new Error(
-      `${path} was not found. The end-to-end tests need the test Supabase project's details; copy .env.example and fill them in.`,
-    );
-  }
-
-  const values: Record<string, string> = {};
-  for (const line of contents.split("\n")) {
-    const trimmed = line.trim();
-    if (trimmed === "" || trimmed.startsWith("#") || !trimmed.includes("=")) {
-      continue;
-    }
-    const [name, ...rest] = trimmed.split("=");
-    values[name] = rest.join("=");
-  }
-  return values;
-}
 
 const testEnvironment = readEnvironmentFile(".env.test");
 const projectUrl = testEnvironment.NEXT_PUBLIC_SUPABASE_URL ?? "";

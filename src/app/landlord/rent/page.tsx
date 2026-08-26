@@ -13,13 +13,9 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/classNames";
 import { currentIsoDateInUtc } from "@/lib/dates/currentDate";
-import { describeLeaseLifecycle } from "@/lib/leases/describeLeaseLifecycle";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
-import {
-  summariseLeaseRentFromTotal,
-  totalArrearsInAgorot,
-  type LeaseRentSummary,
-} from "@/lib/rent/summariseOutstandingRent";
+import { describeTenancyRent, type TenancyRent } from "@/lib/rent/describeTenancyRent";
+import { totalArrearsInAgorot, type LeaseRentSummary } from "@/lib/rent/summariseOutstandingRent";
 import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
 
 export const metadata = { title: "Rent" };
@@ -45,7 +41,7 @@ export default async function RentOverviewPage() {
 
   const today = currentIsoDateInUtc();
   const rows = (summaries ?? [])
-    .map((summary) => describeRow(summary, today))
+    .map((summary) => describeTenancyRent(summary, today))
     .filter((row) => row.lifecycle !== "ended" || row.summary.outstandingInAgorot > 0)
     .sort(byMostOwed);
 
@@ -133,52 +129,8 @@ export default async function RentOverviewPage() {
   );
 }
 
-type OverviewRow = {
-  leaseId: string;
-  unitLabel: string;
-  propertyName: string;
-  tenantName: string | null;
-  lifecycle: "upcoming" | "active" | "ended";
-  summary: LeaseRentSummary;
-};
-
-function describeRow(
-  summary: {
-    lease_id: string | null;
-    unit_label: string | null;
-    property_name: string | null;
-    tenant_full_name: string | null;
-    start_date: string | null;
-    end_date: string | null;
-    rent_amount_cents: number | null;
-    rent_due_day: number | null;
-    total_paid_cents: number | null;
-  },
-  today: string,
-): OverviewRow {
-  const lease = {
-    startDate: summary.start_date ?? today,
-    endDate: summary.end_date ?? today,
-    rentAmountInAgorot: summary.rent_amount_cents ?? 0,
-    rentDueDay: summary.rent_due_day ?? 1,
-  };
-
-  return {
-    leaseId: summary.lease_id ?? "",
-    unitLabel: summary.unit_label ?? "",
-    propertyName: summary.property_name ?? "",
-    tenantName: summary.tenant_full_name,
-    lifecycle: describeLeaseLifecycle({ ...lease, currentDate: today }),
-    summary: summariseLeaseRentFromTotal({
-      lease,
-      totalPaidInAgorot: Number(summary.total_paid_cents ?? 0),
-      currentDate: today,
-    }),
-  };
-}
-
 /** What needs chasing comes first, largest arrears at the top. */
-function byMostOwed(first: OverviewRow, second: OverviewRow): number {
+function byMostOwed(first: TenancyRent, second: TenancyRent): number {
   return second.summary.outstandingInAgorot - first.summary.outstandingInAgorot;
 }
 

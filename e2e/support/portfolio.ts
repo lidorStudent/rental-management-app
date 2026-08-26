@@ -1,9 +1,9 @@
-import { readFileSync } from "node:fs";
-
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Page } from "@playwright/test";
 
 import type { Database } from "@/types/database";
+
+import { readEnvironmentFile } from "../../tests/support/environmentFile";
 
 /**
  * Set-up and clean-up for the end-to-end tests.
@@ -15,19 +15,6 @@ import type { Database } from "@/types/database";
  * The work is done through the admin API rather than through the interface, because setting a test
  * up through the interface makes every test depend on every screen it passes through.
  */
-function readEnvironmentFile(path: string): Record<string, string> {
-  const values: Record<string, string> = {};
-  for (const line of readFileSync(path, "utf8").split("\n")) {
-    const trimmed = line.trim();
-    if (trimmed === "" || trimmed.startsWith("#") || !trimmed.includes("=")) {
-      continue;
-    }
-    const [name, ...rest] = trimmed.split("=");
-    values[name] = rest.join("=");
-  }
-  return values;
-}
-
 const environment = readEnvironmentFile(".env.test");
 
 export const TEST_PASSWORD = "EndToEndPassword1";
