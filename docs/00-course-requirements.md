@@ -14,7 +14,7 @@ Ten items must be submitted.
 - [x] 3. Product specification document.
 - [x] 4. Technical planning document.
 - [x] 5. Test specification document.
-- [ ] 6. Test code.
+- [x] 6. Test code.
 - [ ] 7. Basic scale document.
 - [ ] 8. Basic security document.
 - [ ] 9. Local run instructions, including an explanation of every environment variable.
@@ -67,13 +67,13 @@ Must cover:
 Not every line must be tested, but the central processes must be. Documented manual tests are
 acceptable where automation is not appropriate.
 
-- [ ] Core features.
-- [ ] Invalid inputs.
-- [ ] Central business processes.
-- [ ] Permission differences between user types.
-- [ ] Database.
-- [ ] Edge cases.
-- [ ] Basic UI.
+- [x] Core features.
+- [x] Invalid inputs.
+- [x] Central business processes.
+- [x] Permission differences between user types.
+- [x] Database.
+- [x] Edge cases.
+- [x] Basic UI.
 
 ## 6. Security Document
 

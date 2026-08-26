@@ -617,3 +617,24 @@ Decided that the same suite performs every operation successfully as the rightfu
 refusals alone would be passed by a database that refuses everything, which would be perfectly
 secure and completely useless. The positive control is what makes the refusals evidence.
 
+### 2026-08-26 - Every browser test builds its own portfolio and removes it
+
+Decided that an end-to-end test creates its own landlord, building and tenants through the admin API,
+then deletes all of it afterwards, rather than acting on the seeded portfolio. The alternative shares
+one dataset between tests, which makes them depend on each other's order and on what the last run
+left behind. The suite now passes three times in a row from a seeded database and leaves the seed
+counts exactly as it found them.
+
+### 2026-08-26 - Set-up goes through the API, not through the interface
+
+Decided that a test only drives the interface for the thing it is testing. Building a portfolio
+through the screens before testing the tenant portal would make the tenant tests fail whenever a
+landlord form changed, which is a test reporting the wrong thing.
+
+### 2026-08-26 - The navigation wraps on a narrow screen
+
+Decided to let both navigations wrap their links. The manual layout check found that at 375 pixels
+the landlord's five links pushed the whole page sideways by ten pixels, because the row could not
+wrap. That is exactly the class of defect a person notices in a second and an assertion would not,
+which is why that check is on the manual list.
+

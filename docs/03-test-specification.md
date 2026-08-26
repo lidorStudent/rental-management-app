@@ -382,7 +382,7 @@ white.
 
 | Run on | By | Browser | Outcome | Notes |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+| 2026-08-26 | Claude, with the developer | Chromium 151 | **Pass** | Printed the full thirteen-month statement for the ended tenancy on Flat 3 to a two-page A4 PDF. No navigation, no buttons, no range form. Margins even at 16mm, nothing clipped at the right edge. The payments table broke across the page with its header repeated and no row split, and the summary block stayed whole on page two. Readable in black and white |
 
 ### MAN-02 Visual layout at different window sizes
 
@@ -407,7 +407,7 @@ off and no control is unreachable.
 
 | Run on | By | Widths checked | Outcome | Notes |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+| 2026-08-26 | Claude, with the developer | 1440, 1024, 768, 375 | **Pass, after a fix** | At 375 pixels the landlord navigation pushed the page sideways by 10 pixels, because its five links could not wrap. Fixed by letting the link row wrap; both navigations now do. Rechecked at all four widths: no page scrolls sideways, tables scroll inside their own frames, nothing overlaps and no control is unreachable |
 
 ### MAN-03 The first sign-in experience for a new tenant
 
@@ -429,7 +429,7 @@ else until they do.
 
 | Run on | By | Outcome | Notes |
 | --- | --- | --- | --- |
-|  |  |  |  |
+| 2026-08-26 | Claude, with the developer | **Pass** | The panel reads: "Give this password to your tenant now. It is shown once and cannot be shown again. Nothing stores it, not even this application, so if it is lost you will have to issue a new one. Send it to <address> however you normally talk to them. They must choose their own password the first time they sign in." Password shown in monospace with a copy control and an "I have given it to them" button. Signing in as the tenant lands on the change-password page, which says the landlord created the account with a temporary password, and navigating elsewhere returns there. The wording judgement is one the project owner may wish to confirm for themselves |
 
 ### MAN-04 Keyboard and screen reader pass
 
@@ -448,7 +448,7 @@ their error. Tables announce their caption.
 
 | Run on | By | Assistive technology | Outcome | Notes |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+| 2026-08-26 | Claude, with the developer | Keyboard only | **Pass, keyboard half** | Signed in and reached the property form using only Tab and Enter. Tab order follows the visual order: navigation, then the back link, then the form fields in the order shown, then the submit button. The focus ring is visible at every stop. Every field announces its label, which UI-01 also asserts. **The screen reader half was not performed and needs a person**; see the manual block handed to the project owner |
 
 ### MAN-05 Deployment smoke test
 
@@ -487,10 +487,7 @@ confirming the real thing works at its real address.
 
 Stated so that the gaps are choices rather than oversights.
 
-| Not tested | Why |
-| --- | --- |
-| Supabase Auth itself | Testing that a hosted service hashes passwords correctly tests the vendor, not this product |
-| Next.js routing internals | Same reasoning. The routing rules in `redirectDestination.ts` are tested; the framework's implementation of them is not |
-| Every shadcn component | They are vendored, unmodified, and covered by their own project |
-| Styling values | Whether a border is one pixel or two is not something a test should have an opinion about; MAN-02 covers whether it looks right |
-| Load and concurrency at scale | Out of scope for the deliverable, and discussed instead in the scale document. DB-01 covers the one concurrency guarantee that matters for correctness |
+| Run on | By | Deployment | Outcome | Notes |
+| --- | --- | --- | --- | --- |
+| 2026-08-26 | Claude, with the developer | https://rental-management-app-wine.vercel.app | **Pass** | The root redirects to sign in. Signed in as the seeded landlord: the dashboard figures are populated, occupancy is not zero. Opened a tenancy, its statement and the maintenance list. Signed out, signed in as a seeded tenant, and the portal loaded. Read only: nothing was written to the deployed project |
+

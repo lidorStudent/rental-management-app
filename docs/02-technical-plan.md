@@ -468,11 +468,11 @@ rental-management-app/
 │   ├── landlordIsolation.test.ts
 │   ├── serverActions.test.ts
 │   └── tenantIsolation.test.ts
-├── e2e/
-│   ├── landlord-records-payment.spec.ts
-│   ├── tenant-sees-only-own-lease.spec.ts
-│   ├── lease-overlap-is-rejected.spec.ts
-│   └── tenant-onboarding.spec.ts
+├── e2e/                               browser tests, run with npm run test:e2e
+│   ├── support/portfolio.ts           builds and removes a test's own landlord and portfolio
+│   ├── landlordGoldenPath.spec.ts
+│   ├── tenantGoldenPath.spec.ts
+│   └── negativePaths.spec.ts
 └── src/                               unit and component tests live beside what they test,
     │                                   as <name>.test.ts next to <name>.ts
     ├── proxy.ts                        session refresh and the area guards
