@@ -561,3 +561,31 @@ backwards, and ignores values that are not months. Someone editing the address b
 bookmark to a range the tenancy no longer covers, gets a sensible statement rather than an error
 page or an empty document that looks like a fault.
 
+### 2026-08-26 - Tests live beside the code they test
+
+Decided that a unit test sits next to its module as findConflictingLease.test.ts, rather than in a
+mirrored tests directory. The alternative keeps the source tree tidier and makes it easy to add a
+module and forget its test; with the pair side by side, a module without one is visible at a glance.
+End-to-end tests stay in e2e/, because they belong to a journey rather than to a file.
+
+### 2026-08-26 - Component tests mock the server actions and nothing else
+
+Decided that a form's test replaces the server action with a stub and asserts on what the reader
+sees: the fields, the messages, and what the form sends. The action itself cannot run in a test
+process, because it imports server-only modules by design. Nothing else is mocked, so the schema,
+the resolver and the rendering are all the real ones.
+
+### 2026-08-26 - Optional text fields accept the null the database holds
+
+Decided that optionalTextField treats null, undefined and an empty string as the same absence, after
+a test of the correction schema passed a null reference straight from a payment row and was told it
+was the wrong type. Two spellings of nothing were already collapsed into one; the third had been
+missed. The test was left alone and the field schema was fixed.
+
+### 2026-08-26 - The function length limit does not apply to test files
+
+Decided to switch max-lines-per-function off for test files. A describe block is a list of tests
+rather than a function anyone has to hold in their head, and splitting one to satisfy a limit would
+scatter related cases for no reader's benefit. Every other rule, including the forbidden
+abbreviations, still applies.
+

@@ -441,6 +441,7 @@ rental-management-app/
 ├── tailwind.config.ts
 ├── tsconfig.json
 ├── vitest.config.mts
+├── vitest.setup.ts                    unmounts each rendered component, adds the DOM matchers
 ├── playwright.config.ts
 ├── .env.example                       every variable, with an explanation and no values
 ├── docs/
@@ -464,7 +465,8 @@ rental-management-app/
 │   ├── tenant-sees-only-own-lease.spec.ts
 │   ├── lease-overlap-is-rejected.spec.ts
 │   └── tenant-onboarding.spec.ts
-└── src/
+└── src/                               unit and component tests live beside what they test,
+    │                                   as <name>.test.ts next to <name>.ts
     ├── proxy.ts                        session refresh and the area guards
     ├── app/
     │   ├── layout.tsx
