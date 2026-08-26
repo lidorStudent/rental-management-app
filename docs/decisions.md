@@ -638,3 +638,12 @@ the landlord's five links pushed the whole page sideways by ten pixels, because 
 wrap. That is exactly the class of defect a person notices in a second and an assertion would not,
 which is why that check is on the manual list.
 
+### 2026-08-26 - A field's error is announced with the field
+
+Decided that every field points at its own error message with aria-describedby, alongside the hint
+where there is one. The message had been rendered under the input and associated with nothing, so a
+screen reader announced the label and "invalid data" and never said what was wrong. It was found by
+running the manual screen reader check, which is the reason that check is on the list: no assertion
+in the suite noticed, because the message was on the page and visible. It is asserted now, through
+the accessible description of a field, in all three field types.
+
