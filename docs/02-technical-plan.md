@@ -211,7 +211,7 @@ Every page listed here is a server component unless the table says otherwise.
 | `/landlord/leases/[leaseId]/renew` | Record the next tenancy on the same unit for the same tenant, offered from the day after this one ends | Lease, tenant |
 | `/landlord/leases/[leaseId]/payments/new` | Record a payment received, pre-selecting the oldest unpaid period | Lease, derived schedule |
 | `/landlord/leases/[leaseId]/payments/[paymentId]/edit` | Correct or delete a recorded payment | Payment, lease |
-| `/landlord/leases/[leaseId]/statement` | Print-optimised rent statement for a date range taken from the URL query (C10) | Lease, payments in range |
+| `/landlord/leases/[leaseId]/statement` | Print-optimised rent statement for a month range taken from the URL query (C10). The lease id is not trusted: a lease belonging to another landlord is answered as not found | Lease, payments in range |
 | `/landlord/maintenance` | Every request across the portfolio, filterable by status through the URL query | Requests, leases, units |
 | `/landlord/maintenance/[requestId]` | One request, with the status controls | Request, lease, unit, tenant |
 
@@ -222,7 +222,7 @@ Every page listed here is a server component unless the table says otherwise.
 | `/tenant` | The answer to the only question most tenants have: the current period, its status, and the amount outstanding, with the lease summary underneath | Own lease, own payments |
 | `/tenant/lease` | Full lease terms: unit, address, dates, rent, due day, deposit, and the landlord's name and email | Own lease, unit, property, landlord profile |
 | `/tenant/payments` | The full schedule and every payment recorded against it | Own lease, own payments |
-| `/tenant/statement` | The same print-optimised statement page, scoped to the tenant's own lease | Own lease, own payments |
+| `/tenant/statement` | The same statement, with no lease id in the URL at all: the tenancy is resolved from the session, so a statement for somebody else's lease is not a request this route can express | Own lease, own payments |
 | `/tenant/maintenance` | The tenant's own requests and their current statuses | Own requests |
 | `/tenant/maintenance/new` | Submit a request (P5) | Own lease |
 | `/tenant/maintenance/[requestId]` | One request and its history | Own request |
@@ -570,6 +570,7 @@ rental-management-app/
     │   │   ├── MaintenanceStatusBadge.tsx
     │   │   └── MaintenanceStatusControl.tsx
     │   ├── statement/
+    │   │   ├── PrintButton.tsx
     │   │   ├── RentStatement.tsx
     │   │   └── StatementDateRangeForm.tsx
     │   └── dashboard/
@@ -653,7 +654,7 @@ Files that do the same job have the same shape, so learning one teaches all of t
 | `TenantAccessPanel` | Shows whether the lease has a tenant account, offers the create action when it does not, and displays the one-time temporary password returned by that action. Never reads a password from anywhere |
 | `AttentionPanel` | The dashboard's reason for existing: overdue periods, leases ending within sixty days, open requests. Receives already-computed lists |
 | `OutstandingTotal` | Portfolio-wide outstanding rent, computed by `summariseOutstandingRent` on the server |
-| `RentStatement` | The print-optimised statement. A plain table with a `@media print` stylesheet that hides navigation and expands to full width |
+| `RentStatement` | The statement itself, read from the ledger rather than from any aggregate: a statement that cannot be checked against its own lines is not a statement. The chrome carries `print:hidden`, and `globals.css` sets the page margins, so printing leaves the document alone |
 | `MaintenanceStatusControl` | Renders only the transitions `allowedStatusTransitions` permits from the current status, and calls the update action |
 | `EmptyState` | The single empty-state component, so every list that has no rows explains what to do next instead of showing a blank area |
 | `FormErrorSummary` | Renders the action's error message and field errors above the form, so a failure is never silent |

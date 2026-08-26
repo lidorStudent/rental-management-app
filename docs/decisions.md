@@ -538,3 +538,26 @@ and the policy returns nothing for somebody else's request, which the page answe
 not-found response as an identifier that matches nothing. Verified in a browser: the two pages are
 byte for byte identical.
 
+### 2026-08-26 - The statement reads the ledger, not the aggregate views
+
+Decided that the statement queries rent_payments directly, unlike the dashboard and the rent
+overview which read summed views. The alternative would have been consistent but wrong: a statement
+exists to be checked line by line against a bank record, so it has to list the payments themselves,
+and its range bounds how many there are. The rule elsewhere is that no screen sums an unbounded
+table; this one sums a bounded one and shows its working.
+
+### 2026-08-26 - The tenant's statement route carries no lease id
+
+Decided that /tenant/statement takes only a month range, and resolves the tenancy from the session
+like every other tenant page, while the landlord's statement takes the lease id in the path. A
+tenant asking for another tenancy's statement is therefore not a request the route can express,
+rather than one it has to refuse. A tenant with more than one tenancy can only produce a statement
+for the current one, which is the accepted cost.
+
+### 2026-08-26 - A nonsense month range falls back instead of failing
+
+Decided that chooseStatementRange clamps both ends inside the tenancy, swaps a range that reads
+backwards, and ignores values that are not months. Someone editing the address bar, or following a
+bookmark to a range the tenancy no longer covers, gets a sensible statement rather than an error
+page or an empty document that looks like a fault.
+
