@@ -202,7 +202,6 @@ Every page listed here is a server component unless the table says otherwise.
 | `/landlord/properties/[propertyId]` | One property and its units, each showing its occupancy derived from its tenancies. Units are a plain table: a building has as many as it has, and the number does not grow with time | Property, units, their leases and tenant names |
 | `/landlord/properties/[propertyId]/edit` | Edit or delete a property | Property |
 | `/landlord/properties/[propertyId]/units/new` | Add a unit to a property | Property |
-| `/landlord/units/[unitId]` | One unit, with its full lease history | Unit, leases |
 | `/landlord/units/[unitId]/edit` | Edit or delete a unit | Unit |
 | `/landlord/leases` | Every lease, filtered by lifecycle through the URL query with the same comparison `describeLeaseLifecycle` makes | Leases, units, properties, tenant names |
 | `/landlord/leases/new` | Create a lease, optionally pre-filled with a unit from the query string | Units without a current lease |
@@ -861,7 +860,7 @@ columns below are therefore not symmetrical, and that asymmetry is the architect
 | Operation | Who | Where |
 | --- | --- | --- |
 | Create | Landlord | `createUnit` |
-| Read | Landlord, own only. A tenant sees only their own unit's label and address through the lease | `/landlord/properties/[propertyId]`, `/landlord/units/[unitId]`, `/tenant/lease` |
+| Read | Landlord, own only. A tenant sees only their own unit's label and address through the lease | `/landlord/properties/[propertyId]`, `/tenant/lease` |
 | Update | Landlord, own only | `updateUnit` |
 | Delete | Landlord, own only | `deleteUnit`, refused when any lease references it |
 
@@ -1175,5 +1174,9 @@ Recorded here so they are not discovered during questioning.
 - **A lease cannot be deleted, and a payment cannot be deleted.** A lease recorded in error can only
   be ended, and a payment entered in error can only be corrected. Both are records that other rows
   point at, and both are what a dispute would be settled with, so removal is not offered.
+- **A unit has no page of its own.** The property page shows each flat's current occupancy and
+  how many tenancies it has had, and the leases list shows every tenancy with its unit, but no
+  screen lists one flat's tenancies in order. A `/landlord/units/[unitId]` page was planned and
+  not built; it is the first screen to add.
 - **The dashboard informs a landlord who opens it.** With no email or push, an inactive landlord is
   not reached. This is the accepted consequence of the product's scope boundary on reminders.

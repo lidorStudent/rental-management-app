@@ -113,7 +113,6 @@ export async function updateUnit(
 
   revalidatePath("/landlord");
   revalidatePath(`/landlord/properties/${updated.property_id}`);
-  revalidatePath(`/landlord/units/${updated.id}`);
 
   return successResult({ unitId: updated.id });
 }
