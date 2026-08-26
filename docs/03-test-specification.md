@@ -486,6 +486,7 @@ confirming the real thing works at its real address.
 | --- | --- | --- | --- | --- |
 | 2026-08-26 | Claude, with the developer | https://rental-management-app-wine.vercel.app | **Pass** | The root redirects to sign in. Signed in as the seeded landlord: the dashboard figures are populated, occupancy is not zero. Opened a tenancy, its statement and the maintenance list. Signed out, signed in as a seeded tenant, and the portal loaded. Read only: nothing was written to the deployed project |
 | 2026-08-26 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run with the exact credentials printed in `README.md`. `noa.bendavid@example.co.il` landed on `/landlord` showing ₪2,500.00 collected this month from one payment, ₪13,000.00 outstanding, three open problems and occupancy of 2 of 5. `maya.levi@example.co.il` landed on `/tenant` showing Flat 1, Rothschild Boulevard 12. Read only |
+| 2026-08-27 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run after the audit fixes and a fresh production deployment. Health check 200; the automated companion's five checks all passed, including both seeded roles signing in and the cookie's flags. Read only |
 
 **The automated companion, and why it is skipped by default.** `e2e/deploymentSmoke.spec.ts`
 performs steps 1 to 4 of this case in a browser, as five tests. The file begins with a `test.skip`
