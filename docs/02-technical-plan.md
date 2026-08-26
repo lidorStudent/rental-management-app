@@ -1061,7 +1061,7 @@ There is almost none, and that is the design.
 | Kind of state | Where it lives | Why there |
 | --- | --- | --- |
 | Application data | The database, read fresh by server components on each render | There is no client-side copy, so there is nothing to invalidate, refetch, or reconcile. `revalidatePath` after a write is the whole cache story |
-| Session | An HTTP-only cookie, refreshed by middleware | Never readable by client JavaScript |
+| Session | One cookie holding both tokens, refreshed by the proxy. `sessionCookieOptions.ts` sets it `httpOnly`, `sameSite=lax`, and `secure` in production | Not readable by page JavaScript, which the library allows by default and this project turns off because it never uses the browser client |
 | Form field state | `react-hook-form` inside one client component | Local to the form and gone when it unmounts |
 | Submission state | `useFormStatus` in `SubmitButton` | Pending state belongs to the button, not to a store |
 | Filters, and the statement date range | The URL query string | The URL is already shared, bookmarkable, and survives a refresh, and a server component can read it directly |

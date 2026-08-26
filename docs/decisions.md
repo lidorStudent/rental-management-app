@@ -672,3 +672,21 @@ accounts and looks at pages rather than creating a portfolio the way the rest of
 does. Keeping it in the repository rather than typing it out after each deployment means the check
 after a deployment is the same check every time.
 
+### 2026-08-26 - The session cookie is made HTTP-only, against the library's default
+
+Decided to override the cookie flags @supabase/ssr writes, in
+src/lib/supabase/sessionCookieOptions.ts, so the session cookie is httpOnly, sameSite lax, and
+secure in production. The library deliberately leaves that cookie readable by page JavaScript,
+because its browser client hydrates the session from document.cookie. This project has no such
+client: every read happens in a server component and every write in a server action, so the session
+is only ever read on the server. Leaving it readable was paying an XSS cost for a feature never
+used, and the cookie holds the refresh token as well as the access token, so one injected line could
+have kept a session alive long after the page was closed.
+
+The trade-off is that a client component can no longer read the session, which is why
+createSupabaseBrowserClient was deleted rather than left as a client that cannot work. Anything
+needing session-aware behaviour in the browser now has to be handed what it needs as a prop from a
+server component, which is how the rest of this application already works. It was found by checking
+the real cookie on the deployed site while writing the security document, after two documents had
+already claimed the flag was set; both were corrected.
+

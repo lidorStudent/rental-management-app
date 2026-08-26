@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { readSupabaseAnonKey, readSupabaseUrl } from "@/lib/supabase/environment";
+import { hardenedSessionCookieOptions } from "@/lib/supabase/sessionCookieOptions";
 import type { Database } from "@/types/database";
 
 /**
@@ -26,7 +27,7 @@ export function createSupabaseMiddlewareClient(request: NextRequest) {
         }
         response = NextResponse.next({ request });
         for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, hardenedSessionCookieOptions(options));
         }
       },
     },

@@ -4,6 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 import { readSupabaseAnonKey, readSupabaseUrl } from "@/lib/supabase/environment";
+import { hardenedSessionCookieOptions } from "@/lib/supabase/sessionCookieOptions";
 import type { Database } from "@/types/database";
 
 /**
@@ -22,7 +23,7 @@ export async function createSupabaseServerClient() {
       setAll(cookiesToSet) {
         try {
           for (const { name, value, options } of cookiesToSet) {
-            cookieStore.set(name, value, options);
+            cookieStore.set(name, value, hardenedSessionCookieOptions(options));
           }
         } catch {
           // A server component is not allowed to write cookies, and Next.js throws when it tries.

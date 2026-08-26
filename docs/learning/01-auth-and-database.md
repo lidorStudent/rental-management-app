@@ -21,8 +21,13 @@ A tenant opens `/tenant`.
 
 Supabase Auth issued two tokens when the tenant signed in: a short-lived **access token**, which is
 a signed JWT containing their user id, and a longer-lived **refresh token**. `@supabase/ssr` stores
-both in HTTP-only cookies, so JavaScript in the page cannot read them and neither can an injected
-script. The browser attaches them to every request to our domain.
+both in one cookie, and the browser attaches it to every request to our domain.
+
+That cookie is HTTP-only because this project makes it so, in
+`src/lib/supabase/sessionCookieOptions.ts`. The library leaves it readable by page JavaScript on
+purpose, so that its browser client can hydrate the session from `document.cookie`; this project
+never uses that client, reads the session only on the server, and so takes the flag back. Without
+it, one line of injected JavaScript could take the refresh token and keep using it.
 
 ### 2. The proxy refreshes the session and decides where the request may go
 
