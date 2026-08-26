@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -83,10 +84,18 @@ export default async function TenantPaymentsPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Payments"
-        description="Everything your landlord has recorded as received from you."
-      />
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <PageHeader
+          title="Payments"
+          description="Everything your landlord has recorded as received from you."
+        />
+        <Link
+          href="/tenant/statement"
+          className="hover:bg-accent inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium"
+        >
+          Statement
+        </Link>
+      </div>
 
       {lease === null ? null : (
         <Suspense fallback={<PanelSkeleton lineCount={2} />}>

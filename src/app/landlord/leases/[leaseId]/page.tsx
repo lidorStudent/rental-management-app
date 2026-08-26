@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { LeaseActionLinks } from "@/components/leases/LeaseActionLinks";
 import { LeasePaymentHistory } from "@/components/leases/LeasePaymentHistory";
 import { LeaseRentSchedule } from "@/components/leases/LeaseRentSchedule";
 import { LeaseStatusBadge } from "@/components/leases/LeaseStatusBadge";
@@ -63,20 +64,7 @@ export default async function LeaseDetailPage({
         />
         <div className="flex items-center gap-2">
           <LeaseStatusBadge lifecycle={lifecycle} />
-          {lifecycle === "ended" ? null : (
-            <Link
-              href={`/landlord/leases/${lease.id}/end`}
-              className="hover:bg-accent inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium"
-            >
-              End early
-            </Link>
-          )}
-          <Link
-            href={`/landlord/leases/${lease.id}/renew`}
-            className="hover:bg-accent inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium"
-          >
-            Renew
-          </Link>
+          <LeaseActionLinks leaseId={lease.id} lifecycle={lifecycle} />
         </div>
       </div>
 
