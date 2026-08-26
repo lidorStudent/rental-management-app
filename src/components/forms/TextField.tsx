@@ -29,6 +29,9 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
 ) {
   const fieldId = id ?? name;
   const hintId = hint === undefined ? undefined : `${fieldId}-hint`;
+  const errorId = error === undefined ? undefined : `${fieldId}-error`;
+  // Both, when both are there: a reader hears the hint and then what is wrong with what they typed.
+  const describedBy = [hintId, errorId].filter((id) => id !== undefined).join(" ") || undefined;
 
   return (
     <div className="space-y-1.5">
@@ -38,7 +41,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
         name={name}
         ref={ref}
         aria-invalid={error !== undefined}
-        aria-describedby={hintId}
+        aria-describedby={describedBy}
         {...inputProps}
       />
       {hint === undefined ? null : (
@@ -46,7 +49,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
           {hint}
         </p>
       )}
-      <FieldError message={error} />
+      <FieldError id={errorId} message={error} />
     </div>
   );
 });
