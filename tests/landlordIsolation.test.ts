@@ -105,6 +105,7 @@ describe("what one landlord can read of another's", () => {
    * The aggregate views are the place a mistake would be quietest: a view without security_invoker
    * would hand every landlord's totals to whoever asked.
    */
+  // PERM-10, DB-22
   it("shows a landlord only their own rows in the rent summary view", async () => {
     const { data } = await eitan.from("lease_rent_summary").select("lease_id");
 
@@ -112,12 +113,14 @@ describe("what one landlord can read of another's", () => {
     expect(data?.[0]?.lease_id).toBe(SEEDED_IDS.leaseDanaActive);
   });
 
+  // PERM-10, DB-22
   it("shows a landlord only their own months in the collection view", async () => {
     const { data } = await eitan.from("rent_collected_by_month").select("landlord_id");
 
     expect(data?.every((row) => row.landlord_id === eitanProfileId)).toBe(true);
   });
 
+  // PERM-10, DB-22
   it("shows a landlord only their own months in the period totals view", async () => {
     const { data } = await eitan.from("lease_period_totals").select("lease_id");
 

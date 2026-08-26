@@ -118,6 +118,7 @@ describe("what one tenant can read of another's", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-10, DB-22
   it("shows a tenant only their own row in the rent summary view", async () => {
     const { data } = await maya.from("lease_rent_summary").select("lease_id");
 

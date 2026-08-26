@@ -39,6 +39,7 @@ afterAll(async () => {
  * headline rule rests on remembering to call a function.
  */
 describe("invariant 1: a unit is never let twice over the same dates", () => {
+  // DB-01
   it("refuses an overlapping tenancy even with every application check bypassed", async () => {
     const { error } = await serviceRoleClient().from("leases").insert({
       unit_id: SEEDED_IDS.unitRothschildOne,
@@ -52,6 +53,7 @@ describe("invariant 1: a unit is never let twice over the same dates", () => {
     expect(error?.code).toBe("23P01");
   });
 
+  // DB-02
   it("refuses a tenancy beginning on the day the existing one ends", async () => {
     const service = serviceRoleClient();
     const { data: existing } = await service
@@ -72,6 +74,7 @@ describe("invariant 1: a unit is never let twice over the same dates", () => {
     expect(error?.code).toBe("23P01");
   });
 
+  // DB-03
   it("allows a tenancy beginning the day after, so the rule is a boundary and not a wall", async () => {
     const service = serviceRoleClient();
     const { data: created, error } = await service
