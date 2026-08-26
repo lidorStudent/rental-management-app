@@ -441,6 +441,7 @@ rental-management-app/
 ├── tailwind.config.ts
 ├── tsconfig.json
 ├── vitest.config.mts
+├── vitest.database.config.mts         the suite that runs against the test Supabase project
 ├── vitest.setup.ts                    unmounts each rendered component, adds the DOM matchers
 ├── playwright.config.ts
 ├── .env.example                       every variable, with an explanation and no values
@@ -460,6 +461,13 @@ rental-management-app/
 │   │   ├── 20260825122011_core_schema.sql
 │   │   └── ...                        one migration per phase that changes the database
 │   └── seed.ts                        seeds either project through the Auth admin API
+├── tests/                             database and action tests, run with npm run test:db
+│   ├── support/testDatabase.ts        the connection, and the guard that keeps it off production
+│   ├── anonymousAccess.test.ts
+│   ├── domainInvariants.test.ts
+│   ├── landlordIsolation.test.ts
+│   ├── serverActions.test.ts
+│   └── tenantIsolation.test.ts
 ├── e2e/
 │   ├── landlord-records-payment.spec.ts
 │   ├── tenant-sees-only-own-lease.spec.ts

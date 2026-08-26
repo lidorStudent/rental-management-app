@@ -589,3 +589,31 @@ rather than a function anyone has to hold in their head, and splitting one to sa
 scatter related cases for no reader's benefit. Every other rule, including the forbidden
 abbreviations, still applies.
 
+### 2026-08-26 - The permission tests attack the database, not the interface
+
+Decided that every authorisation test signs a real user in and queries the tables directly, with the
+same public key their browser holds. The alternative was driving the interface and asserting that
+somebody else's data is not on screen. An interface test would keep passing with every policy
+dropped, because the pages would go on hiding what they always hid. Only a test that asks the
+database can fail when the boundary fails.
+
+### 2026-08-26 - The database suite is a separate command
+
+Decided on tests/ with its own vitest configuration and an npm run test:db script, rather than
+folding these into npm test. The unit suite stays offline and finishes in three seconds; this one
+needs a network, a seeded project and about twenty. Keeping them apart means the fast one is run
+constantly and the slow one is run deliberately.
+
+### 2026-08-26 - The suite refuses to run against production
+
+Decided that testDatabase.ts compares the project reference against the production one and throws
+before building a single client. These tests sign users in and write rows: pointed at the deployed
+project they would put test tenancies into a real portfolio. The guard was tested by pointing
+.env.test at production on purpose and watching it refuse.
+
+### 2026-08-26 - Refusals are proved alongside permissions
+
+Decided that the same suite performs every operation successfully as the rightful owner. A suite of
+refusals alone would be passed by a database that refuses everything, which would be perfectly
+secure and completely useless. The positive control is what makes the refusals evidence.
+

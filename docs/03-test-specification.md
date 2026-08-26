@@ -28,6 +28,9 @@ This is a record system for a landlord and their tenants. It is working when:
 | **U** Unit | Vitest | Nothing. Pure functions | The business rules: overlap, rent status, schedules, transitions, money parsing, dates, pagination |
 | **C** Component | Vitest with Testing Library | A rendered component, no server | Forms render their fields, client validation appears, empty states appear |
 | **D** Database | Vitest with the Supabase client | The **test** Supabase project, as real signed-in users | Policies, constraints, cascades. The parts that cannot be proved without a real Postgres |
+
+The D suite lives in `tests/`, runs with `npm run test:db`, and refuses to start if `.env.test`
+points at the production project.
 | **E** End to end | Playwright | The running application and the test project | Whole processes through a browser, and the redirects that protect routes |
 | **M** Manual | A person | The running application | Print output, visual layout, one-off experiences. Recorded in section 8 |
 
