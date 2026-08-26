@@ -30,7 +30,7 @@ export function LandlordNavigation({ signedInAs }: { signedInAs: string }) {
           Rental Management
         </Link>
 
-        <nav aria-label="Landlord" className="flex items-center gap-1">
+        <nav aria-label="Landlord" className="flex min-w-0 flex-wrap items-center gap-1">
           {LANDLORD_LINKS.map((link) => (
             <Link
               key={link.href}
