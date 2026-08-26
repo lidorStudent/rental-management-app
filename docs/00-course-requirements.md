@@ -13,7 +13,7 @@ Ten items must be submitted.
 - [x] 2. GitHub repository.
 - [x] 3. Product specification document.
 - [x] 4. Technical planning document.
-- [ ] 5. Test specification document.
+- [x] 5. Test specification document.
 - [ ] 6. Test code.
 - [ ] 7. Basic scale document.
 - [ ] 8. Basic security document.
