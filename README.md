@@ -254,10 +254,10 @@ Password for all of them: `Demo-Rental-2026!` (or whatever `SEED_USER_PASSWORD` 
 | --- | --- | --- |
 | Landlord | `noa.bendavid@example.co.il` | Two buildings, five units, tenancies that are active, ended and upcoming, a ledger with a paid, a partial and an overdue month, and repairs in every status |
 | Landlord | `eitan.shapira@example.co.il` | A different building with its own tenant, and no sight of anything of Noa's. Sign in as both to see the isolation the policies enforce |
-| Tenant | `maya.levi@example.co.il` | An active tenancy of Noa's, with rent up to date |
-| Tenant | `yonatan.azoulay@example.co.il` | An active tenancy of Noa's, in arrears |
+| Tenant | `maya.levi@example.co.il` | An active tenancy of Noa's, in arrears: her ledger stops two months short, so the portal shows overdue months and an outstanding balance. Checked on the deployed site: ₪6,500.00 due this month, ₪13,000.00 outstanding, two months past their due date |
+| Tenant | `yonatan.azoulay@example.co.il` | An active tenancy of Noa's, part paid: a cash payment covers some of the current month, which is what a partial rent status looks like |
 | Tenant | `shira.mizrahi@example.co.il` | A tenancy that has ended |
-| Tenant | `dana.peretz@example.co.il` | An active tenancy of Eitan's |
+| Tenant | `dana.peretz@example.co.il` | An active tenancy of Eitan's, with the current month unpaid. Sign in as Eitan to see the same tenancy from the landlord's side |
 
 ---
 

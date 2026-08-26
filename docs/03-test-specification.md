@@ -28,15 +28,17 @@ This is a record system for a landlord and their tenants. It is working when:
 | **U** Unit | Vitest | Nothing. Pure functions | The business rules: overlap, rent status, schedules, transitions, money parsing, dates, pagination |
 | **C** Component | Vitest with Testing Library | A rendered component, no server | Forms render their fields, client validation appears, empty states appear |
 | **D** Database | Vitest with the Supabase client | The **test** Supabase project, as real signed-in users | Policies, constraints, cascades. The parts that cannot be proved without a real Postgres |
-
-The D suite lives in `tests/`, runs with `npm run test:db`, and refuses to start if `.env.test`
-points at the production project.
 | **E** End to end | Playwright | The running application and the test project | Whole processes through a browser, and the redirects that protect routes |
 | **M** Manual | A person | The running application | Print output, visual layout, one-off experiences. Recorded in section 8 |
 
+The D suite lives in `tests/`, runs with `npm run test:db`, and refuses to start if `.env.test`
+points at the production project.
+
 **The test project is never the production project.** `.env.test` names
 `rental-management-app-test`; the seed refuses to run against production without an explicit flag.
-D and E tests reseed before they run, so they start from a known portfolio.
+Neither suite reseeds on its own: the D suite expects the seeded portfolio and says so by name when
+a seeded row is missing, and every E test builds its own landlord, building and tenant through the
+admin API and removes them afterwards, so it depends on nothing the seed wrote.
 
 ---
 
@@ -482,7 +484,26 @@ confirming the real thing works at its real address.
 
 | Run on | By | Deployment | Outcome | Notes |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+| 2026-08-26 | Claude, with the developer | https://rental-management-app-wine.vercel.app | **Pass** | The root redirects to sign in. Signed in as the seeded landlord: the dashboard figures are populated, occupancy is not zero. Opened a tenancy, its statement and the maintenance list. Signed out, signed in as a seeded tenant, and the portal loaded. Read only: nothing was written to the deployed project |
+| 2026-08-26 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run with the exact credentials printed in `README.md`. `noa.bendavid@example.co.il` landed on `/landlord` showing ₪2,500.00 collected this month from one payment, ₪13,000.00 outstanding, three open problems and occupancy of 2 of 5. `maya.levi@example.co.il` landed on `/tenant` showing Flat 1, Rothschild Boulevard 12. Read only |
+
+**The automated companion, and why it is skipped by default.** `e2e/deploymentSmoke.spec.ts`
+performs steps 1 to 4 of this case in a browser, as five tests. The file begins with a `test.skip`
+that skips all five unless `PLAYWRIGHT_BASE_URL` is set, which is why an ordinary `npm run test:e2e`
+reports fifteen passed and five skipped. That is a deliberate decision, for three reasons: the file
+reads the deployed project, which serves the demo data people are shown, while every other E test
+creates and deletes rows in the test project, so one run must not point at both; the session
+cookie's `secure` flag is only set when `NODE_ENV` is `production`, so asserting it against a
+development server would assert something false; and this is a check to run after a deployment
+rather than before a merge.
+
+Nothing in this repository is skipped for any other reason. There is exactly one `test.skip` in the
+whole project, the one above, and no `test.fixme`, no `describe.skip` and no `.only`. No test is
+skipped because it failed or because it was flaky.
+
+```sh
+PLAYWRIGHT_BASE_URL=https://rental-management-app-wine.vercel.app npx playwright test e2e/deploymentSmoke.spec.ts
+```
 
 ---
 
@@ -503,7 +524,11 @@ confirming the real thing works at its real address.
 
 Stated so that the gaps are choices rather than oversights.
 
-| Run on | By | Deployment | Outcome | Notes |
-| --- | --- | --- | --- | --- |
-| 2026-08-26 | Claude, with the developer | https://rental-management-app-wine.vercel.app | **Pass** | The root redirects to sign in. Signed in as the seeded landlord: the dashboard figures are populated, occupancy is not zero. Opened a tenancy, its statement and the maintenance list. Signed out, signed in as a seeded tenant, and the portal loaded. Read only: nothing was written to the deployed project |
+| Not tested | Why |
+| --- | --- |
+| Supabase Auth itself | Testing that a hosted service hashes passwords correctly tests the vendor, not this product |
+| Next.js routing internals | Same reasoning. The routing rules in `redirectDestination.ts` are tested; the framework's implementation of them is not |
+| Every shadcn component | They are vendored, unmodified, and covered by their own project |
+| Styling values | Whether a border is one pixel or two is not something a test should have an opinion about; MAN-02 covers whether it looks right |
+| Load and concurrency at scale | Out of scope for the deliverable, and discussed instead in the scale document. DB-01 covers the one concurrency guarantee that matters for correctness |
 
