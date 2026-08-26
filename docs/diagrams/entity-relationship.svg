@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 560" width="1500" height="560" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+  <rect width="1500" height="560" fill="#ffffff"/>
+  <defs>
+    <marker id="crow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <!-- profiles -->
+  <rect x="20" y="150" width="330" height="180" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <rect x="20" y="150" width="330" height="44" rx="6" fill="#e8e8ea" stroke="#333333" stroke-width="1.5"/>
+  <text x="40" y="181" font-size="26" font-weight="600" fill="#111111">profiles</text>
+  <text x="40" y="228" font-size="21" fill="#111111">id = auth.users.id</text>
+  <text x="40" y="262" font-size="21" fill="#111111">role: landlord | tenant</text>
+  <text x="40" y="296" font-size="21" fill="#111111">full_name, email</text>
+  <text x="40" y="322" font-size="18" fill="#555555">created by a trigger on sign-up</text>
+
+  <!-- properties -->
+  <rect x="410" y="30" width="300" height="150" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <rect x="410" y="30" width="300" height="44" rx="6" fill="#e8e8ea" stroke="#333333" stroke-width="1.5"/>
+  <text x="430" y="61" font-size="26" font-weight="600" fill="#111111">properties</text>
+  <text x="430" y="108" font-size="21" fill="#111111">landlord_id</text>
+  <text x="430" y="142" font-size="21" fill="#111111">name, address, city</text>
+
+  <!-- units -->
+  <rect x="410" y="250" width="300" height="150" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <rect x="410" y="250" width="300" height="44" rx="6" fill="#e8e8ea" stroke="#333333" stroke-width="1.5"/>
+  <text x="430" y="281" font-size="26" font-weight="600" fill="#111111">units</text>
+  <text x="430" y="328" font-size="21" fill="#111111">property_id</text>
+  <text x="430" y="362" font-size="21" fill="#111111">label, unique per property</text>
+
+  <!-- leases -->
+  <rect x="780" y="130" width="340" height="260" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <rect x="780" y="130" width="340" height="44" rx="6" fill="#e8e8ea" stroke="#333333" stroke-width="1.5"/>
+  <text x="800" y="161" font-size="26" font-weight="600" fill="#111111">leases</text>
+  <text x="800" y="208" font-size="21" fill="#111111">unit_id, tenant_profile_id</text>
+  <text x="800" y="242" font-size="21" fill="#111111">start_date, end_date</text>
+  <text x="800" y="276" font-size="21" fill="#111111">rent_amount_cents</text>
+  <text x="800" y="310" font-size="21" fill="#111111">rent_due_day, 1 to 28</text>
+  <text x="800" y="352" font-size="19" font-weight="600" fill="#111111">no overlap on a unit:</text>
+  <text x="800" y="376" font-size="19" font-weight="600" fill="#111111">a gist exclusion constraint</text>
+
+  <!-- rent_payments -->
+  <rect x="1180" y="40" width="300" height="180" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <rect x="1180" y="40" width="300" height="44" rx="6" fill="#e8e8ea" stroke="#333333" stroke-width="1.5"/>
+  <text x="1200" y="71" font-size="24" font-weight="600" fill="#111111">rent_payments</text>
+  <text x="1200" y="118" font-size="21" fill="#111111">lease_id, recorded_by</text>
+  <text x="1200" y="152" font-size="21" fill="#111111">period_month</text>
+  <text x="1200" y="186" font-size="21" fill="#111111">amount_cents</text>
+  <text x="1200" y="212" font-size="18" fill="#555555">received_on, method</text>
+
+  <!-- maintenance_requests -->
+  <rect x="1180" y="290" width="300" height="200" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <rect x="1180" y="290" width="300" height="44" rx="6" fill="#e8e8ea" stroke="#333333" stroke-width="1.5"/>
+  <text x="1200" y="321" font-size="22" font-weight="600" fill="#111111">maintenance_requests</text>
+  <text x="1200" y="368" font-size="21" fill="#111111">lease_id, submitted_by</text>
+  <text x="1200" y="402" font-size="21" fill="#111111">title, description, urgency</text>
+  <text x="1200" y="436" font-size="21" fill="#111111">status, resolved_at</text>
+  <text x="1200" y="470" font-size="21" fill="#111111">tenant_confirmed_at</text>
+
+  <!-- relationships -->
+  <line x1="350" y1="200" x2="410" y2="110" stroke="#333333" stroke-width="1.5" marker-end="url(#crow)"/>
+  <text x="356" y="176" font-size="18" fill="#444444">owns</text>
+
+  <line x1="560" y1="180" x2="560" y2="250" stroke="#333333" stroke-width="1.5" marker-end="url(#crow)"/>
+  <text x="572" y="222" font-size="18" fill="#444444">contains</text>
+
+  <line x1="710" y1="320" x2="780" y2="290" stroke="#333333" stroke-width="1.5" marker-end="url(#crow)"/>
+  <text x="745" y="286" text-anchor="middle" font-size="17" fill="#444444">is let by</text>
+
+  <polyline points="120,330 120,520 950,520 950,392" fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#crow)"/>
+  <text x="300" y="512" font-size="18" fill="#444444">landlord_id, and tenant_profile_id when the account exists</text>
+
+  <line x1="1120" y1="180" x2="1180" y2="140" stroke="#333333" stroke-width="1.5" marker-end="url(#crow)"/>
+
+  <line x1="1120" y1="340" x2="1180" y2="380" stroke="#333333" stroke-width="1.5" marker-end="url(#crow)"/>
+
+  <text x="180" y="440" font-size="20" font-weight="600" fill="#111111">Row Level Security on all six tables.</text>
+</svg>

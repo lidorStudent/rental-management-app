@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 560" width="1400" height="560" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+  <rect width="1400" height="560" fill="#ffffff"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <rect x="520" y="10" width="360" height="68" rx="6" fill="#f4f4f5" stroke="#333333" stroke-width="1.5"/>
+  <text x="700" y="42" text-anchor="middle" font-size="26" font-weight="600" fill="#111111">Browser</text>
+  <text x="700" y="66" text-anchor="middle" font-size="18" fill="#444444">HTML in, form values out</text>
+
+  <line x1="700" y1="78" x2="700" y2="120" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="716" y="106" font-size="18" fill="#444444">session cookie, HTTP-only</text>
+
+  <rect x="40" y="120" width="1320" height="282" rx="8" fill="#ffffff" stroke="#777777" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="62" y="147" font-size="19" font-weight="600" fill="#555555">Vercel</text>
+
+  <rect x="90" y="158" width="1220" height="66" rx="6" fill="#f4f4f5" stroke="#333333" stroke-width="1.5"/>
+  <text x="700" y="186" text-anchor="middle" font-size="24" font-weight="600" fill="#111111">src/proxy.ts</text>
+  <text x="700" y="211" text-anchor="middle" font-size="18" fill="#444444">verifies the session, refreshes the token, routes by role</text>
+
+  <line x1="430" y1="224" x2="430" y2="252" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="970" y1="224" x2="970" y2="252" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="90" y="252" width="600" height="76" rx="6" fill="#f4f4f5" stroke="#333333" stroke-width="1.5"/>
+  <text x="390" y="283" text-anchor="middle" font-size="24" font-weight="600" fill="#111111">Server components</text>
+  <text x="390" y="309" text-anchor="middle" font-size="18" fill="#444444">src/app/**/page.tsx — read</text>
+
+  <rect x="710" y="252" width="600" height="76" rx="6" fill="#f4f4f5" stroke="#333333" stroke-width="1.5"/>
+  <text x="1010" y="283" text-anchor="middle" font-size="24" font-weight="600" fill="#111111">Server actions</text>
+  <text x="1010" y="309" text-anchor="middle" font-size="18" fill="#444444">src/actions/*.ts — guard, validate, write</text>
+
+  <line x1="430" y1="328" x2="430" y2="356" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="970" y1="328" x2="970" y2="356" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="340" y="356" width="720" height="52" rx="6" fill="#e8e8ea" stroke="#333333" stroke-width="1.5"/>
+  <text x="700" y="389" text-anchor="middle" font-size="20" fill="#111111">createSupabaseServerClient() carries the user's session</text>
+
+  <line x1="700" y1="408" x2="700" y2="442" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="716" y="432" font-size="18" fill="#444444">PostgREST, as the signed-in user</text>
+
+  <rect x="40" y="442" width="1320" height="112" rx="8" fill="#ffffff" stroke="#777777" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="62" y="468" font-size="19" font-weight="600" fill="#555555">Supabase, eu-central-1</text>
+
+  <rect x="90" y="478" width="600" height="64" rx="6" fill="#f4f4f5" stroke="#333333" stroke-width="1.5"/>
+  <text x="390" y="504" text-anchor="middle" font-size="22" font-weight="600" fill="#111111">Auth</text>
+  <text x="390" y="529" text-anchor="middle" font-size="17" fill="#444444">verifies the token, issues and rotates sessions</text>
+
+  <rect x="710" y="478" width="600" height="64" rx="6" fill="#f4f4f5" stroke="#333333" stroke-width="1.5"/>
+  <text x="1010" y="504" text-anchor="middle" font-size="22" font-weight="600" fill="#111111">Postgres</text>
+  <text x="1010" y="529" text-anchor="middle" font-size="17" fill="#444444">6 tables, 3 views, and 29 Row Level Security policies</text>
+</svg>
