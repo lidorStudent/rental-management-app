@@ -36,10 +36,22 @@ any figure below to get the part that is database work.
 **The page measurements** come from Playwright driving the deployed site with the seeded demo
 portfolio, six navigations per page, first discarded, median reported.
 
-**No query plans.** `EXPLAIN` under the `authenticated` role needs a direct Postgres connection with
-the database password, which this project's tooling does not have; the Supabase CLI applies
-migrations but does not run arbitrary SQL. Where a mechanism is inferred from timings rather than
-read from a plan, it says so.
+**The query plans** were taken afterwards, against the same synthetic portfolios, with
+`supabase db query --linked --project-ref <test project>`, which runs SQL through the Management
+API. Each plan runs inside a transaction that sets the role and the token claims the application
+would arrive with, so the policies apply exactly as they do to a signed-in landlord:
+
+```sql
+begin;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"<the landlord>","role":"authenticated"}';
+explain (analyze, costs off, timing off, summary off) select count(*) from public.rent_payments;
+rollback;
+```
+
+An earlier version of this document said no plan could be taken, because the CLI only applied
+migrations. That was wrong: `supabase db query` runs arbitrary SQL and needs no database password.
+The plans in section 3 confirm what the timings had only suggested.
 
 ---
 
@@ -127,9 +139,29 @@ times:
 | `count(*)` with an explicit `landlord_id` filter | **100 ms** |
 | `count(*)` relying on the policy alone | **566 ms** |
 
-That is the mechanism in one pair of numbers. It is inferred from timings rather than read from a
-query plan, for the reason given in section 1, but nothing else explains a 5.6× difference between
-two queries returning the same count over the same rows.
+That is the mechanism in one pair of numbers, and the plans say the same thing in words. Relying on
+the policy alone, with 7,517 rows in the table:
+
+```text
+Seq Scan on rent_payments (actual rows=288 loops=1)
+  Filter: (((landlord_id = (InitPlan 1).col1) AND (current_profile_role() = 'landlord'::user_role))
+           OR is_current_tenant_lease(lease_id))
+  Rows Removed by Filter: 7229
+```
+
+The same count with `where landlord_id = …` added:
+
+```text
+Index Scan using rent_payments_landlord_id_idx on rent_payments (actual rows=288 loops=1)
+  Index Cond: (landlord_id = '…'::uuid)
+  Filter: (((landlord_id = (InitPlan 1).col1) AND (current_profile_role() = 'landlord'::user_role))
+           OR is_current_tenant_lease(lease_id))
+```
+
+Same rows, same answer: a sequential scan of the whole table with the policy evaluated on every row,
+against an index scan of the reader's own rows with the policy applied only to those. The `or` is
+what makes the difference, because an index on `landlord_id` cannot answer a condition whose other
+branch is a function call.
 
 **The projection.** Three hundred landlords with twenty units and three years of history is roughly
 216,000 payment rows, about 29 times the 7,488 rows that produced the 566 ms count above. If the
@@ -165,14 +197,25 @@ Measured at 468 ms and 477 ms for the large landlord, 314 ms for the small landl
 Two reasons, and they compound. The view sums the whole of `rent_payments` grouped by lease before
 joining, so the aggregate covers rows the reader will never see; and the read is unbounded, so a
 landlord with 600 tenancies receives 600 rows. Unlike the tenant list above, an explicit filter at
-the call site does not rescue it — measured at 330 ms without and 327 ms with `.eq("landlord_id")`,
-because the grouping happens before the filter can apply. This one needs the view changed, not the
-caller.
+the call site does not rescue it — measured at 330 ms without and 327 ms with `.eq("landlord_id")` —
+and the plan says why: the scan and the grouping happen inside the view, before any filter the
+caller adds can apply.
+
+```text
+HashAggregate (actual rows=24 loops=1)
+  Group Key: rent_payments.lease_id
+  ->  Seq Scan on rent_payments (actual rows=288 loops=1)
+        Filter: ((landlord_id = …) OR is_current_tenant_lease(lease_id))
+        Rows Removed by Filter: 7229
+```
+
+This one needs the view changed, not the caller.
 
 **2. `rent_collected_by_month`, in `DashboardOverview`
 ([src/components/dashboard/DashboardOverview.tsx:45](../src/components/dashboard/DashboardOverview.tsx#L45)).**
 Measured at 318 ms for the large landlord and 307 ms for the small one in a busy table. Here the
-call site can fix it: `landlord_id` is one of the view's grouping columns, so a filter on it reaches
+call site can fix it, and the plan confirms it: `landlord_id` is one of the view's grouping columns,
+so a filter on it becomes an `Index Scan using rent_payments_landlord_id_idx` and reaches
 the underlying scan. Measured, small landlord, busy table: **314 ms as written, 91 ms with
 `.eq("landlord_id", …)` added**.
 

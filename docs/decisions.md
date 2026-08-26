@@ -720,3 +720,17 @@ editing the script and rebuilding. That is the right trade for a deck whose cont
 docs/09-presentation-script.md, which is itself in the repository. One detail worth remembering:
 each slide is 719 pixels tall rather than 720, because at exactly the page height Chromium spills
 every slide onto a second, empty page.
+
+### 2026-08-26 - The scale document's mechanism was confirmed with a query plan, not left inferred
+
+Decided to take real plans with `supabase db query --linked`, under `set local role authenticated`
+and the token claims a signed-in landlord arrives with, and to quote them in docs/06-scale.md. The
+document had said no plan could be taken because the CLI only applied migrations. That was simply
+wrong, and the audit caught it: `supabase db query` runs arbitrary SQL through the Management API
+and asks for no database password.
+
+The plans say what the timings had suggested: relying on the policy alone gives a sequential scan of
+the whole rent_payments table with 7,229 rows discarded, while the same count with an explicit
+landlord filter gives an index scan of the reader's own 288. The lease_rent_summary plan shows the
+scan and the grouping happening inside the view, which is why a filter at the call site cannot help
+it and the view itself has to change.
