@@ -73,9 +73,10 @@ function redirectTo(
 }
 
 export const config = {
-  // Everything except Next's own build output and static files. Server actions post to page routes,
-  // so they pass through here too.
+  // Everything except Next's own build output, static files, and the health check, which a
+  // scheduler calls with no session to refresh and no area to be sent to. Server actions post to
+  // page routes, so they pass through here.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!api/health|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

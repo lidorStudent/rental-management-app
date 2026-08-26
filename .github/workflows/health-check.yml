@@ -1,0 +1,56 @@
+# Keeps the Supabase project awake.
+#
+# A project on the free plan is paused after about a week without activity, and a paused project is
+# a graded application that does not load. The health endpoint makes a real query against Postgres,
+# so calling it once a day is enough to count as activity.
+#
+# This is the second layer. The first is the application itself being used; this one runs whether
+# anybody opens it or not. Note that GitHub disables scheduled workflows in a repository with no
+# activity for sixty days, which is the one way this could go quiet.
+
+name: Keep the database awake
+
+on:
+  schedule:
+    # Daily, deliberately not on the hour: scheduled jobs queue at the top of each hour and are
+    # delayed.
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    name: Call the health endpoint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Ask the deployed application whether the database is reachable
+        run: |
+          set -euo pipefail
+
+          url="https://rental-management-app-wine.vercel.app/api/health"
+
+          # Retry a few times: a cold start on Vercel can take a moment, and a single timeout is not
+          # the same as a paused database.
+          response=$(curl --silent --show-error --max-time 30 \
+            --retry 3 --retry-delay 15 --retry-all-errors \
+            --write-out '\n%{http_code}' "$url")
+
+          body=$(printf '%s' "$response" | sed '$d')
+          code=$(printf '%s' "$response" | tail -n 1)
+
+          echo "$body"
+          echo "HTTP $code"
+
+          if [ "$code" != "200" ]; then
+            echo "The health endpoint answered $code. The deployment or the database needs looking at."
+            exit 1
+          fi
+
+          case "$body" in
+            *'"status":"ok"'*) ;;
+            *)
+              echo "The health endpoint answered 200 but did not report the database as reachable."
+              exit 1
+              ;;
+          esac
