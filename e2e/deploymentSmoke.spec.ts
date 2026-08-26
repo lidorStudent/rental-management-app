@@ -31,6 +31,36 @@ test("a signed-out visitor is sent to sign in", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
 });
 
+test("the deployed site's session cookie cannot be read by page JavaScript", async ({
+  page,
+  context,
+}) => {
+  // Checked here as well as in sessionCookie.spec.ts because the secure flag only turns on in a
+  // production build, so this address is the only place its real value can be seen.
+  for (const email of ["noa.bendavid@example.co.il", "maya.levi@example.co.il"]) {
+    await page.goto("/login");
+    await page.getByLabel("Email address").fill(email);
+    await page.getByLabel("Password").fill(SEEDED_PASSWORD);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.waitForURL((url) => !url.pathname.startsWith("/login"));
+
+    const cookies = (await context.cookies()).filter((cookie) =>
+      cookie.name.includes("auth-token"),
+    );
+    expect(cookies.length).toBeGreaterThan(0);
+    for (const cookie of cookies) {
+      expect(cookie.httpOnly).toBe(true);
+      expect(cookie.secure).toBe(true);
+      expect(cookie.sameSite).toBe("Lax");
+    }
+
+    expect(await page.evaluate(() => document.cookie)).not.toContain("auth-token");
+
+    await page.getByRole("button", { name: "Sign out" }).click();
+    await page.waitForURL((url) => url.pathname === "/login");
+  }
+});
+
 test("a seeded landlord can sign in and reach every part of their portfolio", async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("Email address").fill("noa.bendavid@example.co.il");

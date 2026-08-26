@@ -275,6 +275,20 @@ guarantee lives; the redirects are tested at E because that is where a person me
 | PERM-30 | The anonymous key grants nothing | No session | Select from every table with the public key | Zero rows everywhere | D | The key is in the browser; this is why that is safe |
 | PERM-31 | An account with no profile row | An Auth user whose profile is missing | Sign in | Signed out again and returned to `/login` with an explanation | E | An account with no role has no area, and must not be given one |
 
+### 4.5 The session cookie itself
+
+The cookie is the thing every permission above depends on, and `@supabase/ssr` writes it without the
+HTTP-only flag by default so that its browser client can read the session back out of
+`document.cookie`. This project overrides that in `src/lib/supabase/sessionCookieOptions.ts`, which
+is a departure from a library default and so needs a test that fails if the default returns.
+
+| # | Case | Precondition | Action | Expected result | Level | Why it matters |
+| --- | --- | --- | --- | --- | --- | --- |
+| PERM-32 | The cookie is closed to script | A landlord signs in | Read `document.cookie` in the page | Empty of any token, and the cookie is `httpOnly`, `sameSite=Lax`, `secure` when the address is HTTPS | E | The cookie holds the refresh token; a script that could read it could keep the session alive after the page closed |
+| PERM-33 | The same for a tenant | A tenant signs in | As above, then load a page needing the session | Unreadable by script, still readable by the server | E | A protected session that no longer works is a broken one, not a safe one |
+| PERM-34 | An expired access token is refreshed | A signed-in tenant whose cookie claims an expired token | Load `/tenant` | The page renders signed in and the cookie is replaced | E | The flags must not break the refresh the proxy exists to perform |
+| PERM-35 | The flags on the deployed site | The deployed address | Sign in as the seeded landlord and the seeded tenant | `httpOnly`, `secure` and `sameSite=Lax` are all true there | E | `secure` only turns on in a production build, so this is the only place its real value can be seen |
+
 ---
 
 ## 5. Database
