@@ -28,3 +28,6 @@ supabase/.temp
 
 # macOS
 .DS_Store
+
+# Generated from scripts/buildPresentation.mjs; the PDF it produces is the deliverable.
+docs/presentation.html

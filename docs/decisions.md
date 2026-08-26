@@ -705,3 +705,18 @@ phase. The tenant payment list and the dashboard's collected-this-month read are
 with measured before and after figures; lease_rent_summary needs its definition changed and a
 measurement of its own. Changing behaviour while writing the document that describes the behaviour
 would leave the document describing something that was never tested.
+
+### 2026-08-26 - The presentation deck is HTML printed to PDF by Playwright's Chromium
+
+Decided to build docs/presentation.pdf from an HTML file rendered by the Chromium that Playwright
+already installs for the end-to-end tests, in scripts/buildPresentation.mjs. The alternatives were
+Keynote or PowerPoint by hand, which produces a file nothing in the repository can rebuild, and
+python-pptx, which is a new dependency in a second language for one artifact. This way the deck is
+generated from a script that lives next to the code, the two diagrams are the same SVG files the
+documents link to, and rebuilding after a change is one command.
+
+The cost is that a PDF cannot be edited slide by slide the way a .pptx can: a correction means
+editing the script and rebuilding. That is the right trade for a deck whose content comes from
+docs/09-presentation-script.md, which is itself in the repository. One detail worth remembering:
+each slide is 719 pixels tall rather than 720, because at exactly the page height Chromium spills
+every slide onto a second, empty page.

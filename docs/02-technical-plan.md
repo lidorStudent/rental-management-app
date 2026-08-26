@@ -461,7 +461,11 @@ rental-management-app/
 │   ├── 04-deployment.md
 │   ├── 05-security.md
 │   ├── 06-scale.md
-│   ├── 07-technical-explainer.md
+│   ├── 07-architecture-explainer.md
+│   ├── 08-study-guide.md
+│   ├── 09-presentation-script.md
+│   ├── presentation.pdf              the deck, built by scripts/buildPresentation.mjs
+│   ├── diagrams/                     architecture and entity relationship, as SVG
 │   ├── learning/                      study notes, one per subject
 │   └── decisions.md
 ├── supabase/

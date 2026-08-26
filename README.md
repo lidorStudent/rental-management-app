@@ -313,6 +313,10 @@ redirect if the page is past the end, render with `PaginatedTable`.
 | [docs/05-security.md](docs/05-security.md) | What is actually done about authentication, authorisation, validation and secrets, and which risks remain |
 | [docs/06-scale.md](docs/06-scale.md) | How the system behaves at size, measured rather than assumed, and what to change first |
 | [docs/decisions.md](docs/decisions.md) | Every decision worth defending, with its alternatives and its reasoning |
+| [docs/07-architecture-explainer.md](docs/07-architecture-explainer.md) | The internal explainer: the architecture, the key files, every flow traced, the schema, the tests, the decisions |
+| [docs/08-study-guide.md](docs/08-study-guide.md) | One progressive guide to the whole system, with the five concepts and twenty questions with answers |
+| [docs/09-presentation-script.md](docs/09-presentation-script.md) | The slide-by-slide script with timings, and the demo click by click |
+| [docs/presentation.pdf](docs/presentation.pdf) | The deck itself, fifteen slides, built from that script |
 | [docs/learning/01-auth-and-database.md](docs/learning/01-auth-and-database.md) | How the session and the database fit together |
 | [docs/learning/02-business-rules.md](docs/learning/02-business-rules.md) | The derived rules, and why none of them is stored |
 | [docs/learning/03-data-flow.md](docs/learning/03-data-flow.md) | What happens between a click and a row |
