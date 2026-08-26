@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "format": "prettier --write .",
     "db:seed": "node --env-file=.env.test --experimental-strip-types supabase/seed.ts",
-    "db:seed:production": "node --env-file=.env.local --experimental-strip-types supabase/seed.ts --confirm-production"
+    "db:seed:production": "node --env-file=.env.local --experimental-strip-types supabase/seed.ts --confirm-production",
+    "test:db": "vitest run --config vitest.database.config.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
