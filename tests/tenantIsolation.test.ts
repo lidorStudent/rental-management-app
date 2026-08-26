@@ -43,6 +43,7 @@ beforeAll(async () => {
 });
 
 describe("what one tenant can read of another's", () => {
+  // PERM-12
   it("shows a tenant only their own tenancy", async () => {
     const { data } = await maya.from("leases").select("id");
 
@@ -50,12 +51,14 @@ describe("what one tenant can read of another's", () => {
     expect(data?.[0]?.id).toBe(SEEDED_IDS.leaseMayaActive);
   });
 
+  // PERM-12
   it("returns nothing when a tenant names another tenant's tenancy directly", async () => {
     const { data } = await maya.from("leases").select("id").eq("id", SEEDED_IDS.leaseYonatanActive);
 
     expect(data).toEqual([]);
   });
 
+  // PERM-13
   it("shows a tenant only payments against their own tenancy", async () => {
     const { data } = await maya.from("rent_payments").select("lease_id");
 
@@ -63,6 +66,7 @@ describe("what one tenant can read of another's", () => {
     expect(data?.length).toBeGreaterThan(0);
   });
 
+  // PERM-13
   it("returns nothing when a tenant asks for another tenant's payments by lease", async () => {
     const { data } = await maya
       .from("rent_payments")
@@ -72,12 +76,14 @@ describe("what one tenant can read of another's", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-14
   it("shows a tenant only problems they reported", async () => {
     const { data } = await maya.from("maintenance_requests").select("lease_id");
 
     expect(data?.every((row) => row.lease_id === SEEDED_IDS.leaseMayaActive)).toBe(true);
   });
 
+  // PERM-14
   it("returns nothing when a tenant names another tenant's request directly", async () => {
     const { data } = await maya
       .from("maintenance_requests")
@@ -87,6 +93,7 @@ describe("what one tenant can read of another's", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-19
   it("shows a tenant only the flat they live in", async () => {
     const { data } = await maya.from("units").select("label");
 
@@ -94,6 +101,7 @@ describe("what one tenant can read of another's", () => {
     expect(data?.[0]?.label).toBe("Flat 1");
   });
 
+  // PERM-19
   it("shows a tenant only the building they live in", async () => {
     const { data } = await maya.from("properties").select("name");
 
@@ -105,6 +113,7 @@ describe("what one tenant can read of another's", () => {
    * The product must not reveal that other tenants exist at all. A tenant may read themselves and
    * the landlord they need to contact, and that is the whole list.
    */
+  // PERM-19
   it("shows a tenant only their own profile and their landlord's", async () => {
     const { data } = await maya.from("profiles").select("email");
     const emails = (data ?? []).map((row) => row.email).sort();
@@ -112,6 +121,7 @@ describe("what one tenant can read of another's", () => {
     expect(emails).toEqual([SEEDED_USERS.landlordNoa, SEEDED_USERS.tenantMaya].sort());
   });
 
+  // PERM-19
   it("returns nothing when a tenant names another tenant's profile directly", async () => {
     const { data } = await maya.from("profiles").select("id").eq("id", yonatanProfileId);
 
@@ -128,6 +138,7 @@ describe("what one tenant can read of another's", () => {
 });
 
 describe("what a tenant can write to the ledger and the tenancy", () => {
+  // PERM-20
   it("refuses a payment inserted by a tenant", async () => {
     const { error } = await maya.from("rent_payments").insert({
       lease_id: SEEDED_IDS.leaseMayaActive,
@@ -142,6 +153,7 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
     expect(error?.code).toBe("42501");
   });
 
+  // PERM-20
   it("changes nothing when a tenant edits a payment on their own tenancy", async () => {
     const { data } = await maya
       .from("rent_payments")
@@ -152,6 +164,7 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-20
   it("deletes nothing when a tenant deletes a payment that shows them in arrears", async () => {
     const { data } = await maya
       .from("rent_payments")
@@ -168,6 +181,7 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
     expect(count).toBeGreaterThan(0);
   });
 
+  // PERM-21
   it("changes nothing when a tenant extends their own tenancy", async () => {
     const { data } = await maya
       .from("leases")
@@ -178,6 +192,7 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-21
   it("changes nothing when a tenant lowers their own rent", async () => {
     const { data } = await maya
       .from("leases")
@@ -188,6 +203,7 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-22
   it("refuses a tenancy created by a tenant", async () => {
     const { error } = await maya.from("leases").insert({
       unit_id: SEEDED_IDS.unitEmekRefaimGround,
@@ -202,6 +218,7 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
     expect(error?.code).toBe("42501");
   });
 
+  // PERM-21
   it("deletes nothing when a tenant deletes their own tenancy", async () => {
     const { data } = await maya
       .from("leases")
@@ -239,6 +256,7 @@ describe("what a tenant can do with maintenance", () => {
     }
   });
 
+  // PERM-17
   it("refuses a problem reported against another tenant's tenancy", async () => {
     const { error } = await maya.from("maintenance_requests").insert({
       lease_id: SEEDED_IDS.leaseYonatanActive,
@@ -251,6 +269,7 @@ describe("what a tenant can do with maintenance", () => {
     expect(error?.code).toBe("42501");
   });
 
+  // PERM-18
   it("refuses a problem reported in another person's name", async () => {
     const { error } = await maya.from("maintenance_requests").insert({
       lease_id: SEEDED_IDS.leaseMayaActive,
@@ -315,6 +334,7 @@ describe("what a tenant can do with maintenance", () => {
    * resolved requests, so the row is reachable; the trigger is what refuses the column, which is
    * why this comes back as a refusal rather than as no rows.
    */
+  // PERM-23
   it("refuses a tenant moving their own request along", async () => {
     const service = serviceRoleClient();
     const { data: before } = await service
@@ -343,6 +363,7 @@ describe("what a tenant can do with maintenance", () => {
    * A policy decides which rows an update may touch, never which columns, so the trigger is what
    * keeps a tenant's one write to the one column it is meant for.
    */
+  // PERM-24
   it("refuses a tenant rewriting anything else while confirming a fix", async () => {
     const service = serviceRoleClient();
     const { data } = await service
@@ -408,6 +429,7 @@ describe("what a tenant can do with maintenance", () => {
       .eq("id", resolved.id);
   });
 
+  // PERM-16
   it("changes nothing when a tenant confirms another tenant's request", async () => {
     const { data } = await maya
       .from("maintenance_requests")
@@ -418,6 +440,7 @@ describe("what a tenant can do with maintenance", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-19
   it("shows the two tenants of one landlord nothing of each other", async () => {
     const mayaRows = await maya.from("maintenance_requests").select("id");
     const yonatanRows = await yonatan.from("maintenance_requests").select("id");
@@ -430,6 +453,7 @@ describe("what a tenant can do with maintenance", () => {
 });
 
 describe("what a tenant can do to their own account", () => {
+  // PERM-25
   it("refuses a tenant promoting themselves to landlord", async () => {
     const { error } = await maya
       .from("profiles")

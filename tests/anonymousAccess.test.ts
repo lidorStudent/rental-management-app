@@ -25,6 +25,7 @@ const EVERY_VIEW = [
 ] as const;
 
 describe("a client with no session", () => {
+  // PERM-30
   it.each(EVERY_TABLE)("reads nothing from %s", async (table) => {
     const { data, error } = await anonymousClient().from(table).select("*");
 
@@ -39,6 +40,7 @@ describe("a client with no session", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-30
   it("reads nothing even when naming a row it knows exists", async () => {
     const client = anonymousClient();
 
@@ -52,6 +54,7 @@ describe("a client with no session", () => {
     expect(property.data).toEqual([]);
   });
 
+  // PERM-30
   it("writes nothing anywhere", async () => {
     const client = anonymousClient();
 
@@ -75,6 +78,7 @@ describe("a client with no session", () => {
     expect(payment.error?.code).toBe("42501");
   });
 
+  // PERM-30
   it("changes and deletes nothing", async () => {
     const client = anonymousClient();
 

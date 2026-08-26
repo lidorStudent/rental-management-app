@@ -31,6 +31,7 @@ test("a signed-out visitor is sent to sign in", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
 });
 
+// PERM-35
 test("the deployed site's session cookie cannot be read by page JavaScript", async ({
   page,
   context,

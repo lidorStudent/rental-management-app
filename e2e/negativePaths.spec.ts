@@ -9,6 +9,7 @@ import {
   monthsFromNow,
   removeEverything,
   signIn,
+  TEST_PASSWORD,
   uniqueName,
   type CreatedAccount,
   type CreatedLease,
@@ -98,6 +99,7 @@ test("an overlapping tenancy is refused, naming the tenancy in the way and the f
   expect(count).toBe(1);
 });
 
+// PERM-26
 test("a tenant sent to a landlord route is put back in their own portal", async ({ page }) => {
   await signIn(page, firstTenant.email);
 
@@ -114,6 +116,7 @@ test("a tenant sent to a landlord route is put back in their own portal", async 
   }
 });
 
+// PERM-15
 test("a tenant naming another tenant's record is answered as if it does not exist", async ({
   page,
 }) => {
@@ -155,6 +158,82 @@ test("a tenant naming another tenant's record is answered as if it does not exis
   await expect(page.getByText("Nothing reported")).toBeVisible();
 });
 
+// PERM-11
+test("a landlord opening another landlord's statement is answered as if it does not exist", async ({
+  page,
+}) => {
+  const otherPortfolio = await createPortfolio();
+  const otherLease = await createLease({
+    portfolio: otherPortfolio,
+    tenantId: null,
+    startDate: monthsFromNow(-1),
+    endDate: endOfMonth(10),
+  });
+
+  try {
+    await signIn(page, portfolio.landlord.email);
+
+    await page.goto(`/landlord/leases/${otherLease.id}/statement`);
+    await expect(page.getByRole("heading", { name: "Not found" })).toBeVisible();
+    const theirsBody = await page.getByRole("main").innerText();
+
+    await page.goto("/landlord/leases/11111111-2222-4333-8444-555555555555/statement");
+    await expect(page.getByRole("heading", { name: "Not found" })).toBeVisible();
+
+    // The same page for a lease that belongs to somebody else and one that never existed.
+    expect(theirsBody).toBe(await page.getByRole("main").innerText());
+  } finally {
+    await removeEverything(otherPortfolio.landlord.id);
+  }
+});
+
+// PERM-27
+test("no tenant page offers a link into the landlord area", async ({ page }) => {
+  await signIn(page, firstTenant.email);
+
+  for (const path of [
+    "/tenant",
+    "/tenant/lease",
+    "/tenant/payments",
+    "/tenant/maintenance",
+    "/tenant/maintenance/new",
+    "/tenant/statement",
+  ]) {
+    await page.goto(path);
+    const destinations = await page
+      .locator("a[href]")
+      .evaluateAll((links) => links.map((link) => link.getAttribute("href") ?? ""));
+
+    expect(destinations.length).toBeGreaterThan(0);
+    expect(destinations.filter((destination) => destination.startsWith("/landlord"))).toEqual([]);
+  }
+});
+
+// PERM-31
+test("an account whose profile row is missing is signed out again", async ({ page }) => {
+  const strandedTenant = await createTenantAccount(false);
+  // Removing the profile leaves the Auth account behind, which is the state this test is about:
+  // somebody who can authenticate but has no role, and therefore no area to be sent to.
+  await adminClient().from("profiles").delete().eq("id", strandedTenant.id);
+
+  try {
+    await page.goto("/login");
+    await page.getByLabel("Email address").fill(strandedTenant.email);
+    await page.getByLabel("Password").fill(TEST_PASSWORD);
+    await page.getByRole("button", { name: "Sign in" }).click();
+
+    await expect(page.getByText(/not set up correctly/)).toBeVisible();
+    await expect(page).toHaveURL(/\/login/);
+
+    // And the session it briefly had is gone: a protected route still sends them back here.
+    await page.goto("/tenant");
+    await expect(page).toHaveURL(/\/login/);
+  } finally {
+    await adminClient().auth.admin.deleteUser(strandedTenant.id);
+  }
+});
+
+// PERM-28, PERM-29
 test("an unauthenticated visitor is sent to sign in from every protected route", async ({
   page,
 }) => {

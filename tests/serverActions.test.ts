@@ -79,6 +79,7 @@ describe("an action asked for by the wrong role", () => {
     ).rejects.toThrow(/for a landlord, and the signed-in user is a tenant/);
   });
 
+  // PERM-20
   it("refuses a tenant recording a payment", async () => {
     await actingAs(SEEDED_USERS.tenantMaya);
 
@@ -93,6 +94,7 @@ describe("an action asked for by the wrong role", () => {
     ).rejects.toThrow(/for a landlord/);
   });
 
+  // PERM-23
   it("refuses a tenant moving a request along", async () => {
     await actingAs(SEEDED_USERS.tenantMaya);
 
@@ -142,6 +144,7 @@ describe("an action given another landlord's identifier", () => {
     expect(nobodys).toEqual(somebodyElses);
   });
 
+  // PERM-07
   it("refuses to delete another landlord's property, and does not delete it", async () => {
     await actingAs(SEEDED_USERS.landlordEitan);
 
@@ -155,6 +158,7 @@ describe("an action given another landlord's identifier", () => {
     expect(data).toHaveLength(1);
   });
 
+  // PERM-08
   it("refuses a unit added to another landlord's building", async () => {
     await actingAs(SEEDED_USERS.landlordEitan);
 
@@ -180,6 +184,7 @@ describe("an action given another landlord's identifier", () => {
     expect(result).toEqual({ status: "error", message: "That unit was not found." });
   });
 
+  // PERM-09
   it("refuses a payment recorded against another landlord's tenancy", async () => {
     await actingAs(SEEDED_USERS.landlordEitan);
 
@@ -223,6 +228,7 @@ describe("an action given another landlord's identifier", () => {
     expect(result).toEqual({ status: "error", message: "That lease was not found." });
   });
 
+  // PERM-16
   it("refuses a tenant confirming another tenant's request, in the same words as a missing one", async () => {
     await actingAs(SEEDED_USERS.tenantMaya);
 

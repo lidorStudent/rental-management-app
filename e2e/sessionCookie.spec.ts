@@ -71,6 +71,7 @@ async function expectTheSessionToBeHardenedAndUnreadable(
   expect(readableByScript).not.toContain("refresh_token");
 }
 
+// PERM-32
 test("a landlord's session cannot be read by script, and signing out ends it", async ({
   page,
   context,
@@ -92,6 +93,7 @@ test("a landlord's session cannot be read by script, and signing out ends it", a
   await expect(page).toHaveURL(/\/login/);
 });
 
+// PERM-33
 test("a tenant's session cannot be read by script, and signing out ends it", async ({
   page,
   context,
@@ -111,6 +113,7 @@ test("a tenant's session cannot be read by script, and signing out ends it", asy
   await expect(page).toHaveURL(/\/login/);
 });
 
+// PERM-34
 test("an expired access token is refreshed rather than signing the tenant out", async ({
   page,
   context,

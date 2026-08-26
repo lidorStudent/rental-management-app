@@ -32,12 +32,14 @@ beforeAll(async () => {
 });
 
 describe("what one landlord can read of another's", () => {
+  // PERM-01
   it("shows a landlord only their own properties", async () => {
     const { data } = await eitan.from("properties").select("id, name");
 
     expect(data?.map((row) => row.name)).toEqual(["HaNamal 5"]);
   });
 
+  // PERM-01
   it("returns nothing when a landlord names another landlord's property directly", async () => {
     const { data } = await eitan
       .from("properties")
@@ -47,18 +49,21 @@ describe("what one landlord can read of another's", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-02
   it("shows a landlord only their own units", async () => {
     const { data } = await eitan.from("units").select("label");
 
     expect(data?.map((row) => row.label).sort()).toEqual(["Flat A", "Flat B"]);
   });
 
+  // PERM-02
   it("returns nothing when a landlord names another landlord's unit directly", async () => {
     const { data } = await eitan.from("units").select("id").eq("id", SEEDED_IDS.unitRothschildOne);
 
     expect(data).toEqual([]);
   });
 
+  // PERM-03
   it("shows a landlord only their own tenancies", async () => {
     const { data } = await eitan.from("leases").select("id");
 
@@ -66,12 +71,14 @@ describe("what one landlord can read of another's", () => {
     expect(data?.[0]?.id).toBe(SEEDED_IDS.leaseDanaActive);
   });
 
+  // PERM-03
   it("returns nothing when a landlord names another landlord's tenancy directly", async () => {
     const { data } = await eitan.from("leases").select("id").eq("id", SEEDED_IDS.leaseMayaActive);
 
     expect(data).toEqual([]);
   });
 
+  // PERM-04
   it("shows a landlord only their own ledger", async () => {
     const { data } = await eitan.from("rent_payments").select("lease_id");
 
@@ -79,6 +86,7 @@ describe("what one landlord can read of another's", () => {
     expect(data?.length).toBeGreaterThan(0);
   });
 
+  // PERM-04
   it("returns nothing when a landlord asks for another landlord's payments by lease", async () => {
     const { data } = await eitan
       .from("rent_payments")
@@ -88,6 +96,7 @@ describe("what one landlord can read of another's", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-05
   it("shows a landlord only problems reported against their own units", async () => {
     const { data } = await eitan.from("maintenance_requests").select("lease_id");
 
@@ -139,6 +148,7 @@ describe("what one landlord can write to another's", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-06
   it("changes nothing when a landlord updates another landlord's tenancy", async () => {
     const { data } = await eitan
       .from("leases")
@@ -169,6 +179,7 @@ describe("what one landlord can write to another's", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-07
   it("deletes nothing when a landlord deletes another landlord's unit", async () => {
     const { data } = await eitan
       .from("units")
@@ -195,6 +206,7 @@ describe("what one landlord can write to another's", () => {
     expect(data).toEqual([]);
   });
 
+  // PERM-08
   it("refuses a unit planted inside another landlord's building", async () => {
     const { error } = await eitan.from("units").insert({
       property_id: SEEDED_IDS.propertyRothschild,
@@ -231,6 +243,7 @@ describe("what one landlord can write to another's", () => {
     expect(error?.code).toBe("42501");
   });
 
+  // PERM-09
   it("refuses a payment recorded against another landlord's tenancy", async () => {
     const { error } = await eitan.from("rent_payments").insert({
       lease_id: SEEDED_IDS.leaseMayaActive,
