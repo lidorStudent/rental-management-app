@@ -544,7 +544,7 @@ rental-management-app/
     │   ├── rentPaymentActions.ts
     │   └── maintenanceRequestActions.ts
     ├── components/
-    │   ├── ui/                        shadcn output, unmodified
+    │   ├── ui/                        shadcn output. Only table.tsx is edited, for density
     │   ├── layout/
     │   │   ├── LandlordNavigation.tsx
     │   │   ├── TenantNavigation.tsx
@@ -673,7 +673,7 @@ Files that do the same job have the same shape, so learning one teaches all of t
 | Component | Responsibility |
 | --- | --- |
 | `RentScheduleTable` | Renders the derived schedule: one row per period, with due date, amount, amount paid, outstanding, and a `RentStatusBadge`. Renders nothing about status itself; it receives it |
-| `RentStatusBadge` | Maps one of the four derived statuses to a label and a colour. The single place status is styled |
+| `RentStatusBadge` | Maps one of the four derived statuses to a label and to one of the five status meanings defined in `globals.css`. The single place a rent status becomes a word |
 | `TenantAccessPanel` | Shows whether the lease has a tenant account, offers the create action when it does not, and displays the one-time temporary password returned by that action. Never reads a password from anywhere |
 | `AttentionPanel` | The dashboard's reason for existing: overdue periods, leases ending within sixty days, open requests. Receives already-computed lists |
 | `OutstandingTotal` | Portfolio-wide outstanding rent, computed by `summariseOutstandingRent` on the server |

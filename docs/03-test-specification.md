@@ -424,6 +424,7 @@ off and no control is unreachable.
 | Run on | By | Widths checked | Outcome | Notes |
 | --- | --- | --- | --- | --- |
 | 2026-08-26 | Claude, with the developer | 1440, 1024, 768, 375 | **Pass, after a fix** | At 375 pixels the landlord navigation pushed the page sideways by 10 pixels, because its five links could not wrap. Fixed by letting the link row wrap; both navigations now do. Rechecked at all four widths: no page scrolls sideways, tables scroll inside their own frames, nothing overlaps and no control is unreachable |
+| 2026-08-27 | Claude, by script | 1440, 1024, 768, 375 | **Pass, machine half only** | Re-run because the page padding changed from `px-4 py-6` to `px-6 py-8` and the table cells from `p-2` to `px-4 py-2.5`. A script signed in as a landlord and compared `scrollWidth` against `clientWidth` on the dashboard, properties, leases, rent, maintenance, one lease and one property: no page pushes the document sideways at any of the four widths. The half a machine cannot judge - whether it reads well, and the tenant portal - still wants the by-eye pass before submission |
 
 ### MAN-03 The first sign-in experience for a new tenant
 
@@ -529,7 +530,7 @@ Stated so that the gaps are choices rather than oversights.
 | --- | --- |
 | Supabase Auth itself | Testing that a hosted service hashes passwords correctly tests the vendor, not this product |
 | Next.js routing internals | Same reasoning. The routing rules in `redirectDestination.ts` are tested; the framework's implementation of them is not |
-| Every shadcn component | They are vendored, unmodified, and covered by their own project |
+| Every shadcn component | They are vendored and covered by their own project. Only `table.tsx` is edited, and only its padding and its header type |
 | Styling values | Whether a border is one pixel or two is not something a test should have an opinion about; MAN-02 covers whether it looks right |
 | Load and concurrency at scale | Out of scope for the deliverable, and discussed instead in the scale document. DB-01 covers the one concurrency guarantee that matters for correctness |
 

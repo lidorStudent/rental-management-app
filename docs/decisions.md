@@ -734,3 +734,35 @@ the whole rent_payments table with 7,229 rows discarded, while the same count wi
 landlord filter gives an index scan of the reader's own 288. The lease_rent_summary plan shows the
 scan and the grouping happening inside the view, which is why a filter at the call site cannot help
 it and the view itself has to change.
+
+### 2026-08-27 - Status colour is chosen by meaning, in one place, and does not rely on colour alone
+
+Decided that the three status systems - rent, maintenance and lease lifecycle - stop carrying their
+own colours. Their twelve words collapse into five meanings (neutral, progress, settled, attention,
+critical), the meanings are defined once as CSS variables in `src/app/globals.css`, and each badge
+component now names a meaning rather than a Tailwind palette colour. The alternative was to keep
+tuning `text-emerald-700` and friends in each of the three files, which is how the two reds had
+already drifted apart: an overdue month and an unlooked-at problem are the same thing to a landlord
+and were being painted differently.
+
+The five meanings are also five amounts of ink - dashed outline, solid outline, tint, heavier tint
+with more weight, and one solid fill for critical. That ladder is the point: colour alone fails in
+greyscale, on a projector and for a reader who cannot separate red from green, so the badges stay
+distinguishable with the colour taken away. Critical is the only filled badge, which is what makes
+an overdue row findable in a full table.
+
+### 2026-08-27 - The interface has one accent, one type scale and one spacing rhythm
+
+Decided on neutral surfaces with a single blue accent carrying everything interactive (primary
+button, focus ring, hover wash), five type roles with a class each for the two that repeat, and one
+rhythm: page padding, section gaps, and table cell padding set once in `ui/table.tsx` rather than
+per table. Bordered surfaces follow one rule - anything carrying data or offering an action of its
+own is a white well on the grey page, while notes, warnings and page controls sit flush.
+
+Fixing this turned up a real bug. `@theme inline` mapped `--font-sans` to `var(--font-sans)`, a
+self-reference, so the declaration was invalid and every page had been rendering in the browser's
+default font rather than Geist, which the root layout was loading and paying for on every request.
+It now points at `--font-geist-sans`, the variable the layout actually defines.
+
+The `.dark` block keeps a value for every new token, because that is the contract the file already
+had, but nothing in the product sets the class. Dark mode remains unbuilt rather than half-built.
