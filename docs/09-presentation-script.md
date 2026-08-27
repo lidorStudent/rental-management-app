@@ -195,17 +195,19 @@ pass."
 ## Slide 12 - Scale (0:50)
 
 **On screen:** Measured, not assumed. Tens of users: fine. Hundreds: two specific problems, both
-priced.
+priced. One now fixed.
 
 **Say:** "I did not want to guess at this, so I measured it: synthetic portfolios in the test
 project, real queries, timed as a signed-in user. At tens of landlords everything answers in about a
-tenth of a second. At hundreds, two things break and I can name them. First, the deployed functions
-run in Washington while the database is in Frankfurt, so every round trip crosses the Atlantic - the
-health check, which is one query, takes half a second. Second, and this one surprised me: a small
-landlord's dashboard query went from ninety-eight milliseconds to three hundred and fourteen purely
-because another landlord's rows existed in the table, because the row-level security predicate on the
-payments table cannot be answered from an index unless the query supplies its own filter. Both are
-written up with the numbers and a fix order in the scale document."
+tenth of a second. At hundreds, two things broke and I could name them. The first I have since
+fixed. The deployed functions were running in Washington while the database is in Frankfurt, so
+every round trip crossed the Atlantic; moving them to Frankfurt took the health check from six
+hundred and forty-seven milliseconds to three hundred and thirty-eight, and cut the median page's
+server time by two thirds. The second is still there: a small landlord's dashboard query went from
+ninety-eight milliseconds to three hundred and fourteen purely because another landlord's rows
+existed in the table, because the row-level security predicate on the payments table cannot be
+answered from an index unless the query supplies its own filter. Both are written up with the
+numbers in the scale document."
 
 ---
 
@@ -228,16 +230,19 @@ document rather than left to be discovered."
 
 ## Slide 14 - What I would improve with more time (0:45)
 
-**On screen:** Move the functions to Frankfurt. Give the aggregate queries an indexable filter. Cut
-the fixed round trips per request. Then: organisations, an audit log, rate limiting.
+**On screen:** Done: the functions moved to Frankfurt. Next: give the aggregate queries an indexable
+filter. Then: organisations, an audit log, rate limiting.
 
-**Say:** "In priority order, and the order is by measured effect over risk. Move the deployed
-functions to the same region as the database - one setting, and it is the largest measured cost in
-the system. Give two queries an explicit filter so the database can use an index; that is measured at
-five hundred and fifty-five milliseconds down to eighty-seven. Cut the four fixed round trips every
-request makes to verify the session twice. After that, product rather than performance: more than one
-person on a portfolio, which today means rewriting every policy, an audit log, and rate limiting on my
-own endpoints."
+**Say:** "In priority order, and the order is by measured effect over risk. The first one is done:
+moving the deployed functions into the same region as the database was one line, and it was the
+largest measured cost in the system - two thirds off the median page. It also taught me something I
+did not expect. The next item on my list had been to cut the four fixed round trips every request
+makes; once the function sat beside the database, one round trip stopped being measurable at all, so
+that item is worth nothing now and I withdrew it. Fix the latency before you count the round trips.
+What is still worth doing is giving two queries an explicit filter so the database can use an index,
+measured at five hundred and fifty-five milliseconds down to eighty-seven. After that, product
+rather than performance: more than one person on a portfolio, which today means rewriting every
+policy, an audit log, and rate limiting on my own endpoints."
 
 ---
 

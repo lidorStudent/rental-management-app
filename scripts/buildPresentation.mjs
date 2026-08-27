@@ -153,7 +153,7 @@ const slides = [
     bullets: [
       "Tens of landlords: every page under about 120 ms of database time",
       "Hundreds: two problems, both measured and priced",
-      "Functions run in Washington, the database is in Frankfurt",
+      "Functions ran in Washington, database in Frankfurt: moved, 647 → 338 ms",
       "98 ms → 314 ms purely because another landlord's rows exist",
     ],
   }),
@@ -172,11 +172,10 @@ const slides = [
   bulletSlide({
     title: "With more time",
     bullets: [
-      "1 &nbsp; Move the functions to the database's region",
-      "2 &nbsp; Give two aggregate queries an indexable filter",
-      "3 &nbsp; Halve the fixed round trips per request",
-      "4 &nbsp; More than one person on a portfolio",
-      "5 &nbsp; An audit log, and rate limiting on my own endpoints",
+      "Done &nbsp; Functions moved beside the database: 66% off the median page",
+      "1 &nbsp; Give two aggregate queries an indexable filter",
+      "2 &nbsp; More than one person on a portfolio",
+      "3 &nbsp; An audit log, and rate limiting on my own endpoints",
     ],
     numbered: true,
     closing: "In that order: measured effect over risk.",

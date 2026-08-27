@@ -6,12 +6,17 @@ and say where they came from; anything projected beyond what was measured is lab
 
 The short version: the per-page work is small and mostly indexed, the pages that list things are
 paged, and the two figures a landlord sees first are computed by Postgres rather than in JavaScript.
-Two things do not scale as built, and both were found by measuring rather than by reading:
-row-level security on `rent_payments` cannot be answered from an index, so any query that does not
-supply its own filter reads the whole table (measured: 566 ms against 100 ms for the same 288 rows),
-and the deployed functions run in Washington while the database is in Frankfurt, so every round trip
-crosses the Atlantic (measured: `x-vercel-id: fra1::iad1`, and 0.50 s for the health check, which
-is one query). Sections 8 and 9 say what to do about both.
+Two things did not scale as built, and both were found by measuring rather than by reading.
+
+**The second is now fixed.** The deployed functions ran in Washington while the database is in
+Frankfurt, so every round trip crossed the Atlantic. Pinning the region to `fra1` moved the function
+into the same city as the data: `x-vercel-id` went from `fra1::iad1` to `fra1::fra1`, the health
+check went from **647 ms to 338 ms**, and the median page's server time fell **66%**. Section 11
+records the before and after in full.
+
+**The first remains.** Row-level security on `rent_payments` cannot be answered from an index, so any
+query that does not supply its own filter reads the whole table (measured: 566 ms against 100 ms for
+the same 288 rows). Sections 3 and 9 say what to do about it.
 
 ---
 
@@ -68,9 +73,14 @@ A landlord loading the dashboard causes **eight** round trips from the server to
 | 5-8 | `src/components/dashboard/DashboardOverview.tsx` | four queries, issued together with `Promise.all` |
 
 The first four are fixed: every protected page pays them, whatever it shows. They are also
-sequential in pairs, because the profile read needs the user id that the `getUser` call returns. On
-the deployed site this is the largest single cost of a page, and section 9 puts it second on the
-list of things to change.
+sequential in pairs, because the profile read needs the user id that the `getUser` call returns.
+
+This was the largest single cost of a page on the deployed site, at roughly 200 ms of Atlantic
+latency. It is not any more: since the functions moved to Frankfurt, one round trip is not
+measurable, so four of them are worth about as much (section 11). The reason to keep them is now
+the reason they were written rather than the reason they were tolerated - the token is verified
+with the Auth service rather than decoded, and the role is read from a table the user cannot edit
+rather than from a token they can.
 
 Measured on the deployed site, with the seeded portfolio:
 
@@ -379,12 +389,12 @@ one file they cannot drift.
 
 ## 9. Limitations, plainly
 
-**The functions and the database are on different continents.** Measured from the deployed site's
-response header, `x-vercel-id: fra1::iad1`: the request enters Vercel in Frankfurt and the function
-runs in Washington, while both Supabase projects are in `eu-central-1`, Frankfurt. Every one of the
-eight round trips in section 2 crosses the Atlantic twice. The health endpoint, which is a single
-`count` and nothing else, takes **0.50 s** warm and **1.9 s** on the first call after an idle period.
-This is the largest and cheapest-to-fix number in this document.
+**~~The functions and the database are on different continents.~~ Fixed on 27 August 2026.** This
+was the largest and cheapest-to-fix number in this document, and it is now done: `vercel.json` pins
+`"regions": ["fra1"]`, and the deployed site reports `x-vercel-id: fra1::fra1` where it used to
+report `fra1::iad1`. Section 11 has the measurements. What it leaves behind is worth stating,
+because it changes the value of everything else on the list: **one round trip from the function to
+the database is no longer measurable at all.**
 
 **Row-level security cannot be answered from an index on `rent_payments`.** Sections 3 and 4, with
 the measurements. This is the one that turns into a real problem at hundreds of users.
@@ -423,11 +433,10 @@ no failover. If it is down, the application is down, and the health check will s
 The order is by measured effect divided by risk. The first two are small changes with large numbers
 behind them; the rest matter later.
 
-**1. Move the Vercel functions to `fra1`.** One project setting. It removes an Atlantic crossing from
-all eight round trips of every page, which the health check measures at roughly 0.4 s of the 0.5 s it
-takes today. Nothing about the code changes, so nothing can break in a way tests would not catch.
-It is first because it is the largest measured cost in the whole system and the smallest change in
-this list.
+**1. ~~Move the Vercel functions to `fra1`.~~ Done, 27 August 2026.** One line in `vercel.json`. It
+removed an Atlantic crossing from all eight round trips of every page. Predicted here at roughly
+0.4 s of the health check's 0.5 s; measured afterwards at **647 ms → 338 ms** on the health check and
+a **66% median reduction** in page server time. No code changed. Section 11 has the table.
 
 **2. Give the queries something indexable to start from.** Two edits, both measured:
 `.eq("lease_id", lease.id)` on the tenant payment list (555 ms → 87 ms) and `.eq("landlord_id", …)`
@@ -443,11 +452,14 @@ subquery so the owner comparison can reach the scan. It is third rather than sec
 migration and a change to a definition three screens depend on, so it needs its own measurement
 before and after rather than a confident edit.
 
-**4. Cut the fixed four round trips per request to two.** The proxy verifies the user and reads the
-profile; the layout does both again a moment later. Wrapping `getSignedInProfile` in React's `cache`
-would collapse the second pair within a render, and passing the already-verified user id from the
-proxy would collapse the rest. Fourth because it is worth roughly 200 ms of Atlantic latency today
-and roughly 20 ms once item 1 is done — the ordering of this list changes its own arithmetic.
+**4. ~~Cut the fixed four round trips per request to two.~~ Withdrawn.** The proxy verifies the user
+and reads the profile; the layout does both again a moment later. This was worth roughly 200 ms of
+Atlantic latency, and this document already guessed it would be worth roughly 20 ms once item 1 was
+done. The measurement in section 11 is blunter than that guess: **one round trip is worth 0 ms** now,
+so the whole item is worth 0 ms. It was also the item that pressed hardest against the security
+boundary — every route to it either trusts a token the server has not verified, reads the role from
+somewhere the user can edit, or moves a role across a header a client can forge. It is withdrawn on
+the arithmetic, which is the best reason to withdraw something.
 
 **5. Bound the two unbounded reads.** The rent overview and the dashboard tenancy list return one row
 per tenancy ever recorded. Filtering to tenancies that are active or ended with money outstanding —
@@ -466,3 +478,73 @@ to be explained to a landlord looking at a number that is thirty seconds old.
 trigger, replacing the derived-on-read model for the portfolio-wide figures. It is last because it
 trades the invariant this whole product is built on — that rent status is derived and never stored —
 for speed, and nothing measured here says that trade is needed.
+
+---
+
+## 11. The region move, measured
+
+Recorded on 27 August 2026, after `vercel.json` was given `"regions": ["fra1"]`. Everything here was
+measured the same way as section 1's page numbers: Playwright against the deployed site, eleven
+navigations per route, the first three discarded to clear cold starts, median of the remaining
+eight. The figure is `responseEnd − requestStart` on the navigation entry, which spans the whole
+streamed document and therefore every Supabase round trip the page makes.
+
+The account is on the Hobby plan, which allows exactly one region. That was confirmed on a preview
+deployment before production saw the change: the preview built and returned `x-vercel-id: fra1`.
+
+**Where the function runs.** `x-vercel-id: fra1::iad1` before, `fra1::fra1` after.
+
+**The health endpoint**, which is one `count` and no session work, over ten warm calls:
+
+| | median | fastest | slowest |
+| --- | --- | --- | --- |
+| Washington | 647 ms | 480 ms | 1167 ms |
+| Frankfurt | **338 ms** | 291 ms | 666 ms |
+
+**Server time per page**, before and after:
+
+| Route | Washington | Frankfurt | Saved |
+| --- | --- | --- | --- |
+| `/landlord` | 564 ms | 385 ms | 179 ms, 32% |
+| `/landlord/properties` | 505 ms | 195 ms | 310 ms, 61% |
+| `/landlord/leases` | 518 ms | 199 ms | 319 ms, 62% |
+| `/landlord/leases/[id]` | 478 ms | 210 ms | 268 ms, 56% |
+| `/landlord/leases/[id]/payments/new` | 476 ms | 180 ms | 296 ms, 62% |
+| `/landlord/leases/[id]/statement` | 953 ms | 236 ms | 717 ms, 75% |
+| `/landlord/rent` | 570 ms | 176 ms | 394 ms, 69% |
+| `/landlord/maintenance` | 552 ms | 178 ms | 374 ms, 68% |
+| `/landlord/properties/new` | 563 ms | 193 ms | 370 ms, 66% |
+| `/tenant` | 629 ms | 189 ms | 440 ms, 70% |
+| `/tenant/lease` | 494 ms | 180 ms | 314 ms, 64% |
+| `/tenant/payments` | 798 ms | 224 ms | 574 ms, 72% |
+| `/tenant/maintenance` | 553 ms | 167 ms | 386 ms, 70% |
+| `/tenant/statement` | 663 ms | 232 ms | 431 ms, 65% |
+
+Median saving **372 ms**, median reduction **66%**. The deployed smoke suite, which signs in as both
+seeded roles and walks their pages, fell from 26.1 s to **14.5 s** over the same change.
+
+### What it cost the rest of the list
+
+One round trip from the function to the database is no longer measurable. Three pages that differ
+only in how many queries of their own they make, 41 navigations each, first five discarded, median
+of 36:
+
+| Page | Its own queries | p25 | median | p75 |
+| --- | --- | --- | --- | --- |
+| `/landlord/properties/new` | none | 241 ms | 259 ms | 282 ms |
+| `/landlord/rent` | one | 245 ms | 259 ms | 279 ms |
+| `/landlord/leases` | one | 236 ms | 254 ms | 280 ms |
+
+The gap is **0 ms and −5 ms**, against a p25-to-p75 spread of about 20 ms.
+
+That number retired a change this document had recommended. Three pages issued two reads one after
+the other where neither needed the other's answer, and running them together halves the pair:
+measured from a machine 85 ms from the database, 177→86 ms, 167→88 ms and 176→90 ms. Each pair saves
+exactly one round trip, and one round trip is now free, so the change was written, measured, and
+reverted. The lesson is worth more than the change would have been: **fix the latency before
+optimising the number of round trips, because the first fix decides whether the second is worth
+anything.**
+
+Two costs are unchanged by this, because neither was ever about geography: row-level security on
+`rent_payments` still cannot be answered from an index (section 3), and every aggregate is still
+computed per request (section 9).

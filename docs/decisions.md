@@ -810,3 +810,31 @@ drawn it. The lesson is the one this project keeps relearning: measure the rende
 measure it after it has settled. The keyboard pass was re-run properly across both portals - 201
 focus stops, 198 with a visible indicator, the other 3 being the calendar button Chromium puts
 inside a date input, which no application style can reach.
+
+### 2026-08-27 - The functions moved to Frankfurt, and that retired the next optimisation
+
+Decided to pin `"regions": ["fra1"]` in `vercel.json`. The deployed site reported
+`x-vercel-id: fra1::iad1`: requests entered Vercel in Frankfurt and executed in Washington, while
+both Supabase projects are in `eu-central-1`. Every round trip crossed the Atlantic, and there are
+four before a page does any work of its own, because the proxy reads the session and the layout
+reads it again, and Next 16 runs the proxy in the Node runtime beside the pages rather than at the
+edge. The alternative was to attack the number of round trips instead, which is the harder and more
+dangerous half of the same problem.
+
+Measured after: the health check went from 647 ms to 338 ms, the median page's server time fell 66%,
+and the deployed smoke suite went from 26.1 s to 14.5 s. The account is on the Hobby plan, which
+allows one region; that was confirmed on a preview deployment before production saw it.
+
+The interesting part is what it did to the next item on the list. Three pages issued two independent
+reads one after the other, and running them together halves the pair - measured at 177 to 86 ms, 167
+to 88 ms and 176 to 90 ms from a machine 85 ms from the database. That change was written, deployed,
+and then reverted, because the saving is exactly one round trip and one round trip inside the region
+is no longer measurable: three pages differing only in whether they make one query of their own
+measured 259, 259 and 254 ms across 36 samples each, a gap of 0 ms and -5 ms against a spread of
+about 20 ms.
+
+Worth remembering as a rule rather than as a fact about this project: fix the latency first, because
+it decides whether reducing the number of round trips is worth anything at all. Had the order been
+reversed, three files would have been changed, a `notFound()` guard would have moved behind a comment
+explaining why that was still safe, and the measured gain would have been zero.
+
