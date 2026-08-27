@@ -2,31 +2,23 @@ import type { RentStatus } from "@/lib/rent/deriveRentStatus";
 import { cn } from "@/lib/classNames";
 
 /**
- * The single place a derived rent status becomes a word and a colour. It takes the status rather
- * than the numbers, so the rule that decides it stays in deriveRentStatus and nothing here can
- * disagree with it.
+ * The single place a derived rent status becomes a word. It takes the status rather than the
+ * numbers, so the rule that decides it stays in deriveRentStatus and nothing here can disagree
+ * with it.
+ *
+ * Each status names one of the five status meanings defined in globals.css, which is where the
+ * colour lives. Overdue is the critical one: the only meaning painted as a solid fill, so it is
+ * still the loudest thing in the table when the colour is taken away.
  */
 const STATUS_STYLES: Record<RentStatus, { label: string; className: string }> = {
-  paid: { label: "Paid", className: "border-emerald-600/30 text-emerald-700" },
-  partial: { label: "Part paid", className: "border-amber-600/40 text-amber-700" },
-  due: { label: "Due", className: "border-muted-foreground/30 text-muted-foreground" },
-  overdue: {
-    label: "Overdue",
-    className: "border-red-600/40 bg-red-50 font-semibold text-red-700",
-  },
+  paid: { label: "Paid", className: "status-badge-settled" },
+  partial: { label: "Part paid", className: "status-badge-attention" },
+  due: { label: "Due", className: "status-badge-neutral" },
+  overdue: { label: "Overdue", className: "status-badge-critical" },
 };
 
 export function RentStatusBadge({ status }: { status: RentStatus }) {
   const style = STATUS_STYLES[status];
 
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",
-        style.className,
-      )}
-    >
-      {style.label}
-    </span>
-  );
+  return <span className={cn("status-badge", style.className)}>{style.label}</span>;
 }

@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-geist-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,6 +39,15 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* The status meanings that are also needed outside a badge: the arrears figures, the rows of an
+     overdue month, and the two panels that warn about one. Nothing else in the product paints with
+     a status colour, so nothing else is exposed as a utility. */
+  --color-status-critical-ink: var(--status-critical-ink);
+  --color-status-critical-line: var(--status-critical-line);
+  --color-status-critical-tint: var(--status-critical-tint);
+  --color-status-settled-line: var(--status-settled-line);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -48,31 +57,40 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+  The palette.
+
+  Neutral surfaces with a single accent. The page is a soft grey, the wells that carry data are
+  white, and one blue carries everything interactive: the primary button, the focus ring and the
+  hover wash. Nothing else in the interface is coloured for decoration.
+
+  Status colour is separate and is listed below, because it means something.
+*/
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.976 0.0035 258);
+  --foreground: oklch(0.205 0.015 262);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.205 0.015 262);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.205 0.015 262);
+  --primary: oklch(0.48 0.13 258);
+  --primary-foreground: oklch(0.985 0.005 258);
+  --secondary: oklch(0.955 0.005 258);
+  --secondary-foreground: oklch(0.28 0.02 262);
+  --muted: oklch(0.955 0.005 258);
+  --muted-foreground: oklch(0.485 0.015 262);
+  --accent: oklch(0.945 0.012 258);
+  --accent-foreground: oklch(0.28 0.04 262);
+  --destructive: oklch(0.505 0.19 27);
+  --border: oklch(0.905 0.006 258);
+  --input: oklch(0.885 0.008 258);
+  --ring: oklch(0.55 0.12 258);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -81,6 +99,43 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /*
+    Status colour, by meaning rather than by word.
+
+    This product has three status systems - rent, maintenance and lease lifecycle - and twelve
+    words between them. They collapse into five meanings, and this is the only place a meaning
+    becomes a colour. A word is coloured by what it means, so "Overdue" and "Reported" look alike
+    because they are alike: both are somebody's problem today.
+
+      neutral    nothing to do yet, or nothing left to do   Due, Ended
+      progress   known, moving, not finished                Upcoming, In progress
+      settled    the ordinary good state                    Paid, Active, Resolved
+      attention  started but not finished                   Part paid, Acknowledged
+      critical   late, and somebody has to act              Overdue, Reported
+
+    Each meaning has an ink (the text), a line (the border), and where it is filled, a tint (the
+    wash behind it). Critical also has a fill, because it is the only meaning painted solid.
+  */
+  --status-neutral-ink: oklch(0.485 0.015 262);
+  --status-neutral-line: oklch(0.83 0.008 258);
+
+  --status-progress-ink: oklch(0.45 0.12 258);
+  --status-progress-line: oklch(0.72 0.08 258);
+
+  --status-settled-ink: oklch(0.42 0.09 158);
+  --status-settled-line: oklch(0.76 0.07 158);
+  --status-settled-tint: oklch(0.965 0.022 158);
+
+  --status-attention-ink: oklch(0.44 0.09 75);
+  --status-attention-line: oklch(0.75 0.09 80);
+  --status-attention-tint: oklch(0.945 0.045 85);
+
+  --status-critical-ink: oklch(0.44 0.17 27);
+  --status-critical-line: oklch(0.72 0.14 27);
+  --status-critical-tint: oklch(0.955 0.028 25);
+  --status-critical-fill: oklch(0.47 0.19 27);
+  --status-critical-on-fill: oklch(0.99 0.01 25);
 }
 
 .dark {
@@ -90,18 +145,18 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.72 0.12 258);
+  --primary-foreground: oklch(0.18 0.03 262);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+  --accent: oklch(0.3 0.03 258);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(0.62 0.12 258);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -115,6 +170,26 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  --status-neutral-ink: oklch(0.708 0 0);
+  --status-neutral-line: oklch(0.45 0.01 258);
+
+  --status-progress-ink: oklch(0.8 0.1 258);
+  --status-progress-line: oklch(0.5 0.09 258);
+
+  --status-settled-ink: oklch(0.82 0.12 158);
+  --status-settled-line: oklch(0.45 0.08 158);
+  --status-settled-tint: oklch(0.29 0.04 158);
+
+  --status-attention-ink: oklch(0.85 0.11 85);
+  --status-attention-line: oklch(0.5 0.08 80);
+  --status-attention-tint: oklch(0.31 0.05 75);
+
+  --status-critical-ink: oklch(0.83 0.13 25);
+  --status-critical-line: oklch(0.52 0.14 27);
+  --status-critical-tint: oklch(0.3 0.07 25);
+  --status-critical-fill: oklch(0.55 0.2 27);
+  --status-critical-on-fill: oklch(0.99 0.01 25);
 }
 
 @layer base {
@@ -126,6 +201,83 @@
   }
   html {
     @apply font-sans;
+  }
+  a {
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+}
+
+@layer components {
+  /*
+    The type scale. Five roles, and every piece of text in the product is one of them:
+
+      page title       .page-title            one per page, the <h1>
+      section title    .section-title         the heading above a panel or a table
+      table header     styled in ui/table.tsx
+      body             text-sm                the default, and the size of every table cell
+      supporting       text-xs + muted        labels above figures, hints under fields
+
+    There is no sixth size. A heading that wants to be bigger than a page title does not exist.
+  */
+  .page-title {
+    @apply font-heading text-2xl leading-tight font-semibold tracking-tight;
+  }
+
+  .section-title {
+    @apply text-sm leading-6 font-semibold tracking-tight;
+  }
+
+  /*
+    The status badge.
+
+    The five meanings are also five amounts of ink: a dashed outline, a solid outline, a tint, a
+    heavier tint carrying more weight, and one solid fill. That ladder is deliberate. Colour alone
+    fails in greyscale, on a projector, and for a reader who cannot separate red from green, so the
+    badges stay apart from each other with the colour taken away. Critical is the only filled one,
+    which is what makes an overdue month findable at a glance in a full table.
+
+    print-color-adjust keeps that fill when the page is printed, since a browser drops backgrounds
+    by default and a critical badge would otherwise print as an empty outline.
+  */
+  .status-badge {
+    @apply inline-flex items-center rounded-full border px-2 py-0.5 text-xs;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .status-badge-neutral {
+    border-style: dashed;
+    border-color: var(--status-neutral-line);
+    color: var(--status-neutral-ink);
+    font-weight: 400;
+  }
+
+  .status-badge-progress {
+    border-color: var(--status-progress-line);
+    color: var(--status-progress-ink);
+    font-weight: 500;
+  }
+
+  .status-badge-settled {
+    border-color: var(--status-settled-line);
+    background-color: var(--status-settled-tint);
+    color: var(--status-settled-ink);
+    font-weight: 500;
+  }
+
+  .status-badge-attention {
+    border-color: var(--status-attention-line);
+    background-color: var(--status-attention-tint);
+    color: var(--status-attention-ink);
+    font-weight: 600;
+  }
+
+  .status-badge-critical {
+    border-color: var(--status-critical-fill);
+    background-color: var(--status-critical-fill);
+    color: var(--status-critical-on-fill);
+    font-weight: 600;
   }
 }
 
