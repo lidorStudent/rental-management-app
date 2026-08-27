@@ -64,20 +64,18 @@ export default async function TenantPaymentsPage({
   const page = parsePageNumber(pageParameter);
   const { startIndex, endIndex } = pageRange({ page, pageSize: PAGE_SIZE });
 
+  const lease = await loadTenantLease();
   const supabaseClient = await createSupabaseServerClient();
-
-  // Independent: the payments query names no lease, because Row Level Security already scopes it to
-  // the reader's own rows, and the tenancy is only needed for the heading and the empty state. They
-  // go together rather than one after the other.
-  const [lease, { data: payments, count, error }] = await Promise.all([
-    loadTenantLease(),
-    supabaseClient
-      .from("rent_payments")
-      .select("id, period_month, amount_cents, received_on, method, reference", { count: "exact" })
-      .order("period_month", { ascending: false })
-      .order("received_on", { ascending: false })
-      .range(startIndex, endIndex),
-  ]);
+  const {
+    data: payments,
+    count,
+    error,
+  } = await supabaseClient
+    .from("rent_payments")
+    .select("id, period_month, amount_cents, received_on, method, reference", { count: "exact" })
+    .order("period_month", { ascending: false })
+    .order("received_on", { ascending: false })
+    .range(startIndex, endIndex);
 
   // A page number past the end of the list is a bookmark that has gone stale, not an error.
   if (isPageBeyondTheEnd(error)) {

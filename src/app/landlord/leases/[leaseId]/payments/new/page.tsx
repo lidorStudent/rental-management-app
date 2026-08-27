@@ -21,31 +21,22 @@ export default async function NewRentPaymentPage({
   const { leaseId } = await params;
   const supabaseClient = await createSupabaseServerClient();
 
-  // Both reads are keyed on the lease id from the URL and neither needs the other's answer, so they
-  // go together rather than one after the other.
-  //
-  // That puts the period totals before the notFound() guard below, which is deliberate and safe. The
-  // totals query carries no owner filter of its own; Row Level Security answers it as the signed-in
-  // landlord, so a lease belonging to somebody else returns no rows here for exactly the same reason
-  // the lease read returns none. Asking discloses nothing, and the answer is thrown away when the
-  // guard fires on the next line.
-  const [{ data: lease }, { data: periodTotals }] = await Promise.all([
-    supabaseClient
-      .from("leases")
-      .select(
-        "id, start_date, end_date, rent_amount_cents, rent_due_day, units(label, properties(name))",
-      )
-      .eq("id", leaseId)
-      .maybeSingle(),
-    supabaseClient
-      .from("lease_period_totals")
-      .select("period_month, paid_cents")
-      .eq("lease_id", leaseId),
-  ]);
+  const { data: lease } = await supabaseClient
+    .from("leases")
+    .select(
+      "id, start_date, end_date, rent_amount_cents, rent_due_day, units(label, properties(name))",
+    )
+    .eq("id", leaseId)
+    .maybeSingle();
 
   if (lease === null) {
     notFound();
   }
+
+  const { data: periodTotals } = await supabaseClient
+    .from("lease_period_totals")
+    .select("period_month, paid_cents")
+    .eq("lease_id", leaseId);
 
   const today = currentIsoDateInUtc();
   const periods = buildRentScheduleWithStatus({
