@@ -1,4 +1,5 @@
 import { RentStatusBadge } from "@/components/leases/RentStatusBadge";
+import { cn } from "@/lib/classNames";
 import { currentIsoDateInUtc } from "@/lib/dates/currentDate";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
 import { buildRentScheduleWithStatus } from "@/lib/rent/buildRentSchedule";
@@ -61,11 +62,13 @@ export async function TenantRentPosition({ lease }: { lease: TenantLease }) {
               ? "Everything charged so far, less what your landlord has recorded"
               : "Nothing owed"
           }
+          isAlarming={outstanding > 0}
         />
         <Figure
           label="Months overdue"
           value={String(overdueCount)}
           detail={overdueCount === 0 ? "Nothing past its due date" : "Past their due date"}
+          isAlarming={overdueCount > 0}
         />
       </dl>
 
@@ -95,16 +98,23 @@ function Figure({
   value,
   detail,
   badge,
+  isAlarming = false,
 }: {
   label: string;
   value: string;
   detail: string;
   badge?: React.ReactNode;
+  isAlarming?: boolean;
 }) {
   return (
     <div className="bg-card px-4 py-3">
       <dt className="text-muted-foreground text-xs">{label}</dt>
-      <dd className="flex flex-wrap items-center gap-2 text-xl font-medium tabular-nums">
+      <dd
+        className={cn(
+          "flex flex-wrap items-center gap-2 text-xl font-medium tabular-nums",
+          isAlarming && "text-status-critical-ink",
+        )}
+      >
         {value}
         {badge}
       </dd>
