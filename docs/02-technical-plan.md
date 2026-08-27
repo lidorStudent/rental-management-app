@@ -421,7 +421,7 @@ Every entry has one sentence I can defend under questioning.
 | `zod` | One schema per input, run on the client for feedback and on the server as the trust boundary, so the two can never disagree |
 | `react-hook-form` | Keeps form state in uncontrolled inputs rather than re-rendering the form on every keystroke, and integrates with Zod through one resolver |
 | `@hookform/resolvers` | The adapter that lets `react-hook-form` validate with the Zod schema the server action already uses |
-| `tailwindcss` | Styling stays in the markup, so there is no second file to keep in sync with a component and no cascade to reason about |
+| `tailwindcss` | Styling stays in the markup for anything local to a component, so there is no second file to keep in sync with it. The exception is deliberate: the palette, the five status meanings and the type scale are tokens and three named classes in `globals.css`, because those must be identical everywhere and a value repeated in thirty files drifts |
 | `shadcn/ui` | Not a dependency but a generator: it copies accessible Radix-based components into the repository, so the accessibility work is done and the code is mine to read and change |
 | `date-fns` | Month arithmetic for the rent schedule needs to be correct across month lengths, and this is a tree-shakeable function library rather than a framework |
 | `vitest` | Runs the pure business logic and the component tests fast enough to run on every save |
@@ -494,7 +494,7 @@ rental-management-app/
     │   ├── page.tsx
     │   ├── error.tsx
     │   ├── not-found.tsx
-    │   ├── globals.css
+    │   ├── globals.css                    the design tokens: palette, the five status meanings, the type scale
     │   ├── api/health/route.ts             the one route handler: a scheduler asks whether the database is awake
 │   ├── login/page.tsx
     │   ├── register/page.tsx

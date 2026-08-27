@@ -735,34 +735,50 @@ landlord filter gives an index scan of the reader's own 288. The lease_rent_summ
 scan and the grouping happening inside the view, which is why a filter at the call site cannot help
 it and the view itself has to change.
 
-### 2026-08-27 - Status colour is chosen by meaning, in one place, and does not rely on colour alone
+### 2026-08-27 - The interface has one design direction, and status is coloured by meaning
 
-Decided that the three status systems - rent, maintenance and lease lifecycle - stop carrying their
-own colours. Their twelve words collapse into five meanings (neutral, progress, settled, attention,
-critical), the meanings are defined once as CSS variables in `src/app/globals.css`, and each badge
-component now names a meaning rather than a Tailwind palette colour. The alternative was to keep
-tuning `text-emerald-700` and friends in each of the three files, which is how the two reds had
-already drifted apart: an overdue month and an unlooked-at problem are the same thing to a landlord
-and were being painted differently.
+Decided to give the product a deliberate visual identity rather than the shadcn starter's greyscale,
+and to do it entirely with design tokens and the components already in the repository. Nothing was
+added to `package.json`: no icon set, no chart library, no component kit, no CSS framework beyond the
+Tailwind already there. The whole direction lives in `src/app/globals.css`, and the components that
+consume it changed only their class attributes. The alternative - reaching for a component library
+to make it look designed - would have added a dependency to justify in an interview and a second
+opinion about how things should look, in a project whose point is that every line can be explained.
 
-The five meanings are also five amounts of ink - dashed outline, solid outline, tint, heavier tint
-with more weight, and one solid fill for critical. That ladder is the point: colour alone fails in
-greyscale, on a projector and for a reader who cannot separate red from green, so the badges stay
-distinguishable with the colour taken away. Critical is the only filled badge, which is what makes
-an overdue row findable in a full table.
+The direction itself is restrained: neutral surfaces with a single blue accent carrying everything
+interactive - the primary button, the focus ring, the hover wash - five type roles with a class for
+the two that repeat, and one spacing rhythm, with table density set once in `ui/table.tsx` rather
+than per table. Bordered surfaces follow one rule: anything carrying data or offering an action of
+its own is a white well on the grey page, while notes, warnings and page controls sit flush. A
+back-office console is looked at for hours by one person, so the goal was quiet and scannable, not
+striking.
 
-### 2026-08-27 - The interface has one accent, one type scale and one spacing rhythm
+The larger decision is status colour. This product has three status systems - rent, maintenance and
+lease lifecycle - and twelve words between them, and each of the three badge components used to
+carry its own Tailwind palette colours. They had already drifted: an overdue month and a reported
+problem nobody has looked at are the same thing to a landlord, and were being painted differently
+because two people-hours apart had picked two different reds. The twelve words collapse into five
+meanings - neutral, progress, settled, attention, critical - and a meaning becomes a colour in
+exactly one place. Each badge component now names a meaning. That is one table to reason about
+instead of twelve strings in three files, and it makes the product's own model visible: a landlord
+learns five colours once and reads all three systems.
 
-Decided on neutral surfaces with a single blue accent carrying everything interactive (primary
-button, focus ring, hover wash), five type roles with a class each for the two that repeat, and one
-rhythm: page padding, section gaps, and table cell padding set once in `ui/table.tsx` rather than
-per table. Bordered surfaces follow one rule - anything carrying data or offering an action of its
-own is a white well on the grey page, while notes, warnings and page controls sit flush.
+The five meanings are also five amounts of ink: dashed outline, solid outline, tint, heavier tint
+with more weight, and one solid fill for critical. That ladder is the point rather than a flourish.
+Colour alone fails in greyscale, on a projector, on a printed statement and for a reader who cannot
+separate red from green, so the badges had to stay apart with the colour taken away. Measured on the
+deployed site, the five backgrounds come out at 1.000, 1.000, 0.905, 0.842 and 0.089 in relative
+luminance, the first two separated by border style and weight, and print media matches screen
+because the badge carries `print-color-adjust: exact`. Critical is the only filled badge, which is
+what makes an overdue row findable at a glance in a full table.
 
-Fixing this turned up a real bug. `@theme inline` mapped `--font-sans` to `var(--font-sans)`, a
-self-reference, so the declaration was invalid and every page had been rendering in the browser's
-default font rather than Geist, which the root layout was loading and paying for on every request.
-It now points at `--font-geist-sans`, the variable the layout actually defines.
+Doing this turned up a real bug that had nothing to do with colour. `@theme inline` mapped
+`--font-sans` to `var(--font-sans)`, a self-reference, so the custom property was invalid at
+computed-value time and `html { font-family: var(--font-sans) }` fell back to the browser's default.
+Every page had been rendering in Times New Roman while the root layout loaded, and paid for, the
+Geist it was supposed to use. It now points at `--font-geist-sans`, the variable the layout actually
+defines, and the deployed site computes `Geist, "Geist Fallback"`. Worth remembering as the reason
+to check a computed style rather than trust that a declaration was written.
 
 The `.dark` block keeps a value for every new token, because that is the contract the file already
 had, but nothing in the product sets the class. Dark mode remains unbuilt rather than half-built.

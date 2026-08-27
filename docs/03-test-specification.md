@@ -399,6 +399,7 @@ white.
 | Run on | By | Browser | Outcome | Notes |
 | --- | --- | --- | --- | --- |
 | 2026-08-26 | Claude, with the developer | Chromium 151 | **Pass** | Printed the full thirteen-month statement for the ended tenancy on Flat 3 to a two-page A4 PDF. No navigation, no buttons, no range form. Margins even at 16mm, nothing clipped at the right edge. The payments table broke across the page with its header repeated and no row split, and the summary block stayed whole on page two. Readable in black and white |
+| 2026-08-27 | Claude | Chromium 151 | **Pass** | Re-printed after the theme change, from the deployed site rather than a local build. The same thirteen-month statement for Flat 3 came out as a two-page A4 PDF of 88 KB. No navigation, no buttons, no range form; margins even at 16mm and nothing clipped. The payments table broke across the page with its header repeated on page two and no row split; the summary and the footer stayed whole. The statement carries no status badge by design, so the greyscale check was made where the badges live: under print media the five meanings measure 1.000, 1.000, 0.905, 0.842 and 0.089 in relative luminance, with a dashed border on the first and weights from 400 to 600, so they stay apart on a black and white printer |
 
 ### MAN-02 Visual layout at different window sizes
 
@@ -425,6 +426,7 @@ off and no control is unreachable.
 | --- | --- | --- | --- | --- |
 | 2026-08-26 | Claude, with the developer | 1440, 1024, 768, 375 | **Pass, after a fix** | At 375 pixels the landlord navigation pushed the page sideways by 10 pixels, because its five links could not wrap. Fixed by letting the link row wrap; both navigations now do. Rechecked at all four widths: no page scrolls sideways, tables scroll inside their own frames, nothing overlaps and no control is unreachable |
 | 2026-08-27 | Claude, by script | 1440, 1024, 768, 375 | **Pass, machine half only** | Re-run because the page padding changed from `px-4 py-6` to `px-6 py-8` and the table cells from `p-2` to `px-4 py-2.5`. A script signed in as a landlord and compared `scrollWidth` against `clientWidth` on the dashboard, properties, leases, rent, maintenance, one lease and one property: no page pushes the document sideways at any of the four widths. The half a machine cannot judge - whether it reads well, and the tenant portal - still wants the by-eye pass before submission |
+| 2026-08-27 | The developer | 1440, 1024, 768, 375 | **Pass** | The by-eye half, on the deployed site. Both portals walked, including the tenant portal at the narrow widths. Everything reads well; nothing overlaps, nothing is cut off, and no control is unreachable |
 
 ### MAN-03 The first sign-in experience for a new tenant
 
@@ -488,6 +490,7 @@ confirming the real thing works at its real address.
 | 2026-08-26 | Claude, with the developer | https://rental-management-app-wine.vercel.app | **Pass** | The root redirects to sign in. Signed in as the seeded landlord: the dashboard figures are populated, occupancy is not zero. Opened a tenancy, its statement and the maintenance list. Signed out, signed in as a seeded tenant, and the portal loaded. Read only: nothing was written to the deployed project |
 | 2026-08-26 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run with the exact credentials printed in `README.md`. `noa.bendavid@example.co.il` landed on `/landlord` showing ₪2,500.00 collected this month from one payment, ₪13,000.00 outstanding, three open problems and occupancy of 2 of 5. `maya.levi@example.co.il` landed on `/tenant` showing Flat 1, Rothschild Boulevard 12. Read only |
 | 2026-08-27 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run after the audit fixes and a fresh production deployment. Health check 200; the automated companion's five checks all passed, including both seeded roles signing in and the cookie's flags. Read only |
+| 2026-08-27 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run after the theme deployment with `PLAYWRIGHT_BASE_URL` set, so the five checks executed rather than skipped: all five passed in 26.1s. Two things were confirmed on the deployed site by hand at the same time. The computed `font-family` on a rendered page is `Geist, "Geist Fallback"`, which is the self-referencing `--font-sans` fixed in production and not only locally. The session cookie is `httpOnly`, `secure`, `sameSite=Lax`, and `document.cookie` reads as the empty string to page script. Read only |
 
 **The automated companion, and why it is skipped by default.** `e2e/deploymentSmoke.spec.ts`
 performs steps 1 to 4 of this case in a browser, as five tests. The file begins with a `test.skip`

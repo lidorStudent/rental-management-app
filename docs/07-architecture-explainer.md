@@ -109,6 +109,7 @@ could drift from the rows it summarises.
 | [src/components/shared/PaginatedTable.tsx](../src/components/shared/PaginatedTable.tsx) | Every list's table and pager, as a server component |
 | [src/components/forms/](../src/components/forms/) | `TextField`, `TextAreaField`, `SelectField`: label, hint, error, and the `aria-describedby` wiring |
 | [src/components/tenant/loadTenantLease.ts](../src/components/tenant/loadTenantLease.ts) | The tenancy the portal is about, resolved from the session with no identifier in any URL |
+| [src/app/globals.css](../src/app/globals.css) | The design tokens. The palette, the five status meanings that the rent, maintenance and lease badges all name, and the type scale. The only place a status meaning becomes a colour |
 
 ---
 

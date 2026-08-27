@@ -26,7 +26,7 @@ and the problems they have reported. It is a record of money received, not a pay
 | Supabase Auth | Password accounts, sessions and token refresh without writing password hashing, which is the wrong thing to hand-roll in a graded project or anywhere else |
 | Row Level Security | Authorisation lives in the database, so a mistake in a page returns no rows rather than somebody else's rows |
 | `@supabase/ssr` | Keeps the session in a cookie the server reads. This project hardens that cookie; see [docs/05-security.md](docs/05-security.md) |
-| Tailwind CSS 4 | Styling next to the markup, so there is no second file to keep in step with the first |
+| Tailwind CSS 4 | Styling next to the markup for anything local to a component. What must be identical everywhere - the palette, the five status meanings, the type scale - is a token in `src/app/globals.css` instead, because a value repeated in thirty files drifts |
 | shadcn/ui on Radix | Accessible primitives copied into `src/components/ui` rather than a dependency that owns the look and has to be fought |
 | Zod | One schema per input, imported by both the form and the server action, so client and server validation cannot drift apart |
 | react-hook-form | Field-level feedback as somebody types, without re-rendering the page on every keystroke |
