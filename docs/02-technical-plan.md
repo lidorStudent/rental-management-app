@@ -544,7 +544,7 @@ rental-management-app/
     │   ├── rentPaymentActions.ts
     │   └── maintenanceRequestActions.ts
     ├── components/
-    │   ├── ui/                        shadcn output. Only table.tsx is edited, for density
+    │   ├── ui/                        shadcn output. table.tsx and input.tsx are edited, for appearance
     │   ├── layout/
     │   │   ├── LandlordNavigation.tsx
     │   │   ├── TenantNavigation.tsx

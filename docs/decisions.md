@@ -782,3 +782,31 @@ to check a computed style rather than trust that a declaration was written.
 
 The `.dark` block keeps a value for every new token, because that is the contract the file already
 had, but nothing in the product sets the class. Dark mode remains unbuilt rather than half-built.
+
+### 2026-08-27 - The form controls became one control, and the accent marks where work starts
+
+Decided that the three field components stop having three appearances. `TextField` rendered the
+shadcn `Input` at 32px with a 12px radius and no shadow, while `SelectField` and `TextAreaField`
+were hand-rolled at 36px with a 9.6px radius and a shadow, so on the tenancy form the unit select
+was visibly chunkier and squarer than the date fields beneath it. They now agree on height, radius,
+padding and background, which meant editing `ui/input.tsx` rather than passing overrides from
+`TextField`: the primitive is used by exactly one component, and correcting it there keeps the
+override out of every future call site.
+
+Giving all three a card background is the same rule the tables already follow. A form screen had no
+white surface anywhere, so its fields sat on the page grey and read as sunken. The three now also
+share one focus transition, so the ring behaves identically whichever control the reader is in.
+
+Decided too that the single accent marks the action that starts the work on a screen. It was
+appearing only on form submits, so "Add a property", "Record a tenancy" and "Record a payment" -
+the reason a landlord opens those pages - were outline chips indistinguishable from secondary
+controls, while "Create the tenant account", used once in a tenancy's life, was the loudest thing on
+the lease. `SubmitButton` gained a variant for that one case rather than a class override, because
+the emphasis is what is being chosen and a variant is what shadcn calls that choice.
+
+A defect was reported against the primary button's focus ring and there was none. The first
+measurement read `box-shadow` at the instant of focus, before the button's `transition-all` had
+drawn it. The lesson is the one this project keeps relearning: measure the rendered result, and
+measure it after it has settled. The keyboard pass was re-run properly across both portals - 201
+focus stops, 198 with a visible indicator, the other 3 being the calendar button Chromium puts
+inside a date input, which no application style can reach.
