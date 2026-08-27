@@ -88,7 +88,7 @@ export default async function LeaseDetailPage({
           <h2 className="section-title">Rent</h2>
           <Link
             href={`/landlord/leases/${lease.id}/payments/new`}
-            className="hover:bg-accent inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium"
+            className="bg-primary text-primary-foreground hover:bg-primary/80 inline-flex h-9 items-center rounded-md border border-transparent px-4 text-sm font-medium"
           >
             Record a payment
           </Link>

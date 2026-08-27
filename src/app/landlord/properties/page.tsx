@@ -65,7 +65,7 @@ export default async function PropertiesPage({
         />
         <Link
           href="/landlord/properties/new"
-          className="inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium hover:bg-accent"
+          className="bg-primary text-primary-foreground hover:bg-primary/80 inline-flex h-9 items-center rounded-md border border-transparent px-4 text-sm font-medium"
         >
           Add a property
         </Link>

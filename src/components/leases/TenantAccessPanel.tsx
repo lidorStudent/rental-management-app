@@ -110,7 +110,9 @@ function CreateTenantAccountForm({
         />
       </div>
 
-      <SubmitButton isSubmitting={isSubmitting}>Create the tenant account</SubmitButton>
+      <SubmitButton isSubmitting={isSubmitting} variant="outline">
+        Create the tenant account
+      </SubmitButton>
     </form>
   );
 }

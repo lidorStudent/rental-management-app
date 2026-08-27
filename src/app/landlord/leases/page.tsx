@@ -85,7 +85,7 @@ export default async function LeasesPage({
         <PageHeader title="Leases" description="Who rents what, for how long, and at what rent." />
         <Link
           href="/landlord/leases/new"
-          className="hover:bg-accent inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium"
+          className="bg-primary text-primary-foreground hover:bg-primary/80 inline-flex h-9 items-center rounded-md border border-transparent px-4 text-sm font-medium"
         >
           Record a tenancy
         </Link>
