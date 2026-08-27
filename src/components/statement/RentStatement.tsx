@@ -36,25 +36,29 @@ export async function RentStatement({
 }) {
   const supabaseClient = await createSupabaseServerClient();
 
-  const { data: lease } = await supabaseClient
-    .from("leases")
-    .select(
-      "id, start_date, end_date, rent_amount_cents, deposit_amount_cents, rent_due_day, units(label, properties(name, address_line, city, postal_code)), tenant:profiles!leases_tenant_profile_id_fkey(full_name, email), landlord:profiles!leases_landlord_id_fkey(full_name, email)",
-    )
-    .eq("id", leaseId)
-    .maybeSingle();
+  // The lease and its payments are independent once the lease id and the range are known, so they go
+  // together. Both are answered as the signed-in reader, so a lease that is not theirs returns no
+  // rows from either and the component renders nothing.
+  const [{ data: lease }, { data: payments }] = await Promise.all([
+    supabaseClient
+      .from("leases")
+      .select(
+        "id, start_date, end_date, rent_amount_cents, deposit_amount_cents, rent_due_day, units(label, properties(name, address_line, city, postal_code)), tenant:profiles!leases_tenant_profile_id_fkey(full_name, email), landlord:profiles!leases_landlord_id_fkey(full_name, email)",
+      )
+      .eq("id", leaseId)
+      .maybeSingle(),
+    supabaseClient
+      .from("rent_payments")
+      .select("id, period_month, amount_cents, received_on, method, reference")
+      .eq("lease_id", leaseId)
+      .gte("period_month", range.fromMonth)
+      .lte("period_month", range.toMonth)
+      .order("received_on", { ascending: true }),
+  ]);
 
   if (lease === null) {
     return null;
   }
-
-  const { data: payments } = await supabaseClient
-    .from("rent_payments")
-    .select("id, period_month, amount_cents, received_on, method, reference")
-    .eq("lease_id", leaseId)
-    .gte("period_month", range.fromMonth)
-    .lte("period_month", range.toMonth)
-    .order("received_on", { ascending: true });
 
   const periodsInRange = buildRentSchedule({
     startDate: lease.start_date,
