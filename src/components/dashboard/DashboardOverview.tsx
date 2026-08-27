@@ -112,7 +112,7 @@ export async function DashboardOverview() {
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-medium">
+          <h2 className="section-title">
             Ending in the next {DAYS_AHEAD_TO_WARN_ABOUT_ENDINGS} days
           </h2>
           <Link href="/landlord/leases?status=active" className="text-sm underline">
@@ -125,7 +125,7 @@ export async function DashboardOverview() {
             Nothing ends in the next {DAYS_AHEAD_TO_WARN_ABOUT_ENDINGS} days.
           </p>
         ) : (
-          <ul className="divide-y rounded-md border text-sm">
+          <ul className="bg-card divide-y rounded-md border text-sm">
             {endingSoon.map((tenancy) => (
               <li
                 key={tenancy.leaseId}
@@ -163,10 +163,15 @@ function Figure({
   isAlarming?: boolean;
 }) {
   return (
-    <div className="bg-background">
+    <div className="bg-card">
       <Link href={href} className="hover:bg-accent block px-4 py-3">
         <dt className="text-muted-foreground text-xs">{label}</dt>
-        <dd className={cn("text-xl font-medium tabular-nums", isAlarming && "text-red-700")}>
+        <dd
+          className={cn(
+            "text-xl font-medium tabular-nums",
+            isAlarming && "text-status-critical-ink",
+          )}
+        >
           {value}
         </dd>
         <p className="text-muted-foreground mt-0.5 text-xs">{detail}</p>

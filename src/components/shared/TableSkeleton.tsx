@@ -15,7 +15,7 @@ export function TableSkeleton({
 }) {
   return (
     <div className="space-y-3" aria-hidden="true">
-      <div className="rounded-md border">
+      <div className="bg-card rounded-md border">
         <div className="flex gap-4 border-b px-4 py-3">
           {Array.from({ length: columnCount }, (_, column) => (
             <Skeleton key={column} className="h-4 flex-1" />

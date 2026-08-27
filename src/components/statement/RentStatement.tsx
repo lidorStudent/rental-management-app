@@ -160,7 +160,7 @@ function StatementHeader({
 }) {
   return (
     <header className="space-y-1 border-b pb-4">
-      <h1 className="text-xl font-semibold">Rent statement</h1>
+      <h1 className="page-title">Rent statement</h1>
       <p>
         {unitLabel}, {propertyName}
       </p>
@@ -188,7 +188,7 @@ function LeaseTermsSection({
 }) {
   return (
     <section className="break-inside-avoid space-y-2">
-      <h2 className="font-medium">Lease terms</h2>
+      <h2 className="section-title">Lease terms</h2>
       <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
         <Line label="Runs from" value={startDate} />
         <Line label="Until, inclusive" value={endDate} />
@@ -216,17 +216,21 @@ function ChargesTable({
 }) {
   return (
     <section className="space-y-2">
-      <h2 className="font-medium">Rent charged</h2>
+      <h2 className="section-title">Rent charged</h2>
       {periods.length === 0 ? (
         <p className="text-muted-foreground">No rent periods fall in this range.</p>
       ) : (
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b text-left">
-              <th className="py-1.5 font-medium">Month</th>
-              <th className="py-1.5 font-medium">Due</th>
-              <th className="py-1.5 text-right font-medium">Charged</th>
-              <th className="py-1.5 text-right font-medium">Received</th>
+              <th className="py-1.5 text-xs font-semibold text-muted-foreground">Month</th>
+              <th className="py-1.5 text-xs font-semibold text-muted-foreground">Due</th>
+              <th className="py-1.5 text-right text-xs font-semibold text-muted-foreground">
+                Charged
+              </th>
+              <th className="py-1.5 text-right text-xs font-semibold text-muted-foreground">
+                Received
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -263,7 +267,7 @@ function PaymentsTable({
 }) {
   return (
     <section className="space-y-2">
-      <h2 className="font-medium">Payments received</h2>
+      <h2 className="section-title">Payments received</h2>
       {payments.length === 0 ? (
         <p className="text-muted-foreground">
           No payments were recorded against the months in this range.
@@ -272,11 +276,15 @@ function PaymentsTable({
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b text-left">
-              <th className="py-1.5 font-medium">Received on</th>
-              <th className="py-1.5 font-medium">For the month of</th>
-              <th className="py-1.5 font-medium">How</th>
-              <th className="py-1.5 font-medium">Reference</th>
-              <th className="py-1.5 text-right font-medium">Amount</th>
+              <th className="py-1.5 text-xs font-semibold text-muted-foreground">Received on</th>
+              <th className="py-1.5 text-xs font-semibold text-muted-foreground">
+                For the month of
+              </th>
+              <th className="py-1.5 text-xs font-semibold text-muted-foreground">How</th>
+              <th className="py-1.5 text-xs font-semibold text-muted-foreground">Reference</th>
+              <th className="py-1.5 text-right text-xs font-semibold text-muted-foreground">
+                Amount
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -309,7 +317,7 @@ function StatementSummary({
 }) {
   return (
     <section className="break-inside-avoid space-y-1 border-t pt-4">
-      <h2 className="font-medium">Summary for this range</h2>
+      <h2 className="section-title">Summary for this range</h2>
       <dl className="space-y-1">
         <Line label="Total charged" value={formatCentsAsCurrency(charged)} />
         <Line label="Total received" value={formatCentsAsCurrency(received)} />
@@ -326,7 +334,7 @@ function StatementSummary({
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <h2 className="font-medium">{title}</h2>
+      <h2 className="section-title">{title}</h2>
       <dl className="space-y-1">{children}</dl>
     </div>
   );

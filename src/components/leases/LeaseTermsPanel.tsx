@@ -20,7 +20,7 @@ export function LeaseTermsPanel({
   };
 }) {
   return (
-    <dl className="divide-y rounded-md border text-sm">
+    <dl className="bg-card divide-y rounded-md border text-sm">
       <Row label="Runs from" value={lease.startDate} />
       <Row label="Until, inclusive" value={lease.endDate} />
       <Row label="Monthly rent" value={formatCentsAsCurrency(lease.rentAmountInAgorot)} />
@@ -42,7 +42,7 @@ function Row({ label, value, href }: { label: string; value: string; href?: stri
   return (
     <div className="flex flex-wrap justify-between gap-2 px-4 py-2.5">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium">
+      <dd className="text-right font-medium tabular-nums">
         {href === undefined ? (
           value
         ) : (

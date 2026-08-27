@@ -24,8 +24,8 @@ export function LandlordNavigation({ signedInAs }: { signedInAs: string }) {
   const currentPath = usePathname();
 
   return (
-    <header className="border-b print:hidden">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2.5">
+    <header className="bg-card border-b print:hidden">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3">
         <Link href="/landlord" className="text-sm font-semibold tracking-tight">
           Rental Management
         </Link>

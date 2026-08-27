@@ -34,7 +34,7 @@ export function DeleteUnitButton({
   }
 
   return (
-    <div className="space-y-3 rounded-md border border-destructive/40 p-4">
+    <div className="bg-card space-y-3 rounded-md border border-destructive/40 p-4">
       <FormErrorSummary message={failureMessage} />
       <p className="text-sm">
         {leaseCount === 0

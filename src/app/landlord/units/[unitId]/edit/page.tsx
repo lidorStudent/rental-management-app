@@ -45,7 +45,7 @@ export default async function EditUnitPage({ params }: { params: Promise<{ unitI
       </div>
 
       <section className="space-y-3 border-t pt-6">
-        <h2 className="text-sm font-medium">Delete</h2>
+        <h2 className="section-title">Delete</h2>
         <DeleteUnitButton
           unitId={unit.id}
           propertyId={unit.property_id}

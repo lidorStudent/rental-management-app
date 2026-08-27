@@ -80,7 +80,7 @@ export default async function RentOverviewPage() {
           action={{ label: "Record a tenancy", href: "/landlord/leases/new" }}
         />
       ) : (
-        <div className="overflow-x-auto rounded-md border">
+        <div className="bg-card overflow-x-auto rounded-md border">
           <Table>
             <caption className="sr-only">Rent owed across every tenancy</caption>
             <TableHeader>
@@ -98,7 +98,7 @@ export default async function RentOverviewPage() {
               {rows.map((row) => (
                 <TableRow
                   key={row.leaseId}
-                  className={cn(row.summary.overduePeriodCount > 0 && "bg-red-50/60")}
+                  className={cn(row.summary.overduePeriodCount > 0 && "bg-status-critical-tint")}
                 >
                   <TableCell className="font-medium">
                     <Link href={`/landlord/leases/${row.leaseId}`} className="underline">
@@ -161,9 +161,11 @@ function Figure({
   isAlarming: boolean;
 }) {
   return (
-    <div className="bg-background px-4 py-3">
+    <div className="bg-card px-4 py-3">
       <dt className="text-muted-foreground text-xs">{label}</dt>
-      <dd className={cn("text-xl font-medium tabular-nums", isAlarming && "text-red-700")}>
+      <dd
+        className={cn("text-xl font-medium tabular-nums", isAlarming && "text-status-critical-ink")}
+      >
         {value}
       </dd>
     </div>

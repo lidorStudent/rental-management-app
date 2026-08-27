@@ -50,7 +50,7 @@ export default async function EditPropertyPage({
       </div>
 
       <section className="space-y-3 border-t pt-6">
-        <h2 className="text-sm font-medium">Delete</h2>
+        <h2 className="section-title">Delete</h2>
         <DeletePropertyButton propertyId={property.id} unitCount={property.units.length} />
       </section>
     </div>

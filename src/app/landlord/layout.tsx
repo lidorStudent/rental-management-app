@@ -17,7 +17,7 @@ export default async function LandlordLayout({ children }: { children: ReactNode
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <LandlordNavigation signedInAs={profile.fullName} />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">{children}</main>
     </div>
   );
 }

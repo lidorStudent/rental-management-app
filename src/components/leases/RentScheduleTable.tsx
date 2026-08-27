@@ -22,7 +22,7 @@ import type { RentPeriodWithStatus } from "@/lib/rent/buildRentSchedule";
  */
 export function RentScheduleTable({ periods }: { periods: readonly RentPeriodWithStatus[] }) {
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="bg-card overflow-x-auto rounded-md border">
       <Table>
         <caption className="sr-only">Rent periods for this tenancy</caption>
         <TableHeader>
@@ -39,7 +39,7 @@ export function RentScheduleTable({ periods }: { periods: readonly RentPeriodWit
           {periods.map((period) => (
             <TableRow
               key={period.periodMonth}
-              className={cn(period.status === "overdue" && "bg-red-50/60")}
+              className={cn(period.status === "overdue" && "bg-status-critical-tint")}
             >
               <TableCell className="font-medium">{period.periodMonth.slice(0, 7)}</TableCell>
               <TableCell>{period.dueDate}</TableCell>

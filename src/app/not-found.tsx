@@ -8,7 +8,7 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-4 p-6">
-      <h1 className="text-2xl font-medium">Not found</h1>
+      <h1 className="page-title">Not found</h1>
       <p className="text-sm text-muted-foreground">
         That page does not exist, or it is not yours to view.
       </p>

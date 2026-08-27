@@ -50,11 +50,11 @@ export default async function MaintenanceRequestPage({
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium">What was reported</h2>
-        <p className="rounded-md border px-4 py-3 text-sm whitespace-pre-line">
+        <h2 className="section-title">What was reported</h2>
+        <p className="bg-card rounded-md border px-4 py-3 text-sm whitespace-pre-line">
           {request.description}
         </p>
-        <dl className="divide-y rounded-md border text-sm">
+        <dl className="bg-card divide-y rounded-md border text-sm">
           <Row
             label="Reported by"
             value={request.submitted_by_profile?.full_name ?? "The tenant"}
@@ -82,7 +82,7 @@ export default async function MaintenanceRequestPage({
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium">Move it along</h2>
+        <h2 className="section-title">Move it along</h2>
         <MaintenanceStatusControl requestId={request.id} currentStatus={request.status} />
       </section>
     </div>

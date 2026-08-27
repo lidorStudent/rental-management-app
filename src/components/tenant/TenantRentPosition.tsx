@@ -72,7 +72,7 @@ export async function TenantRentPosition({ lease }: { lease: TenantLease }) {
       {overdueCount === 0 ? null : (
         <p
           role="status"
-          className="rounded-md border border-red-600/40 bg-red-50 px-4 py-3 text-sm text-red-800"
+          className="border-status-critical-line bg-status-critical-tint text-status-critical-ink rounded-md border px-4 py-3 text-sm"
         >
           {overdueCount === 1 ? "One month is" : `${overdueCount} months are`} past the due date. If
           you have paid and it is not shown here, tell your landlord: rent is recorded by them when
@@ -102,7 +102,7 @@ function Figure({
   badge?: React.ReactNode;
 }) {
   return (
-    <div className="bg-background px-4 py-3">
+    <div className="bg-card px-4 py-3">
       <dt className="text-muted-foreground text-xs">{label}</dt>
       <dd className="flex flex-wrap items-center gap-2 text-xl font-medium tabular-nums">
         {value}

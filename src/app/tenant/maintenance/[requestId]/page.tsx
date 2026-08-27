@@ -48,11 +48,11 @@ export default async function TenantMaintenanceRequestPage({
         <MaintenanceStatusBadge status={request.status} />
       </div>
 
-      <p className="rounded-md border px-4 py-3 text-sm whitespace-pre-line">
+      <p className="bg-card rounded-md border px-4 py-3 text-sm whitespace-pre-line">
         {request.description}
       </p>
 
-      <dl className="divide-y rounded-md border text-sm">
+      <dl className="bg-card divide-y rounded-md border text-sm">
         <Row label="Reported on" value={request.created_at.slice(0, 10)} />
         <Row label="Urgency" value={URGENCY_WORDS[request.urgency] ?? request.urgency} />
         <Row label="Where it has got to" value={STATUS_EXPLANATIONS[request.status]} />

@@ -69,7 +69,7 @@ export default async function LeaseDetailPage({
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium">Terms</h2>
+        <h2 className="section-title">Terms</h2>
         <LeaseTermsPanel
           lease={{
             startDate: lease.start_date,
@@ -85,7 +85,7 @@ export default async function LeaseDetailPage({
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-medium">Rent</h2>
+          <h2 className="section-title">Rent</h2>
           <Link
             href={`/landlord/leases/${lease.id}/payments/new`}
             className="hover:bg-accent inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium"
@@ -109,14 +109,14 @@ export default async function LeaseDetailPage({
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium">Payments received</h2>
+        <h2 className="section-title">Payments received</h2>
         <Suspense fallback={<TableSkeleton columnCount={6} rowCount={3} />}>
           <LeasePaymentHistory leaseId={lease.id} page={page} />
         </Suspense>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium">Tenant access</h2>
+        <h2 className="section-title">Tenant access</h2>
         <TenantAccessPanel
           leaseId={lease.id}
           tenant={

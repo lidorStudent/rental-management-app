@@ -2,7 +2,7 @@
 export function PageHeader({ title, description }: { title: string; description?: string }) {
   return (
     <header className="space-y-1">
-      <h1 className="text-2xl font-medium">{title}</h1>
+      <h1 className="page-title">{title}</h1>
       {description === undefined ? null : (
         <p className="text-sm text-muted-foreground">{description}</p>
       )}

@@ -44,7 +44,7 @@ export async function LeaseRentSchedule({
       {overduePeriods.length === 0 ? null : (
         <p
           role="status"
-          className="rounded-md border border-red-600/40 bg-red-50 px-3 py-2 text-sm font-medium text-red-800"
+          className="border-status-critical-line bg-status-critical-tint text-status-critical-ink rounded-md border px-3 py-2 text-sm font-medium"
         >
           {overduePeriods.length === 1
             ? "1 month is overdue"

@@ -192,7 +192,7 @@ function TemporaryPasswordNotice({
   const [hasCopied, setHasCopied] = useState(false);
 
   return (
-    <div className="space-y-3 rounded-md border border-emerald-600/40 p-4">
+    <div className="border-status-settled-line bg-card space-y-3 rounded-md border p-4">
       <p className="text-sm font-medium">Give this password to your tenant now</p>
       <p className="text-muted-foreground text-sm">
         It is shown once and cannot be shown again. Nothing stores it, not even this application, so

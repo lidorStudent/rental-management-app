@@ -39,8 +39,8 @@ export default async function TenantLeasePage() {
       />
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium">Your home</h2>
-        <dl className="divide-y rounded-md border text-sm">
+        <h2 className="section-title">Your home</h2>
+        <dl className="bg-card divide-y rounded-md border text-sm">
           <Row label="Unit" value={lease.unitLabel} />
           <Row
             label="Address"
@@ -55,8 +55,8 @@ export default async function TenantLeasePage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium">Terms</h2>
-        <dl className="divide-y rounded-md border text-sm">
+        <h2 className="section-title">Terms</h2>
+        <dl className="bg-card divide-y rounded-md border text-sm">
           <Row label="Runs from" value={lease.startDate} />
           <Row label="Until, inclusive" value={lease.endDate} />
           <Row label="Monthly rent" value={formatCentsAsCurrency(lease.rentAmountInAgorot)} />
@@ -73,8 +73,8 @@ export default async function TenantLeasePage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium">Your landlord</h2>
-        <dl className="divide-y rounded-md border text-sm">
+        <h2 className="section-title">Your landlord</h2>
+        <dl className="bg-card divide-y rounded-md border text-sm">
           <Row label="Name" value={lease.landlordName ?? "Not recorded"} />
           <Row label="Email" value={lease.landlordEmail ?? "Not recorded"} />
         </dl>
@@ -91,7 +91,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-wrap justify-between gap-2 px-4 py-2.5">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium">{value}</dd>
+      <dd className="text-right font-medium tabular-nums">{value}</dd>
     </div>
   );
 }

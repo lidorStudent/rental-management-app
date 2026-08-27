@@ -19,7 +19,7 @@ export function StatementDateRangeForm({
     <form
       action={action}
       method="get"
-      className="flex flex-wrap items-end gap-3 rounded-md border p-4 print:hidden"
+      className="bg-card flex flex-wrap items-end gap-3 rounded-md border p-4 print:hidden"
     >
       <div className="space-y-1.5">
         <Label htmlFor="from">From month</Label>

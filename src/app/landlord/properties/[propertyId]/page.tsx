@@ -90,7 +90,7 @@ export default async function PropertyDetailPage({
           }}
         />
       ) : (
-        <div className="overflow-x-auto rounded-md border">
+        <div className="bg-card overflow-x-auto rounded-md border">
           <Table>
             <caption className="sr-only">Units in {property.name}</caption>
             <TableHeader>
