@@ -435,17 +435,72 @@ there is no path to it that does not start with one of the risks above. The fix 
 field verified on the server, or enabling `secure_password_change`, and it interacts with section 8:
 a tenant on a temporary password has no old password worth asking for.
 
-**The role of a new account is chosen by whoever signs up.**
-`create_profile_for_new_auth_user` copies `role` out of the sign-up metadata, and that metadata is
-client-controlled. Signing up directly against the Auth API with `role: "landlord"` produces a
-landlord profile. It is harmless here for two reasons, both of which have to keep being true: a
-landlord account is what `/register` hands to anybody who asks, so forging one gains nothing that
-asking politely would not, and it arrives empty because every policy is scoped by ownership as well
-as role — `landlord_id = auth.uid()`, never `role = 'landlord'` alone. Forging `tenant` gains less
-still, because a tenant sees rows through `leases.tenant_profile_id`, which only the owning landlord
-can set. The application's own `registerLandlordAccount` hardcodes the role server-side; only the
-direct API call allows the choice. **The day any policy grants something on role alone, this becomes
-privilege escalation**, and that is the reason it is written down rather than left as a curiosity.
+**The role of a new account is chosen by whoever signs up.** Accepted, after three attempts to fix
+it were designed, tested and abandoned. The investigation is written out below because the reasons it
+was left are more useful than the finding itself.
+
+`create_profile_for_new_auth_user` copies `role` out of `raw_user_meta_data`, which is the half of
+the metadata the client owns: `auth.signUp` stores anything placed in `options.data` verbatim. So a
+request straight to the Auth API asking for `role: "landlord"` produces a landlord profile.
+
+*Why it is harmless today.* A landlord account is what `/register` hands to anybody who asks, so
+forging one gains nothing that asking politely would not, and it arrives empty. Forging `tenant`
+gains less still: a tenant sees rows through `leases.tenant_profile_id`, which only the owning
+landlord can set, so a self-declared tenant is attached to no tenancy and sees nothing. Measured
+rather than asserted: an account registered asking for `role: "tenant"` signs in successfully, gets a
+profile that does say `tenant`, and reads **0 leases, 0 payments and 0 properties**. Underneath
+both, every policy in the schema is scoped by ownership as well as role — `landlord_id = auth.uid()`,
+never `role = 'landlord'` alone. The application's own `registerLandlordAccount` sets the role
+server-side; only a direct API call allows the choice.
+
+*What would make it unsafe.* Any policy that ever grants something on role alone. That is the single
+condition, and it is why this is written down rather than left as a curiosity.
+
+*Why hardcoding the role would have been the wrong fix.* Making the trigger always write
+`'landlord'` looks like the obvious answer and would have been a privilege escalation of its own.
+This trigger is the only place `profiles.role` is ever written, and `prevent_profile_role_change`
+refuses a later change to every caller **including the service role** — measured, not assumed: the
+service role attempting to correct a role is refused with `42501`. Every tenant created from the
+lease flow would have become a landlord, permanently, with no way back short of dropping the
+immutability trigger.
+
+*Why the caller cannot be detected inside the trigger.* The natural fix is to trust the metadata only
+when the caller is the service role. The trigger cannot tell. The row in `auth.users` is inserted by
+the Auth service on its own pooled connection as `supabase_auth_admin`, not by PostgREST carrying
+anybody's token, so there is no request context to read. Logged from inside the trigger, both
+`admin.createUser` and a public `signUp` produce identical and empty context: `request.jwt.claims`,
+`auth.role()` and `auth.jwt()` all null, `current_setting('role')` `none`, `current_user` `postgres`,
+`session_user` `supabase_auth_admin`. The two callers are indistinguishable from in there.
+
+*Why `app_metadata` cannot carry it.* `app_metadata` is the half of the metadata a client cannot
+write, which makes it the right place for a role — but it arrives too late. GoTrue writes it in a
+separate transaction **after** the insert has committed, so the `AFTER INSERT` trigger sees it
+absent. Proven rather than inferred: with the role read from `app_metadata`, `admin.createUser`
+produced a landlord profile while the row it returned carried
+`{"provider":"email","providers":["email"],"role":"tenant"}`; replacing the trigger with a
+`CONSTRAINT TRIGGER ... DEFERRABLE INITIALLY DEFERRED`, so that it fires at the end of the inserting
+transaction, produced the same landlord — which rules out the same-transaction explanation and leaves
+only the separate one.
+
+*Why it was left.* Every remaining route reacts to that later update instead of the insert, and every
+one of them needs `prevent_profile_role_change` relaxed so that something may set the role after
+creation. That guarantee currently holds against every caller including the service role. Trading it
+away to close a finding with no impact is a worse position than the one it replaces, so the finding
+stays accepted and the reasoning stays here.
+
+Three things were established by testing rather than assumed, and are recorded so that the next
+person does not have to rediscover them:
+
+- **GoTrue refuses client-supplied `app_metadata` on `/auth/v1/signup`.** Posting
+  `app_metadata: {"role":"tenant"}` with the anonymous key left the stored value as
+  `{"provider":"email","providers":["email"]}`, while the `user_metadata` in the same request landed
+  untouched. `admin.createUser`, which only the service role can call, sets it.
+- **The `user_metadata` attack produces a landlord in every case tested** once the role is read from
+  `app_metadata` — including when both metadata types are sent together, which is what shows the old
+  path would be genuinely dead rather than merely outranked.
+- **`profiles.full_name` is `NOT NULL`**, so a sign-up sending no name makes the trigger's insert fail
+  and the whole registration fail. Several apparent escalations in the first attack matrix were
+  failed registrations being misread; the rows that actually created a profile all got `landlord`.
 
 **Email addresses are never confirmed.** `enable_confirmations` is off, so anybody can register with
 an address they do not own. It cannot be otherwise: there is no email service in this project, which

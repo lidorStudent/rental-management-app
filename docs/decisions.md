@@ -939,3 +939,43 @@ locally and only appear once deployed. The policy that ships is the policy to de
 is recorded as a choice rather than left to be read as an oversight by somebody who finds the warning
 in a log.
 
+
+### 2026-08-29 - The sign-up role stays client-chosen, because every fix costs more than the finding
+
+Decided to leave `create_profile_for_new_auth_user` reading the role from `raw_user_meta_data`, which
+the client controls, rather than close the finding. Three designs were built and abandoned, and the
+decision is really about the third.
+
+Hardcoding `'landlord'` and letting the tenant path set the role afterwards is the obvious answer and
+is a privilege escalation of its own. The trigger is the only place `profiles.role` is ever written,
+and `prevent_profile_role_change` refuses a later change to every caller including the service role -
+measured at `42501`, not assumed. Every tenant created from the lease flow would have become a
+landlord, permanently.
+
+Trusting the metadata only when the caller is the service role cannot be implemented, because the
+trigger cannot tell who the caller is. GoTrue inserts into `auth.users` on its own pooled connection
+as `supabase_auth_admin`, so there is no request context: logged from inside the trigger, both
+`admin.createUser` and a public `signUp` show null claims, null `auth.role()`, `current_user`
+`postgres`. A check written as "trust the metadata only when the claim is explicitly service_role"
+would have been correct and would have forced `'landlord'` for everybody, collapsing into the first
+design's bug.
+
+Reading the role from `app_metadata`, which a client cannot set, is the right idea and fails on
+timing. GoTrue writes `app_metadata` in a separate transaction after the insert commits, so the
+`AFTER INSERT` trigger sees it absent. A `CONSTRAINT TRIGGER ... DEFERRABLE INITIALLY DEFERRED`,
+which fires at the end of the inserting transaction, saw it absent too - which is what proves the
+write is a separate transaction rather than a later statement in the same one.
+
+What is left all reacts to that later update, and all of it needs `prevent_profile_role_change`
+relaxed so something may set a role after creation. That guarantee holds today against every caller
+including the service role, and it is worth more than closing a finding with no impact: a forged
+landlord is what `/register` gives anyone, a forged tenant is attached to no tenancy because access
+flows from `leases.tenant_profile_id`, and every policy is scoped by ownership as well as role. The
+finding stays accepted, with the condition that would change that - any policy granting on role alone
+- written beside it.
+
+The general lesson is the one this project keeps paying for and then banking: test the premise before
+building on it. Two of the three designs looked correct on paper and were disproved in minutes by
+logging what the database actually saw, and the third was disproved by a five-line trigger change.
+None of them reached production, and the schema was never touched.
+
