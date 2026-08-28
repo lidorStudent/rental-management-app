@@ -119,3 +119,75 @@ test("a seeded tenant can sign in and see their own tenancy", async ({ page }) =
   await page.goto("/landlord/rent");
   await expect(page).toHaveURL(/\/tenant$/);
 });
+
+/**
+ * The response headers, on the deployed address, because that is the only place they are real: the
+ * platform serves them and no local build proves what the edge actually sends.
+ *
+ * The content security policy is asserted directive by directive rather than as one string, so a
+ * later edit that loosens one of them fails here with the name of the directive it loosened rather
+ * than with an unreadable diff of the whole header.
+ */
+// SEC-01
+test("the deployed site sends the security headers it is supposed to", async ({ request }) => {
+  const response = await request.get("/login");
+  const headers = response.headers();
+
+  const policy = headers["content-security-policy"];
+  expect(policy, "there is a content security policy at all").toBeDefined();
+
+  for (const directive of [
+    "default-src 'self'",
+    "connect-src 'self'",
+    "font-src 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "object-src 'none'",
+  ]) {
+    expect(policy, `the policy still carries ${directive}`).toContain(directive);
+  }
+
+  // script-src allows inline because Next streams its payload into two inline script blocks. It
+  // must not also allow another origin: that is the half of the policy still doing real work.
+  expect(policy).toContain("script-src 'self' 'unsafe-inline'");
+  expect(policy, "no origin wildcard has crept in").not.toContain("*");
+
+  expect(headers["x-frame-options"]).toBe("DENY");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["referrer-policy"]).toBe("same-origin");
+  expect(headers["permissions-policy"]).toContain("geolocation=()");
+  expect(headers["strict-transport-security"], "HSTS, which the platform sets").toContain(
+    "max-age=",
+  );
+});
+
+/**
+ * A policy that blocks the application's own scripts is worse than no policy, so this asserts the
+ * page still works rather than only that the header is present: a landlord signs in, which is a
+ * form submitting through a server action, and lands on a page that has hydrated.
+ */
+// SEC-02
+test("the policy does not stop the deployed pages working", async ({ page }) => {
+  const refusals: string[] = [];
+  page.on("console", (message) => {
+    if (/content security policy|refused to (load|execute|apply|connect)/i.test(message.text())) {
+      refusals.push(message.text());
+    }
+  });
+
+  await page.goto("/login");
+  await page.getByLabel("Email address").fill("noa.bendavid@example.co.il");
+  await page.getByLabel("Password").fill(SEEDED_PASSWORD);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/landlord$/);
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+
+  await page.goto("/landlord/properties/new");
+  await expect(page.getByRole("heading", { name: "Add a property" })).toBeVisible();
+  // react-hook-form marking the fields is proof the client bundle ran under the policy.
+  await page.getByRole("button", { name: "Add property" }).click();
+  await expect(page.locator("[aria-invalid=true]").first()).toBeVisible();
+
+  expect(refusals, `the browser refused something: ${refusals.join(" | ")}`).toHaveLength(0);
+});
