@@ -72,6 +72,8 @@ test("a tenant arrives with a temporary password and ends up following a repair"
     await page.goto("/tenant/payments");
     await expect(page).toHaveURL(/\/change-password/);
 
+    // The temporary password they signed in with a moment ago is the current one.
+    await page.getByLabel("Current password").fill(TEMPORARY_PASSWORD);
     await page.getByLabel("New password", { exact: true }).fill(CHOSEN_PASSWORD);
     await page.getByLabel("Repeat new password").fill(CHOSEN_PASSWORD);
     await page.getByRole("button", { name: "Set password" }).click();

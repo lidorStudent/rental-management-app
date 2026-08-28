@@ -80,9 +80,12 @@ export function anonymousClient(): SupabaseClient<Database> {
 }
 
 /** A client signed in as one of the seeded people, using the public key a browser would use. */
-export async function signInAs(email: string): Promise<SupabaseClient<Database>> {
+export async function signInAs(
+  email: string,
+  password: string = SEEDED_PASSWORD,
+): Promise<SupabaseClient<Database>> {
   const client = anonymousClient();
-  const { error } = await client.auth.signInWithPassword({ email, password: SEEDED_PASSWORD });
+  const { error } = await client.auth.signInWithPassword({ email, password });
 
   if (error !== null) {
     throw new Error(

@@ -139,26 +139,75 @@ describe("signInSchema", () => {
 });
 
 describe("changePasswordSchema", () => {
-  it("accepts a new password typed twice", () => {
+  /**
+   * Each of these supplies a valid current password, so that the rule the test is named after is the
+   * only thing that can fail it. Without that they would pass on the missing field instead, which is
+   * how two of them behaved for a moment when the field was first added.
+   */
+  const currentPassword = "WhatIHadBefore1";
+
+  it("accepts a new password typed twice, with the current one", () => {
     expect(
-      changePasswordSchema.safeParse({ newPassword: "ChosenByMe1", confirmPassword: "ChosenByMe1" })
-        .success,
+      changePasswordSchema.safeParse({
+        currentPassword,
+        newPassword: "ChosenByMe1",
+        confirmPassword: "ChosenByMe1",
+      }).success,
     ).toBe(true);
   });
 
   it("refuses a new password that does not meet the policy", () => {
     expect(
-      changePasswordSchema.safeParse({ newPassword: "weak", confirmPassword: "weak" }).success,
+      changePasswordSchema.safeParse({
+        currentPassword,
+        newPassword: "weak",
+        confirmPassword: "weak",
+      }).success,
     ).toBe(false);
   });
 
   it("refuses two passwords that do not match", () => {
     expect(
       changePasswordSchema.safeParse({
+        currentPassword,
         newPassword: "ChosenByMe1",
         confirmPassword: "ChosenByYou1",
       }).success,
     ).toBe(false);
+  });
+
+  it("refuses a change with no current password at all", () => {
+    expect(
+      changePasswordSchema.safeParse({
+        newPassword: "ChosenByMe1",
+        confirmPassword: "ChosenByMe1",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("refuses an empty current password", () => {
+    expect(
+      changePasswordSchema.safeParse({
+        currentPassword: "",
+        newPassword: "ChosenByMe1",
+        confirmPassword: "ChosenByMe1",
+      }).success,
+    ).toBe(false);
+  });
+
+  /**
+   * The current password is only checked for being present. A temporary password issued by a
+   * landlord, or one chosen before the strength rules tightened, has to be typeable here or its
+   * owner could never replace it. Whether it is right is the server's question, not the schema's.
+   */
+  it("accepts a current password that would fail today's strength rules", () => {
+    expect(
+      changePasswordSchema.safeParse({
+        currentPassword: "old",
+        newPassword: "ChosenByMe1",
+        confirmPassword: "ChosenByMe1",
+      }).success,
+    ).toBe(true);
   });
 });
 

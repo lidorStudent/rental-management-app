@@ -128,6 +128,8 @@ test("a landlord sets up a portfolio, records rent, and closes a reported proble
     await signIn(page, tenantEmail, temporaryPassword);
 
     await expect(page).toHaveURL(/\/change-password/);
+    // The temporary password the landlord issued is what the tenant proves they hold.
+    await page.getByLabel("Current password").fill(temporaryPassword);
     await page.getByLabel("New password", { exact: true }).fill(TEST_PASSWORD);
     await page.getByLabel("Repeat new password").fill(TEST_PASSWORD);
     await page.getByRole("button", { name: "Set password" }).click();
