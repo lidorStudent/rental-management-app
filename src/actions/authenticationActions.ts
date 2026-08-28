@@ -15,6 +15,7 @@ import {
   type SignInInput,
 } from "@/lib/validation/authenticationSchemas";
 import { createSupabaseAdminClient } from "@/lib/supabase/adminClient";
+import { createSupabasePasswordCheckClient } from "@/lib/supabase/passwordCheckClient";
 import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
 
 /**
@@ -26,6 +27,15 @@ const SIGN_UP_REFUSED_MESSAGE =
   "That email address cannot be used to register. If you already have an account, sign in instead.";
 
 const SIGN_IN_REFUSED_MESSAGE = "That email address and password do not match an account.";
+
+/**
+ * Said against the field itself, so nobody has to guess which of the three is at fault. It names the
+ * password and nothing else: not whether the account exists, not what Supabase said.
+ */
+const CURRENT_PASSWORD_REFUSED_MESSAGE = "That is not your current password.";
+
+const TOO_MANY_ATTEMPTS_MESSAGE =
+  "Too many attempts in a short time. Wait a few minutes and try again; your password has not been changed.";
 
 export async function registerLandlordAccount(input: RegisterLandlordInput): Promise<ActionResult> {
   const parsed = registerLandlordSchema.safeParse(input);
@@ -101,6 +111,47 @@ export async function changePassword(input: ChangePasswordInput): Promise<Action
   }
 
   const profile = await getSignedInProfile();
+
+  // Prove the caller knows the password they are replacing, before replacing it.
+  //
+  // Without this, a session was enough on its own: anybody holding one could set a new password and
+  // lock the real owner out without ever knowing the old one. Supabase's own "secure password
+  // change" does not close that, because it exempts any session created in the last 24 hours, which
+  // is exactly the window a stolen session is used in, and when it does apply it wants a nonce sent
+  // by email or SMS, and this project has neither channel.
+  //
+  // The check is a sign-in attempt on a client that holds no session and writes no cookie, so the
+  // caller's own session is untouched by it. The address is the one on the profile, which is written
+  // from auth.users when the account is created, cannot be changed by its owner since
+  // profiles_self_service_columns_are_pinned, and cannot be changed anywhere else either, because
+  // nothing in this application updates an auth email and the project has no mail service to confirm
+  // one with.
+  const verification = await createSupabasePasswordCheckClient().auth.signInWithPassword({
+    email: profile.email,
+    password: parsed.data.currentPassword,
+  });
+
+  if (verification.error !== null) {
+    // Being throttled is not the same as being wrong, and telling somebody their password is wrong
+    // when the truth is "too many attempts, wait" would send them off to reset a password that was
+    // correct all along.
+    // Measured: a wrong password is 400 with code invalid_credentials, and being throttled is 429
+    // with code over_request_rate_limit. Both are checked, so a future release that stops setting
+    // one of them still lands on the right message.
+    if (
+      verification.error.status === 429 ||
+      verification.error.code === "over_request_rate_limit"
+    ) {
+      return errorResult(TOO_MANY_ATTEMPTS_MESSAGE);
+    }
+    console.error("changePassword could not verify the current password", {
+      code: verification.error.code,
+    });
+    return errorResult(CURRENT_PASSWORD_REFUSED_MESSAGE, {
+      currentPassword: CURRENT_PASSWORD_REFUSED_MESSAGE,
+    });
+  }
+
   const supabaseClient = await createSupabaseServerClient();
 
   const { error } = await supabaseClient.auth.updateUser({ password: parsed.data.newPassword });

@@ -37,6 +37,10 @@ export const signInSchema = z.object({
 
 export const changePasswordSchema = z
   .object({
+    // Only that something was typed. The strength rules belong to the password being chosen, not to
+    // the one being proved: a temporary password issued by a landlord, or one set before the rules
+    // tightened, must still be accepted here or its owner could never replace it.
+    currentPassword: z.string().min(1, "Enter your current password."),
     newPassword: passwordSchema,
     confirmPassword: z.string(),
   })

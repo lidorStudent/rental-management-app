@@ -22,7 +22,7 @@ export function ChangePasswordForm() {
   const [isSubmitting, startSubmitting] = useTransition();
   const { register, handleSubmit, setError, formState } = useForm<ChangePasswordInput>({
     resolver: zodResolver(changePasswordSchema),
-    defaultValues: { newPassword: "", confirmPassword: "" },
+    defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
   });
 
   function submit(values: ChangePasswordInput) {
@@ -39,6 +39,15 @@ export function ChangePasswordForm() {
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-4" noValidate>
       <FormErrorSummary message={formMessage} />
+
+      <TextField
+        label="Current password"
+        type="password"
+        autoComplete="current-password"
+        hint="The one you signed in with. A tenant setting their own password for the first time enters the temporary one their landlord gave them."
+        error={formState.errors.currentPassword?.message}
+        {...register("currentPassword")}
+      />
 
       <TextField
         label="New password"
