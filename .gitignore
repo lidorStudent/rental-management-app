@@ -31,3 +31,5 @@ supabase/.temp
 
 # Generated from scripts/buildPresentation.mjs; the PDF it produces is the deliverable.
 docs/presentation.html
+# The same script drops slide screenshots in the project root on every run.
+slide-*.png
