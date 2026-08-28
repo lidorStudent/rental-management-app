@@ -910,3 +910,32 @@ column as `never`, so the per-table claim is carried by update and delete, which
 that actually discriminates: before the revoke they returned no error, while insert was already
 refused by the policy.
 
+
+### 2026-08-28 - truncate goes too, and the local policy stays identical to the shipped one
+
+Two decisions, both about not leaving something half done.
+
+`truncate` was left out of the first revoke on the reasoning that PostgREST exposes no verb reaching
+it. That reasoning was thin, and it was exactly the wrong grant to reason loosely about. A policy
+restricts which rows a statement sees; `truncate` does not look at rows, so unlike `delete` Row Level
+Security does not filter it at all. Of everything `anon` held, it was the only write with no backstop
+underneath it. It is revoked now, on both projects and on the default privileges.
+
+Proving that took a new object, which is worth defending rather than glossing. PERM-36 asserts the
+other three by attempting them and reading the refusal, and there is no attempt to make for
+`truncate`: the client cannot express one, and the catalogue that would answer the question is not in
+the exposed schemas, so `information_schema` and `pg_catalog` both answer PGRST205 for the service
+role as well as for anon. The alternative to `anon_write_privileges` was a security control with no
+test behind it, which is the kind that quietly stops being true. It is the smallest thing that
+answers the question: four booleans per relation, no data, `select` granted to `service_role` alone,
+and PERM-39 asserts that an anonymous caller cannot read it either.
+
+The second decision is to leave the content security policy alone. The browser suite surfaced that
+React cannot use `eval()` in development under it, which costs some dev-mode debugging locally and
+nothing in production, because React never uses `eval()` there - the deployed checks report no
+refusal at all. Adding `'unsafe-eval'` behind a `NODE_ENV` condition would recover the debugging and
+would also mean developing against a policy looser than the one users get, so a violation could pass
+locally and only appear once deployed. The policy that ships is the policy to develop against. This
+is recorded as a choice rather than left to be read as an oversight by somebody who finds the warning
+in a log.
+

@@ -85,7 +85,7 @@ is gone afterwards and that the protected page redirects.
 | Routing | `src/proxy.ts` with `src/lib/authentication/redirectDestination.ts` | Sends an unauthenticated request to `/login`, a tenant out of `/landlord`, a landlord out of `/tenant`, and anybody who must change their password to `/change-password` | It is convenience, not protection. A request that slipped past it still meets everything below |
 | Role guard | `requireLandlordProfile.ts`, `requireTenantProfile.ts`, both built on `getSignedInProfile.ts` | Refuses an action asked for by the wrong role, by throwing rather than returning null so a caller cannot forget the empty case | It does not know which rows are whose |
 | Derived ownership | Every action in `src/actions/` | Stamps writes with the acting user's id and looks rows up without trusting any identifier of ownership from the client | It is application code, so it can contain a mistake |
-| Table grants | `supabase/migrations/20260828193000_anon_may_read_but_not_write.sql` | The anonymous role may select and nothing else. Postgres checks the grant before it consults a policy, so an anonymous write is refused before Row Level Security is reached at all | It is coarse: it knows a role, not a row. It cannot tell one landlord from another |
+| Table grants | `20260828193000_anon_may_read_but_not_write.sql` and `20260828203000_anon_may_not_truncate.sql` | The anonymous role may select and nothing else. Postgres checks the grant before it consults a policy, so an anonymous write is refused before Row Level Security is reached at all, and `truncate`, which no policy would have filtered, is refused with it | It is coarse: it knows a role, not a row. It cannot tell one landlord from another |
 | Row Level Security | `supabase/migrations/20260825122721_row_level_security.sql` and two later migrations, 29 policies over 6 tables | Decides, inside Postgres, which rows exist for the connection asking | Nothing. This is still the boundary |
 | Column rules | `profiles_role_is_immutable`, `maintenance_requests_tenant_confirms_only` | A policy chooses rows, never columns, so these triggers keep a permitted update from touching a column it should not | — |
 | Constraints | `supabase/migrations/20260825122011_core_schema.sql` | Overlapping tenancies, negative rent, future receipts and the rest are refused by the schema | They are about correctness rather than permission |
@@ -124,13 +124,25 @@ request arrives as `authenticated`. Revoking those grants would not be defence i
 remove the only path the application has, and Row Level Security is what scopes those writes to the
 writer's own rows.
 
-**Two caveats, recorded rather than tidied away.** `anon` still holds `truncate`, `references` and
-`trigger` on these tables. `truncate` is the interesting one, because unlike `delete` it is not
-filtered by Row Level Security at all — it is not reachable through PostgREST, which exposes no such
-verb, so it is not a way in, but it is a grant with nothing to justify it. And the default
-privileges that will apply to *future* tables were revoked only for those granted by `postgres`,
-which is the role migrations run as; a default granted by `supabase_admin` remains on the production
-project and is not alterable from this connection.
+**`truncate` went too, and it was the one that mattered most.** It was left behind at first on the
+reasoning that PostgREST exposes no verb reaching it. That reasoning was thin: a policy restricts
+which rows a statement sees, and `truncate` does not look at rows, so unlike `delete` it is not
+filtered by Row Level Security at all. Of everything `anon` held it was the single write with no
+backstop underneath it, which makes it the last one that should have been left. `anon` now holds
+`select`, `references` and `trigger`, and nothing that writes.
+
+Proving that needed something to read. PERM-36 asserts its three by attempting them and reading the
+refusal; there is no attempt to make for `truncate`, and the catalogue that would answer directly is
+not in the exposed schemas — `information_schema` and `pg_catalog` both answer `PGRST205` for the
+service role as well as for `anon`. So `anon_write_privileges` exists: a view reporting four
+booleans per relation, no data in it, `select` granted to `service_role` alone. PERM-38 reads it and
+PERM-39 proves an anonymous caller cannot. The alternative was a security control with nothing
+testing it, which is the kind that quietly stops being true.
+
+**One caveat remains, recorded rather than tidied away.** The default privileges that will apply to
+*future* tables were revoked only for those granted by `postgres`, which is the role migrations run
+as. A default granted by `supabase_admin` remains on the production project and is not alterable
+from this connection.
 
 ---
 
