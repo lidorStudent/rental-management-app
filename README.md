@@ -219,6 +219,7 @@ and real policies. Refuses to run if `.env.test` points at the deployed project.
 | `tests/serverActions.test.ts` | Actions refuse the wrong role, answer another landlord's identifier exactly as they answer one that does not exist, and take ownership from the session rather than from the payload |
 | `tests/domainInvariants.test.ts` | The five domain invariants at the database level, including the exclusion constraint that refuses overlapping tenancies |
 | `tests/schemaGuarantees.test.ts` | What the schema refuses on its own: the check constraints, the per-building uniqueness of a flat label, every cascade and restrict, and the two triggers |
+| `tests/passwordChange.test.ts` | Changing a password requires the current one: a session alone cannot take an account over, the tenant's temporary-password path still completes, and a throttled attempt is told to wait rather than told it was wrong |
 
 ### `npm run test:e2e` - browser tests
 

@@ -239,8 +239,8 @@ The long form is [docs/learning/04-security-model.md](learning/04-security-model
 
 | Suite | Proves |
 | --- | --- |
-| `npm test`, 343 tests | The rules are right at their boundaries, and the forms behave, including for a screen reader |
-| `npm run test:db`, 118 tests | The policies and constraints hold against a real Postgres, as real signed-in users |
+| `npm test`, 346 tests | The rules are right at their boundaries, and the forms behave, including for a screen reader |
+| `npm run test:db`, 134 tests | The policies and constraints hold against a real Postgres, as real signed-in users |
 | `npm run test:e2e`, 22 tests | The whole processes work in a browser, including the refusals |
 
 **The one to be able to defend:** the permission tests do not drive the interface. Driving the
@@ -351,8 +351,10 @@ query supplies no filter of its own. It is measured, priced and given a fix orde
 **18. What is the weakest part of the security model?**
 The temporary password that travels out of band, and the fact that the session is still a bearer
 token, so an injected script could act as the user through the application even though it cannot
-read the cookie. Both are stated in [docs/05-security.md](05-security.md) along with no rate limiting
-on the application's own endpoints, no MFA and no audit log.
+read the cookie. What it can no longer do is keep that access: changing a password requires the
+current one, so a stolen session cannot lock the owner out. Both are stated in
+[docs/05-security.md](05-security.md) along with no rate limiting on the application's own
+endpoints, no MFA and no audit log.
 
 **19. Why is the role read from the database on every request instead of from the token?**
 Because a signed-in user can edit their own token metadata through the Auth API, and cannot edit
@@ -363,4 +365,4 @@ request, which the scale document prices and puts fourth on the list of things t
 Putting authorisation in the database. Everything else in the project could be rewritten - the
 framework, the interface, even the actions - and the guarantee would survive, because it does not
 depend on any of them being correct. It is also the only decision I can prove rather than assert:
-118 tests attack the database directly, and they are the evidence that the claim is true.
+134 tests attack the database directly, and they are the evidence that the claim is true.

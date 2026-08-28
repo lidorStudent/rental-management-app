@@ -162,7 +162,7 @@ const slides = [
     title: "Security",
     bullets: [
       "Session in one HTTP-only cookie, against the library default",
-      "29 Row Level Security policies, proved by 118 tests",
+      "29 Row Level Security policies, proved by 134 tests",
       "Validation always runs on the server",
       "Service role key: one caller, unreachable from the browser",
     ],

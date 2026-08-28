@@ -333,10 +333,10 @@ chooses rows; it does not choose columns.
 
 | Suite | Command | Size | What it proves |
 | --- | --- | --- | --- |
-| Unit and component | `npm test` | 343 tests, 31 files, ~3s | The derived rules are right, including their boundaries: the day a tenancy ends is still occupied, a partial payment is partial and not overdue until its due day passes, money parses without floating point. Then that forms render their fields, announce their errors to a screen reader, and put a server-side error next to the right input |
-| Database and permissions | `npm run test:db` | 118 tests, 6 files, ~30s | That the policies and constraints actually hold, against a real Postgres, as real signed-in users |
+| Unit and component | `npm test` | 346 tests, 31 files, ~3s | The derived rules are right, including their boundaries: the day a tenancy ends is still occupied, a partial payment is partial and not overdue until its due day passes, money parses without floating point. Then that forms render their fields, announce their errors to a screen reader, and put a server-side error next to the right input |
+| Database and permissions | `npm run test:db` | 134 tests, 7 files, ~35s | That the policies and constraints actually hold, against a real Postgres, as real signed-in users |
 | End to end | `npm run test:e2e` | 22 tests, ~3min | That the whole processes work in a browser: the landlord's golden path, the tenant's, and the negative paths - an overlapping tenancy refused, invalid forms, a tenant sent out of a landlord route, every protected route while signed out |
-| Deployment smoke | `PLAYWRIGHT_BASE_URL=… npx playwright test e2e/deploymentSmoke.spec.ts` | 5 tests | That the deployed thing works at its real address, read only. Skipped in an ordinary run for the reasons recorded under MAN-05 in the test specification |
+| Deployment smoke | `PLAYWRIGHT_BASE_URL=… npx playwright test e2e/deploymentSmoke.spec.ts` | 7 tests | That the deployed thing works at its real address, read only. Skipped in an ordinary run for the reasons recorded under MAN-05 in the test specification |
 
 ### Why the authorisation tests attack the database, not the interface
 
@@ -404,7 +404,9 @@ email invitations. *Why:* there is no email service in this project, by design -
 that depends on a mail provider stops working when a trial ends. *If challenged - "what is the
 residual risk?":* the password travels through whatever channel the landlord already uses, and until
 the tenant changes it the landlord knows a working password for their account. It is stated plainly
-in the security document, and the forced change on first sign-in is what closes the window.
+in the security document, and the forced change on first sign-in is what closes the window. That
+change demands the temporary password itself, so knowing the account exists is not enough to set a
+new one.
 
 **Reads in server components, writes in server actions, no route handlers.** *Alternative:* a REST
 API under `/api`. *Why:* an API would be a second surface to authorise, and every one of its
