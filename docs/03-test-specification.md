@@ -322,6 +322,9 @@ proved anywhere else.
 | DB-20 | `updated_at` maintained by trigger | Any row | Update it without setting `updated_at` | The column moves anyway | D | A column no code has to remember is a column that is always true |
 | DB-21 | Profile created by trigger | — | Create an Auth user with role metadata | The profile row exists with that role | D | An account can never exist without a role |
 | DB-22 | Aggregates respect policies | Two landlords | Select the three views as each | Only their own rows, both times | D | `security_invoker` is one word, and everything depends on it |
+| DB-23 | **Pinned against their owner** | A tenant on a temporary password | Clear `must_change_password`, then rewrite `email`, on their own row | Both rejected with `42501`; the flag is still true and the address unchanged | D | The flag is the forced-change gate and the address is what the landlord reads; both lived on a row their subject could write |
+| DB-24 | The service role still sets them | Any account | Set and clear `must_change_password` with the service role | Both succeed | D | That is how a landlord re-arms it and how the change-password action clears it |
+| DB-25 | `full_name` is left writable | Any account | Rename themselves | Accepted | D | Asserts a decision: nothing in the interface offers it, and a person's own name is theirs |
 
 ---
 
@@ -365,6 +368,8 @@ proved anywhere else.
 | UI-09 | Tenant navigation is the tenant's | Signed in as a tenant | Read the navigation | Four links, none of them a landlord route | E | Also a permission test, from the other side |
 | UI-10 | Destructive actions confirm | A deletable unit | Click delete | A panel naming the consequence before anything happens | E | Deleting a building should take two decisions |
 | UI-11 | Print media hides the chrome | A statement page | Emulate print media | Navigation, buttons and the range form are hidden; the document is not | E | The half of printing a machine can judge |
+| SEC-01 | Security headers are sent | The deployed address | Read the response headers | CSP with every directive named, plus X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy | E | Only the deployed address proves what the platform actually sends |
+| SEC-02 | The policy does not break the pages | The deployed address | Sign in and submit a form | Both work, and the browser reports no refusal | E | A policy that blocks the application is worse than no policy |
 
 ---
 
@@ -493,11 +498,13 @@ confirming the real thing works at its real address.
 | 2026-08-27 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run after the audit fixes and a fresh production deployment. Health check 200; the automated companion's five checks all passed, including both seeded roles signing in and the cookie's flags. Read only |
 | 2026-08-27 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run after the theme deployment with `PLAYWRIGHT_BASE_URL` set, so the five checks executed rather than skipped: all five passed in 26.1s. Two things were confirmed on the deployed site by hand at the same time. The computed `font-family` on a rendered page is `Geist, "Geist Fallback"`, which is the self-referencing `--font-sans` fixed in production and not only locally. The session cookie is `httpOnly`, `secure`, `sameSite=Lax`, and `document.cookie` reads as the empty string to page script. Read only |
 | 2026-08-27 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run after the functions were moved to `fra1`, with `PLAYWRIGHT_BASE_URL` set: all five passed in **14.5s**, against 26.1s for the same five checks earlier the same day. The deployed site reports `x-vercel-id: fra1::fra1` where it reported `fra1::iad1` before, so the function now runs in the same city as the database. Both seeded roles signed in and reached their pages; the cookie's flags are unchanged. Read only |
+| 2026-08-28 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run after the security fixes, with `PLAYWRIGHT_BASE_URL` set. The suite is now **seven** checks rather than five: SEC-01 and SEC-02 join it, asserting the response headers and then that the policy does not stop a page working. All seven passed in 19.3s. The content security policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy and Permissions-Policy are all served, on pages and on `/api/health` alike. Both seeded roles signed in and reached their pages. Read only |
 
 **The automated companion, and why it is skipped by default.** `e2e/deploymentSmoke.spec.ts`
-performs steps 1 to 4 of this case in a browser, as five tests. The file begins with a `test.skip`
-that skips all five unless `PLAYWRIGHT_BASE_URL` is set, which is why an ordinary `npm run test:e2e`
-reports fifteen passed and five skipped. That is a deliberate decision, for three reasons: the file
+performs steps 1 to 4 of this case in a browser, and also carries SEC-01 and SEC-02, the two checks
+on the response headers, which can only be made where the platform actually serves them: seven tests
+in all. The file begins with a `test.skip` that skips all seven unless `PLAYWRIGHT_BASE_URL` is set,
+which is why an ordinary `npm run test:e2e` reports twenty-two passed and seven skipped. That is a deliberate decision, for three reasons: the file
 reads the deployed project, which serves the demo data people are shown, while every other E test
 creates and deletes rows in the test project, so one run must not point at both; the session
 cookie's `secure` flag is only set when `NODE_ENV` is `production`, so asserting it against a

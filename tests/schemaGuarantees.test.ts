@@ -554,7 +554,7 @@ describe("what the triggers maintain", () => {
    * The email address is the same shape of problem: the landlord reads it to contact their tenant,
    * and it is only a copy of the address in auth.users that actually signs in.
    */
-  // DB-22
+  // DB-23
   it("refuses the account itself changing must_change_password or its email address", async () => {
     const email = uniqueEmail("pinned");
     const { data: created, error: createError } = await serviceRoleClient().auth.admin.createUser({
@@ -606,7 +606,7 @@ describe("what the triggers maintain", () => {
    * change-password action takes to clear it once the password really has been replaced. Pinning
    * the columns against their owner must not pin them against that.
    */
-  // DB-23
+  // DB-24
   it("still lets the service role set both, which is how the password flow re-arms them", async () => {
     const accountId = await createAccount("tenant");
     const service = serviceRoleClient();
@@ -637,7 +637,7 @@ describe("what the triggers maintain", () => {
    * a choice rather than a feature: a person's own name is theirs, and refusing it would be a
    * functional restriction rather than a security fix.
    */
-  // DB-24
+  // DB-25
   it("leaves the account's own name writable, which is deliberate", async () => {
     const email = uniqueEmail("named");
     const { data: created } = await serviceRoleClient().auth.admin.createUser({

@@ -838,3 +838,41 @@ it decides whether reducing the number of round trips is worth anything at all. 
 reversed, three files would have been changed, a `notFound()` guard would have moved behind a comment
 explaining why that was still safe, and the measured gain would have been zero.
 
+
+### 2026-08-28 - Two profile columns are pinned against their owner, and the site sends a policy
+
+Decided to close the two findings an adversarial review could actually exploit, and to leave the
+rest of what it found written down rather than quietly fixed.
+
+`profiles_update_own` let an account write its own row, which is right, and was two columns too
+broad. `must_change_password` is what the proxy reads to hold a tenant on the change-password page,
+and it sat on the tenant's own row: one PATCH cleared it and the tenant walked into the portal with
+the landlord's temporary password still active. `email` is what the landlord reads to make contact,
+and is only a copy of the address in `auth.users`, so a tenant could leave their landlord looking at
+an address that reaches nobody. A `BEFORE UPDATE` trigger in the shape of the
+`prevent_profile_role_change` sitting three lines above it refuses both, and lets the service role
+through the way `restrict_tenant_maintenance_update` does. The alternative was a narrower policy,
+which would have meant editing the policy set that ninety-odd attack attempts had just failed
+against; a trigger adds a rule without touching one.
+
+`full_name` was deliberately left writable and DB-25 asserts it, because a test that asserts a
+non-restriction is the only way that reads as a decision rather than as an omission.
+
+The fix broke a flow before it fixed anything: `changePassword` cleared the flag with the tenant's
+own session, so the trigger would have trapped every new tenant on the change-password page forever.
+It now clears it through the admin client, pointed at the id the verified session resolved. That
+makes a second caller of the service role, which the security document now says.
+
+The content security policy carries `'unsafe-inline'` on `script-src`. Next streams its payload as
+two inline script blocks, so the choice was that or a per-request nonce, and a nonce has to be
+generated in the proxy - the file it is least sensible to complicate nine days out. It is written
+down in three places rather than buried: the config comment, the security document, and here. What
+survives the trade is worth having: nothing can be loaded from another origin and `connect-src
+'self'` means an injected script has nowhere to send anything.
+
+The lesson worth keeping is about the verification, not the fix. Testing the policy against a local
+production build looked safe and was not: `next start` serves a build with `.env.local` baked in, so
+the check ran against production and its form submit wrote a row there, which had to be found and
+removed. `next dev` reads the environment at runtime and had made every earlier check safe. The two
+are not interchangeable when the environment decides which database you are pointed at.
+

@@ -208,7 +208,7 @@ a submit button disables itself while a submission is in flight.
 
 ### `npm run test:db` - permission and database tests
 
-118 tests in 6 files, about 30 seconds, against the **test** Supabase project with real credentials
+121 tests in 6 files, about 34 seconds, against the **test** Supabase project with real credentials
 and real policies. Refuses to run if `.env.test` points at the deployed project.
 
 | File | Covers |
@@ -233,7 +233,7 @@ removes them afterwards, so the suite can be run twice in a row in any order.
 | `e2e/negativePaths.spec.ts` | Overlapping tenancies, invalid forms, a tenant reaching for a landlord route, one tenant naming another's record, every protected route while signed out |
 | `e2e/sessionCookie.spec.ts` | The session cookie is HTTP-only and unreadable by page JavaScript, sign-out ends it, and an expired access token is refreshed rather than signing the user out |
 | `e2e/interfaceStates.spec.ts` | The current link is marked, a delete states its consequence before acting, and a tenancy that has ended or has not started explains itself |
-| `e2e/deploymentSmoke.spec.ts` | Skipped unless `PLAYWRIGHT_BASE_URL` is set. Read-only checks against a deployed address, including the cookie's `secure` flag, which only turns on in a production build |
+| `e2e/deploymentSmoke.spec.ts` | Skipped unless `PLAYWRIGHT_BASE_URL` is set. Read-only checks against a deployed address, including the cookie's `secure` flag, which only turns on in a production build, and the response headers, which only the platform can be asked for |
 
 Against a deployed address:
 

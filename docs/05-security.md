@@ -274,7 +274,96 @@ the first thing to add if this were ever used for real.
 
 ---
 
-## 9. What is still at risk
+## 9. Two columns a profile's owner may not write
+
+`profiles_update_own` lets an account update its own row. That is right for a row that genuinely
+belongs to it, and it was two columns too broad. Both were found by attacking the running system
+rather than by reading the policy, and both are now refused by
+`profiles_self_service_columns_are_pinned`, a `BEFORE UPDATE` trigger in the same shape as
+`prevent_profile_role_change` sitting three lines above it in the policy migration.
+
+**`must_change_password`.** This is the value `src/proxy.ts` reads to hold a tenant on
+`/change-password` until they replace the temporary password their landlord issued. It lives on the
+tenant's own row. Before the trigger, the whole gate came off with one request:
+
+```
+sign in with the temporary password   -> lands on /change-password, as intended
+PATCH /rest/v1/profiles?id=eq.<self>  {"must_change_password": false}   -> 1 row updated
+sign in again, same temporary password -> lands on /tenant
+```
+
+The tenant reached only their own data either way, so nothing leaked; what failed was the promise in
+section 8 that a tenant must set their own password before using the portal. The same three steps
+now stop at the second with `42501`, and the flag is still `true` afterwards.
+
+**`email`.** The landlord reads this to contact their tenant. It is only a copy — the address that
+actually signs in lives in `auth.users` and is not reachable from the Data API — so a tenant could
+rewrite the copy, leave the landlord looking at an address that reaches nobody, and still sign in
+with the real one. Also refused now.
+
+**`full_name` is deliberately still writable.** Nothing in the interface offers editing it, so
+pinning it would change no behaviour today, and a person's own name is theirs: refusing it would be
+a functional restriction rather than a security fix. DB-24 asserts this so that it reads as a
+decision rather than as the trigger having been written carelessly.
+
+**The service role passes through**, exactly as it does in `restrict_tenant_maintenance_update`,
+because it has no `auth.uid()`. That is the path `regenerateTenantPassword` takes when a landlord
+issues a new temporary password and re-arms the flag, and the path `changePassword` now takes to
+clear it once the password really has been replaced. That second one is a change of client:
+`changePassword` used to clear the flag with the tenant's own session, which the trigger would
+refuse, and a tenant who set a new password would have been trapped on the change-password page
+forever. It points the admin client at the id `getSignedInProfile` resolved from the verified
+session, never at anything from the form. This makes `src/actions/authenticationActions.ts` the
+second caller of the service role client, alongside `src/actions/tenantAccountActions.ts`.
+
+DB-22 and DB-23 are the tests. DB-22 fails without the trigger — it was written that way, and
+returned no error code at all before the trigger existed.
+
+---
+
+## 10. The response headers
+
+Built from what the application actually loads, measured rather than copied from a template: every
+request the browser makes on this site is same-origin. `next/font` self-hosts Geist at build time,
+there is no browser Supabase client so nothing connects to Supabase from the page, and there are no
+images, external stylesheets or third-party scripts at all. The policy is set in `next.config.ts`:
+
+```
+default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';
+img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self';
+frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests
+```
+
+alongside `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`,
+`Referrer-Policy: same-origin` and a `Permissions-Policy` refusing every device capability, since
+this product asks for none. HSTS was already set by the platform.
+
+**`script-src` carries `'unsafe-inline'`, and that is a stated trade.** Next streams the
+server-rendered payload into the document as two inline `<script>` blocks. A policy without either
+`'unsafe-inline'` or a per-request nonce blocks them, nothing hydrates, and every form on the site
+stops working. A nonce is the stronger answer, but it has to be generated per request, which means
+moving the policy out of `next.config.ts` and into the proxy — the one file in this project it is
+least sensible to complicate. What the policy still buys with the trade made: an injected script
+cannot be *loaded* from another origin, and `connect-src 'self'` means an injected script has
+nowhere to send what it steals. What is given up is protection against injected *inline* script, and
+this application renders no user-controlled HTML anywhere, so React's escaping is the guard that
+would have to fail first — which is the same argument the first risk in section 11 makes.
+
+`style-src` carries `'unsafe-inline'` because React writes style attributes onto the elements it
+renders. CSS injection is a much weaker vector, and the alternative is rewriting component markup
+for no security gain worth the change.
+
+A policy that blocks the application is worse than no policy, so this was verified against a
+production build before it was deployed: 23 pages across both portals rendered and hydrated, a form
+wrote a row, client-side validation still marked its fields, the printed statement still hid its
+chrome and loaded all thirteen font faces, and the browser reported zero policy violations. SEC-01
+asserts each directive by name so that a later loosening fails with the name of what was loosened;
+SEC-02 signs in and submits a form on the deployed site, because the header being present is not the
+same as the page still working.
+
+---
+
+## 11. What is still at risk
 
 **The session is a bearer token, and XSS is still the threat that matters.** Making the cookie
 HTTP-only stops a script from stealing the session and using it elsewhere, later, from another
@@ -284,6 +373,44 @@ so a script could call server actions as the signed-in person for as long as the
 escapes what it renders and this project never uses `dangerouslySetInnerHTML`, which is what keeps
 injection unlikely; the cookie flags reduce what an injection would be worth rather than preventing
 one.
+
+**Changing a password does not ask for the current one.** `changePasswordSchema` takes a new
+password and its confirmation, and Supabase's `secure_password_change` is off, so
+`auth.updateUser({ password })` needs no re-authentication. Demonstrated: holding a valid session
+for an account whose password is unknown, the password can be replaced and the real owner is locked
+out. A session is therefore not merely borrowed but kept. What makes this narrow rather than urgent
+is how hard the session is to obtain — one cookie, `httpOnly`, `secure`, `sameSite=Lax`, no browser
+Supabase client, nothing in `localStorage` or `sessionStorage`, an hour's expiry with rotation — so
+there is no path to it that does not start with one of the risks above. The fix is a current-password
+field verified on the server, or enabling `secure_password_change`, and it interacts with section 8:
+a tenant on a temporary password has no old password worth asking for.
+
+**The role of a new account is chosen by whoever signs up.**
+`create_profile_for_new_auth_user` copies `role` out of the sign-up metadata, and that metadata is
+client-controlled. Signing up directly against the Auth API with `role: "landlord"` produces a
+landlord profile. It is harmless here for two reasons, both of which have to keep being true: a
+landlord account is what `/register` hands to anybody who asks, so forging one gains nothing that
+asking politely would not, and it arrives empty because every policy is scoped by ownership as well
+as role — `landlord_id = auth.uid()`, never `role = 'landlord'` alone. Forging `tenant` gains less
+still, because a tenant sees rows through `leases.tenant_profile_id`, which only the owning landlord
+can set. The application's own `registerLandlordAccount` hardcodes the role server-side; only the
+direct API call allows the choice. **The day any policy grants something on role alone, this becomes
+privilege escalation**, and that is the reason it is written down rather than left as a curiosity.
+
+**`anon` and `authenticated` hold full read and write grants on every table.** This is Supabase's
+default posture, and Row Level Security is therefore the only thing standing between an anonymous
+request and the data, rather than the second of two things. It holds — an anonymous client was
+pointed at all six tables and all three views and got nothing, and every write it attempted was
+refused — but it holds on one mechanism. Revoking `insert`, `update` and `delete` from `anon` would
+cost nothing, because no path in this product writes as `anon`, and would mean a table shipped one
+day without a policy failed closed instead of open.
+
+**Email addresses are never confirmed.** `enable_confirmations` is off, so anybody can register with
+an address they do not own. It cannot be otherwise: there is no email service in this project, which
+is the decision section 8 rests on, and confirmation without a way to send mail is not a feature that
+can exist here. The effect is bounded — a registration with a stranger's address produces an empty
+landlord portfolio and no message is ever sent to that address — but somebody else's address can end
+up attached to an account they did not create.
 
 **No rate limiting on this application's own endpoints.** Supabase applies its own limits to the
 Auth service — thirty sign-in or sign-up requests per five minutes per IP address, in
