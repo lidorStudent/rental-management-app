@@ -96,4 +96,70 @@ describe("a client with no session", () => {
     expect(updated.data ?? []).toEqual([]);
     expect(deleted.data ?? []).toEqual([]);
   });
+
+  /**
+   * The tests above prove Row Level Security refuses an anonymous write. These prove the anonymous
+   * role is not permitted to attempt one, which is a different claim and a second line: the grant is
+   * checked before any policy is consulted.
+   *
+   * The two refusals share the code 42501 and are told apart by their message. A policy refusal
+   * reads "new row violates row-level security policy for table ..."; a missing grant reads
+   * "permission denied for table ...". Asserting the message is what makes these fail if the grants
+   * are ever handed back, rather than passing on the policy underneath.
+   *
+   * Update and delete carry the per-table claim because they are the pair that discriminates: before
+   * the grants were revoked, both returned no error at all, since the policy simply matched no rows.
+   * Insert was already refused by the policy then, so it is asserted once, below, where a concrete
+   * row can be written without the table name being a union that types every column as never.
+   */
+  const NOWHERE = "00000000-0000-4000-8000-000000000000";
+
+  // PERM-36
+  it.each(EVERY_TABLE)(
+    "is refused an update and a delete on %s by the grant, before any policy",
+    async (table) => {
+      const client = anonymousClient();
+
+      // The update needs a real column in its payload: PostgREST turns an empty patch into no
+      // statement at all, so it would never reach the privilege check. created_at is on all six.
+      const updated = await client
+        .from(table)
+        .update({ created_at: "2026-01-01T00:00:00Z" })
+        .eq("id", NOWHERE)
+        .select();
+      const deleted = await client.from(table).delete().eq("id", NOWHERE).select();
+
+      for (const attempt of [updated, deleted]) {
+        expect(attempt.error?.code).toBe("42501");
+        expect(attempt.error?.message).toContain("permission denied");
+      }
+    },
+  );
+
+  // PERM-36
+  it("is refused an insert by the grant rather than by the policy", async () => {
+    const { error } = await anonymousClient()
+      .from("properties")
+      .insert({
+        landlord_id: NOWHERE,
+        name: "Written by nobody",
+        address_line: "Nowhere 1",
+        city: "Tel Aviv-Yafo",
+      })
+      .select();
+
+    expect(error?.code).toBe("42501");
+    // Before the revoke this same attempt failed with "new row violates row-level security policy".
+    expect(error?.message).toContain("permission denied");
+  });
+
+  // PERM-37
+  it("may still read, which is what the health check depends on", async () => {
+    const { count, error } = await anonymousClient()
+      .from("properties")
+      .select("id", { count: "exact", head: true });
+
+    expect(error).toBeNull();
+    expect(count).toBe(0);
+  });
 });
