@@ -14,6 +14,7 @@ import {
   type RegisterLandlordInput,
   type SignInInput,
 } from "@/lib/validation/authenticationSchemas";
+import { createSupabaseAdminClient } from "@/lib/supabase/adminClient";
 import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
 
 /**
@@ -116,8 +117,14 @@ export async function changePassword(input: ChangePasswordInput): Promise<Action
     return errorResult("The password could not be changed. Try again.");
   }
 
-  // Clearing the flag is what releases the tenant from the forced-change redirect in middleware.
-  const { error: profileError } = await supabaseClient
+  // Clearing the flag is what releases the tenant from the forced-change redirect in the proxy.
+  //
+  // It goes through the admin client because profiles_self_service_columns_are_pinned refuses this
+  // column to the account that owns it: a tenant who could clear it themselves could skip the
+  // change entirely and keep the landlord's temporary password. The id is the one getSignedInProfile
+  // resolved from the verified session a few lines above, never a value from the form, so the
+  // service role is being pointed at the caller's own row and nothing else.
+  const { error: profileError } = await createSupabaseAdminClient()
     .from("profiles")
     .update({ must_change_password: false })
     .eq("id", profile.id);

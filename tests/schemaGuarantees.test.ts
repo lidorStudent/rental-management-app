@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
+  anonymousClient,
   SEEDED_IDS,
   SEEDED_USERS,
   profileIdFor,
@@ -543,5 +544,122 @@ describe("what the triggers maintain", () => {
 
     expect(required(profile, "the profile of the new account").role).toBe("tenant");
     expect(required(profile, "the profile of the new account").full_name).toBe("Schema tenant");
+  });
+
+  /**
+   * must_change_password is the value the proxy reads to hold a tenant on the change-password page
+   * until they replace the temporary password their landlord issued. It lives on a row the tenant
+   * owns, and profiles_update_own lets an account write its own row, so without a trigger the
+   * tenant can clear the flag with one request and walk into the portal on the landlord's password.
+   * The email address is the same shape of problem: the landlord reads it to contact their tenant,
+   * and it is only a copy of the address in auth.users that actually signs in.
+   */
+  // DB-22
+  it("refuses the account itself changing must_change_password or its email address", async () => {
+    const email = uniqueEmail("pinned");
+    const { data: created, error: createError } = await serviceRoleClient().auth.admin.createUser({
+      email,
+      password: "SchemaGuarantee1",
+      email_confirm: true,
+      user_metadata: { role: "tenant", full_name: "Schema pinned", must_change_password: true },
+    });
+    if (createError !== null || created.user === null) {
+      throw new Error(`Could not create the account: ${createError?.message}`);
+    }
+    createdAccountIds.push(created.user.id);
+
+    const asThemselves = anonymousClient();
+    const { error: signInError } = await asThemselves.auth.signInWithPassword({
+      email,
+      password: "SchemaGuarantee1",
+    });
+    expect(signInError).toBeNull();
+
+    const clearedFlag = await asThemselves
+      .from("profiles")
+      .update({ must_change_password: false })
+      .eq("id", created.user.id)
+      .select();
+
+    const rewrittenEmail = await asThemselves
+      .from("profiles")
+      .update({ email: "somebody-else@example.com" })
+      .eq("id", created.user.id)
+      .select();
+
+    expect(clearedFlag.error?.code).toBe("42501");
+    expect(rewrittenEmail.error?.code).toBe("42501");
+
+    const { data: unchanged } = await serviceRoleClient()
+      .from("profiles")
+      .select("must_change_password, email")
+      .eq("id", created.user.id)
+      .maybeSingle();
+
+    expect(required(unchanged, "the profile after the attempts").must_change_password).toBe(true);
+    expect(required(unchanged, "the profile after the attempts").email).toBe(email);
+  });
+
+  /**
+   * The other half of DB-22. The service role has no auth.uid(), and it is the path a landlord's
+   * action takes when it issues a new temporary password and re-arms the flag, and the path the
+   * change-password action takes to clear it once the password really has been replaced. Pinning
+   * the columns against their owner must not pin them against that.
+   */
+  // DB-23
+  it("still lets the service role set both, which is how the password flow re-arms them", async () => {
+    const accountId = await createAccount("tenant");
+    const service = serviceRoleClient();
+
+    const rearmed = await service
+      .from("profiles")
+      .update({ must_change_password: true })
+      .eq("id", accountId)
+      .select("must_change_password")
+      .maybeSingle();
+
+    expect(rearmed.error).toBeNull();
+    expect(required(rearmed.data, "the re-armed profile").must_change_password).toBe(true);
+
+    const cleared = await service
+      .from("profiles")
+      .update({ must_change_password: false })
+      .eq("id", accountId)
+      .select("must_change_password")
+      .maybeSingle();
+
+    expect(cleared.error).toBeNull();
+    expect(required(cleared.data, "the cleared profile").must_change_password).toBe(false);
+  });
+
+  /**
+   * The name is deliberately not pinned. Nothing in the interface offers editing it, so this asserts
+   * a choice rather than a feature: a person's own name is theirs, and refusing it would be a
+   * functional restriction rather than a security fix.
+   */
+  // DB-24
+  it("leaves the account's own name writable, which is deliberate", async () => {
+    const email = uniqueEmail("named");
+    const { data: created } = await serviceRoleClient().auth.admin.createUser({
+      email,
+      password: "SchemaGuarantee1",
+      email_confirm: true,
+      user_metadata: { role: "tenant", full_name: "Schema named" },
+    });
+    if (created.user === null) {
+      throw new Error("Could not create the account");
+    }
+    createdAccountIds.push(created.user.id);
+
+    const asThemselves = anonymousClient();
+    await asThemselves.auth.signInWithPassword({ email, password: "SchemaGuarantee1" });
+
+    const { error } = await asThemselves
+      .from("profiles")
+      .update({ full_name: "A Name They Chose" })
+      .eq("id", created.user.id)
+      .select();
+
+    expect(error).toBeNull();
   });
 });
