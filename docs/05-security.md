@@ -85,7 +85,8 @@ is gone afterwards and that the protected page redirects.
 | Routing | `src/proxy.ts` with `src/lib/authentication/redirectDestination.ts` | Sends an unauthenticated request to `/login`, a tenant out of `/landlord`, a landlord out of `/tenant`, and anybody who must change their password to `/change-password` | It is convenience, not protection. A request that slipped past it still meets everything below |
 | Role guard | `requireLandlordProfile.ts`, `requireTenantProfile.ts`, both built on `getSignedInProfile.ts` | Refuses an action asked for by the wrong role, by throwing rather than returning null so a caller cannot forget the empty case | It does not know which rows are whose |
 | Derived ownership | Every action in `src/actions/` | Stamps writes with the acting user's id and looks rows up without trusting any identifier of ownership from the client | It is application code, so it can contain a mistake |
-| Row Level Security | `supabase/migrations/20260825122721_row_level_security.sql` and two later migrations, 29 policies over 6 tables | Decides, inside Postgres, which rows exist for the connection asking | Nothing. This is the boundary |
+| Table grants | `supabase/migrations/20260828193000_anon_may_read_but_not_write.sql` | The anonymous role may select and nothing else. Postgres checks the grant before it consults a policy, so an anonymous write is refused before Row Level Security is reached at all | It is coarse: it knows a role, not a row. It cannot tell one landlord from another |
+| Row Level Security | `supabase/migrations/20260825122721_row_level_security.sql` and two later migrations, 29 policies over 6 tables | Decides, inside Postgres, which rows exist for the connection asking | Nothing. This is still the boundary |
 | Column rules | `profiles_role_is_immutable`, `maintenance_requests_tenant_confirms_only` | A policy chooses rows, never columns, so these triggers keep a permitted update from touching a column it should not | — |
 | Constraints | `supabase/migrations/20260825122011_core_schema.sql` | Overlapping tenancies, negative rent, future receipts and the rest are refused by the schema | They are about correctness rather than permission |
 
@@ -93,6 +94,43 @@ The three aggregate views (`lease_rent_summary`, `lease_period_totals`, `rent_co
 are all declared `with (security_invoker = on)`, so they run under the policies of whoever selects
 from them. Without that one word a view would hand every landlord's totals to anybody who asked, and
 `tests/landlordIsolation.test.ts` checks each of the three for exactly that.
+
+**On the grants, and what they are and are not.** Supabase grants `anon` and `authenticated` every
+privilege on everything in the public schema by default, and Row Level Security is what makes that
+safe. It does make it safe: an anonymous client pointed at all six tables and all three views gets
+nothing back, and every write it attempts is refused. But it was safe on one mechanism, and a table
+shipped one day without a policy would have been world-writable from the moment it was created.
+`insert`, `update` and `delete` are now revoked from `anon`, so the outer layer refuses an anonymous
+write before a policy is consulted. PERM-36 asserts that per table, and tells the two refusals apart
+by their message, since both carry the code `42501`: a policy says "new row violates row-level
+security policy", a missing grant says "permission denied for table".
+
+**Row Level Security still carries the boundary.** This is defence in depth and nothing more. It
+stops no attack the policies were not already stopping — before the revoke, an anonymous update
+returned no error and changed nothing, because no row was visible to change; after it, the same
+attempt is refused outright. What it buys is that the policies are no longer the only thing standing
+between an anonymous request and the data.
+
+**`select` is deliberately still granted to `anon`.** `/api/health` reads a count of `properties`
+with no session at all, on purpose: a scheduler calls it so that a free-plan project is not paused,
+and it has to make a real round trip to prove Postgres is answering. The policies answer that read
+with nothing, which is why the count is always zero and the endpoint discloses nothing about
+anybody's portfolio. Revoking `select` would turn a health check into an error and buy nothing.
+PERM-37 asserts that the read still works and still counts zero.
+
+**`authenticated` keeps its write grants, and that is not an oversight.** Every legitimate write in
+this product is made by a signed-in user through the client that carries their session, so the
+request arrives as `authenticated`. Revoking those grants would not be defence in depth; it would
+remove the only path the application has, and Row Level Security is what scopes those writes to the
+writer's own rows.
+
+**Two caveats, recorded rather than tidied away.** `anon` still holds `truncate`, `references` and
+`trigger` on these tables. `truncate` is the interesting one, because unlike `delete` it is not
+filtered by Row Level Security at all — it is not reachable through PostgREST, which exposes no such
+verb, so it is not a way in, but it is a grant with nothing to justify it. And the default
+privileges that will apply to *future* tables were revoked only for those granted by `postgres`,
+which is the role migrations run as; a default granted by `supabase_admin` remains on the production
+project and is not alterable from this connection.
 
 ---
 
@@ -396,14 +434,6 @@ still, because a tenant sees rows through `leases.tenant_profile_id`, which only
 can set. The application's own `registerLandlordAccount` hardcodes the role server-side; only the
 direct API call allows the choice. **The day any policy grants something on role alone, this becomes
 privilege escalation**, and that is the reason it is written down rather than left as a curiosity.
-
-**`anon` and `authenticated` hold full read and write grants on every table.** This is Supabase's
-default posture, and Row Level Security is therefore the only thing standing between an anonymous
-request and the data, rather than the second of two things. It holds — an anonymous client was
-pointed at all six tables and all three views and got nothing, and every write it attempted was
-refused — but it holds on one mechanism. Revoking `insert`, `update` and `delete` from `anon` would
-cost nothing, because no path in this product writes as `anon`, and would mean a table shipped one
-day without a policy failed closed instead of open.
 
 **Email addresses are never confirmed.** `enable_confirmations` is off, so anybody can register with
 an address they do not own. It cannot be otherwise: there is no email service in this project, which

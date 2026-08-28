@@ -876,3 +876,37 @@ the check ran against production and its form submit wrote a row there, which ha
 removed. `next dev` reads the environment at runtime and had made every earlier check safe. The two
 are not interchangeable when the environment decides which database you are pointed at.
 
+
+### 2026-08-28 - The anonymous role may read and may not write
+
+Decided to revoke `insert`, `update` and `delete` from `anon` on every table in the public schema,
+so that an anonymous write is refused by the grant before any policy is consulted. The alternative
+was to leave it, on the grounds that Row Level Security already refuses those writes, which it
+demonstrably does. The reason not to leave it is that it was safe on one mechanism: a table added one
+day without a policy would have been world-writable the moment it existed, and nothing else in the
+system would have objected.
+
+It is defence in depth and the document says so rather than overstating it. Before the revoke, an
+anonymous update returned no error and changed nothing, because no row was visible to change. After
+it, the same attempt is refused outright. No attack is stopped that was not already stopped.
+
+`select` stays granted, because `/api/health` reads a count with no session at all so a free-plan
+project is not paused, and the policies answer that read with nothing. `authenticated` keeps its
+write grants: every legitimate write is made by a signed-in user through the session-carrying client,
+so revoking them would not add a layer, it would remove the only path the application has.
+
+Before writing any of it, the claim that nothing writes as anon was re-proved rather than assumed:
+all seventeen writes in the codebase live in `src/actions`, every one resolves the acting user first,
+fifteen go through the session-carrying client and two through the service role. Registration is the
+one flow with no session that still makes a row appear, and that row is inserted by a security
+definer trigger on `auth.users` running as its owner, which was tested against the revoked project
+before production was touched.
+
+Two things worth remembering came out of the verification rather than the change. An `update({})`
+with an empty payload is a no-op that PostgREST never sends, so a test written that way passes
+whether or not the grant exists - the first draft did exactly that and looked like a pass. And the
+generated database types make the table name in an `it.each` loop a union, which types every insert
+column as `never`, so the per-table claim is carried by update and delete, which are also the pair
+that actually discriminates: before the revoke they returned no error, while insert was already
+refused by the policy.
+

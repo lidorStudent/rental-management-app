@@ -208,7 +208,7 @@ a submit button disables itself while a submission is in flight.
 
 ### `npm run test:db` - permission and database tests
 
-121 tests in 6 files, about 34 seconds, against the **test** Supabase project with real credentials
+129 tests in 6 files, about 34 seconds, against the **test** Supabase project with real credentials
 and real policies. Refuses to run if `.env.test` points at the deployed project.
 
 | File | Covers |

@@ -275,6 +275,8 @@ guarantee lives; the redirects are tested at E because that is where a person me
 | PERM-28 | Protected routes | No session | Visit `/`, `/landlord`, `/tenant`, a lease page, a statement, a made-up path | Redirected to `/login` in every case | E | "Every route except two" must be literally true |
 | PERM-29 | The two public routes | No session | Visit `/login` and `/register` | Both render | E | The exceptions are exactly two |
 | PERM-30 | The anonymous key grants nothing | No session | Select from every table with the public key | Zero rows everywhere | D | The key is in the browser; this is why that is safe |
+| PERM-36 | **Anon is refused a write by the grant** | No session | Update and delete each of the six tables, and insert one | `42501` carrying "permission denied", not the policy's message | D | The two refusals share a code; the message is what tells them apart |
+| PERM-37 | Anon may still read | No session | Count `properties` | Succeeds, and the count is zero | D | `/api/health` depends on the read; the policies are what make it safe |
 | PERM-31 | An account with no profile row | An Auth user whose profile is missing | Sign in | Signed out again and returned to `/login` with an explanation | E | An account with no role has no area, and must not be given one |
 
 ### 4.5 The session cookie itself
