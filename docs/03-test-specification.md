@@ -279,6 +279,9 @@ guarantee lives; the redirects are tested at E because that is where a person me
 | PERM-37 | Anon may still read | No session | Count `properties` | Succeeds, and the count is zero | D | `/api/health` depends on the read; the policies are what make it safe |
 | PERM-38 | **Anon holds no write privilege at all** | No session | Read `anon_write_privileges` as the service role | Insert, update, delete and truncate are all false on all nine relations | D | `truncate` cannot be attempted through PostgREST, and unlike `delete` no policy would filter it |
 | PERM-39 | The privilege view is not readable by anon | No session | Select from `anon_write_privileges` | `42501`, permission denied | D | It is a verification tool, so nothing the product can be may read it |
+| PERM-40 | **A session is no longer enough to take an account over** | A valid session, the password unknown | Change the password with a wrong current one | Refused against the field; the owner's password still works and the attacker's does not | D | This is the finding: it is asserted the same way it was demonstrated |
+| PERM-41 | The temporary-password path completes | A tenant on a landlord-issued password | Supply it as the current password and choose a new one | Redirected to `/tenant`, the flag cleared, the temporary password refused afterwards | D | The flag clear sits after `updateUser`, so the redirect is what proves nothing returned early |
+| PERM-42 | Throttled is not the same as wrong | Supabase answering `429` | Change a password | Told to wait, with no field error | D | Telling somebody their password is wrong when they are throttled sends them to reset a correct one |
 | PERM-31 | An account with no profile row | An Auth user whose profile is missing | Sign in | Signed out again and returned to `/login` with an explanation | E | An account with no role has no area, and must not be given one |
 
 ### 4.5 The session cookie itself

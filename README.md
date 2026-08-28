@@ -197,7 +197,7 @@ between them, or run them one at a time.
 
 ### `npm test` - unit and component tests
 
-343 tests in 31 files, no network, about three seconds. Vitest, with React Testing Library for the
+346 tests in 31 files, no network, about three seconds. Vitest, with React Testing Library for the
 components. They live beside what they test, as `<name>.test.ts` next to `<name>.ts`.
 
 Covers the derived rules, which is where the product's thinking lives: the rent schedule and the
@@ -208,7 +208,7 @@ a submit button disables itself while a submission is in flight.
 
 ### `npm run test:db` - permission and database tests
 
-131 tests in 6 files, about 33 seconds, against the **test** Supabase project with real credentials
+134 tests in 7 files, about 35 seconds, against the **test** Supabase project with real credentials
 and real policies. Refuses to run if `.env.test` points at the deployed project.
 
 | File | Covers |

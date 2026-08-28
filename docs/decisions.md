@@ -979,3 +979,38 @@ building on it. Two of the three designs looked correct on paper and were dispro
 logging what the database actually saw, and the third was disproved by a five-line trigger change.
 None of them reached production, and the schema was never touched.
 
+
+### 2026-08-29 - Changing a password proves the old one, rather than trusting the session
+
+Decided to add a current-password field verified on the server, unconditionally, and to leave
+Supabase's own `secure_password_change` switched off. A session used to be the whole requirement:
+holding one was enough to set a new password and lock the owner out, demonstrated against an account
+whose password was unknown.
+
+The alternative looked cheaper and does not work. `secure_password_change` exempts any session
+created in the last 24 hours, which is exactly the window a stolen session is used in, so the
+demonstrated takeover would have survived it - and that also means the security review's evidence
+never proved the setting was what stood in the way. Where it does apply it calls `reauthenticate()`,
+which sends a nonce by email or SMS, and this project has neither channel by design: a landlord
+signed in for over a day would have found their password unchangeable. The two are independent, so
+enabling both would have made a >24h session need the field and an undeliverable nonce, and fail
+whatever the user typed.
+
+Unconditional rather than keyed on `must_change_password`. A tenant replacing a landlord-issued
+temporary password proves that temporary password, which they typed to sign in seconds earlier. The
+conditional version would have saved them retyping something they were holding, in exchange for a
+security-relevant branch that has to stay correct forever, decided from a value the server must
+re-derive rather than accept. One path is worth more than the keystroke.
+
+The verification runs on its own client that holds no session and writes no cookie, because signing
+in through the server client would rotate the caller's session as a side effect of a read-only check.
+It is not signed out afterwards, deliberately: `signOut()` revokes every refresh token the user
+holds, which would sign them out of the browser they are standing in.
+
+The part worth remembering is the failure taxonomy. A wrong password and a nonexistent account both
+answer `400 invalid_credentials`, which is what keeps the form from being an address oracle; being
+throttled answers `429 over_request_rate_limit`. Reporting the third as the first would be worse than
+the gap being closed - somebody throttled after a typo would be told their password was wrong and
+sent to reset a password that was correct. Both the status and the code are checked, and the codes
+were measured rather than assumed.
+

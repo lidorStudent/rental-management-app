@@ -371,7 +371,73 @@ returned no error code at all before the trigger existed.
 
 ---
 
-## 10. The response headers
+## 10. Changing a password proves the old one
+
+A session used to be the whole of the requirement. Anybody holding one could set a new password
+without knowing the old one, and the real owner was locked out: demonstrated by holding a valid
+session for an account whose password was unknown, replacing it, and watching the owner's own
+password stop working. `changePasswordSchema` now carries a `currentPassword`, and `changePassword`
+proves it before it changes anything.
+
+The proof is a sign-in attempt on `createSupabasePasswordCheckClient()`, a client that holds no
+session and writes no cookie. That separation is the point: signing in through the server client
+would rotate the caller's own session as a side effect of a check meant to be read-only. The session
+the attempt creates is discarded when the function returns, and is deliberately not signed out,
+because `signOut()` defaults to revoking every refresh token the user holds and would sign them out
+of the browser they are standing in.
+
+There is one path. Nothing about which verification applies is taken from the client, and there is no
+branch keyed on `must_change_password`: a tenant replacing a landlord-issued temporary password
+proves that temporary password, which they typed to sign in a moment earlier. A conditional field
+would have bought a security-relevant branch that has to stay correct forever, to save somebody
+retyping a password they are holding.
+
+**Three failures, told apart.** The address is checked against three outcomes rather than one,
+because being throttled is not the same as being wrong:
+
+| What happened | What Supabase returns | What the user is told |
+| --- | --- | --- |
+| The current password is wrong | `400`, `invalid_credentials` | "That is not your current password." — against the field |
+| No such account | `400`, `invalid_credentials`, identical | The same, so the form cannot be used to find addresses |
+| Too many attempts | `429`, `over_request_rate_limit` | "Too many attempts in a short time. Wait a few minutes and try again; your password has not been changed." |
+
+Those codes were measured, not assumed, and both the status and the code are checked so that a
+release which stops setting one still lands on the right message. Getting this backwards would be
+worse than the gap it closes: somebody throttled after a typo would be told their password was
+wrong and sent to reset a password that was correct all along. PERM-42 asserts that branch.
+
+**The check costs one auth request** against Supabase's thirty per five minutes per address, and a
+wrong guess costs one too. The upside is that guessing on this form is throttled by the same limit;
+the cost is that somebody fumbling the field repeatedly can briefly throttle themselves, which is
+what the third message is for.
+
+**Why Supabase's own `secure_password_change` was rejected**, having been the other candidate:
+
+- **It leaves the demonstrated attack open.** From the installed client's own contract: a user must
+  reauthenticate "only if Secure password change is enabled and the user hasn't recently signed in. A
+  user is deemed recently signed in if the session was created in the last 24 hours." A stolen
+  session is used promptly, which is exactly the exemption. The takeover recorded in the security
+  review used a session seconds old and would have succeeded with the setting enabled — which also
+  means the review's evidence never proved the setting was what stood in the way.
+- **It cannot complete here.** When it does apply, `reauthenticate()` "will send a nonce to the
+  user's email... If the user doesn't have a confirmed email address, the method will send the nonce
+  to the user's confirmed phone number instead." This project has no mail service by design and no
+  SMS provider, and `smtp_host` is null on both Supabase projects. A landlord signed in for more than
+  a day would have found their password unchangeable, with nothing in the interface to do about it.
+- **The two would conflict if both were on.** They are independent, so a session older than 24 hours
+  would need the current-password field *and* an undeliverable nonce, and would fail whatever the
+  user typed. Under 24 hours they do not interact. `security_update_password_require_reauthentication`
+  is `false` on both projects, confirmed against the Management API before this was built, and is
+  deliberately left that way.
+
+One ordering detail worth keeping: clearing `must_change_password` runs after `updateUser`, which
+returns early on error, so a verification that started failing would strand a tenant on
+`/change-password` forever. PERM-41 covers that path end to end and asserts the redirect at the very
+last line of the action, which can only be reached if nothing before it returned early.
+
+---
+
+## 11. The response headers
 
 Built from what the application actually loads, measured rather than copied from a template: every
 request the browser makes on this site is same-origin. `next/font` self-hosts Geist at build time,
@@ -413,7 +479,7 @@ same as the page still working.
 
 ---
 
-## 11. What is still at risk
+## 12. What is still at risk
 
 **The session is a bearer token, and XSS is still the threat that matters.** Making the cookie
 HTTP-only stops a script from stealing the session and using it elsewhere, later, from another
@@ -423,17 +489,6 @@ so a script could call server actions as the signed-in person for as long as the
 escapes what it renders and this project never uses `dangerouslySetInnerHTML`, which is what keeps
 injection unlikely; the cookie flags reduce what an injection would be worth rather than preventing
 one.
-
-**Changing a password does not ask for the current one.** `changePasswordSchema` takes a new
-password and its confirmation, and Supabase's `secure_password_change` is off, so
-`auth.updateUser({ password })` needs no re-authentication. Demonstrated: holding a valid session
-for an account whose password is unknown, the password can be replaced and the real owner is locked
-out. A session is therefore not merely borrowed but kept. What makes this narrow rather than urgent
-is how hard the session is to obtain — one cookie, `httpOnly`, `secure`, `sameSite=Lax`, no browser
-Supabase client, nothing in `localStorage` or `sessionStorage`, an hour's expiry with rotation — so
-there is no path to it that does not start with one of the risks above. The fix is a current-password
-field verified on the server, or enabling `secure_password_change`, and it interacts with section 8:
-a tenant on a temporary password has no old password worth asking for.
 
 **The role of a new account is chosen by whoever signs up.** Accepted, after three attempts to fix
 it were designed, tested and abandoned. The investigation is written out below because the reasons it
