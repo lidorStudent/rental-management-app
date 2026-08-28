@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { anonymousClient, SEEDED_IDS } from "./support/testDatabase";
+import {
+  anonymousClient,
+  required,
+  SEEDED_IDS,
+  untypedAnonymousClient,
+  untypedServiceRoleClient,
+} from "./support/testDatabase";
 
 /**
  * What the key that ships to every browser is worth on its own.
@@ -150,6 +156,54 @@ describe("a client with no session", () => {
 
     expect(error?.code).toBe("42501");
     // Before the revoke this same attempt failed with "new row violates row-level security policy".
+    expect(error?.message).toContain("permission denied");
+  });
+
+  /**
+   * The sibling of PERM-36, and it has to be written differently.
+   *
+   * PERM-36 asserts its three by attempting them: the client sends an insert, an update and a
+   * delete, and reads the refusal. There is no attempt to make for truncate, because PostgREST
+   * exposes no verb that reaches it, and the catalogue that would answer the question directly is
+   * not in the exposed schemas - information_schema and pg_catalog both answer PGRST205 for the
+   * service role as well as for anon. So the guarantee is read from anon_write_privileges, a view
+   * that exists for this and reports four booleans per relation.
+   *
+   * truncate matters more than the shape of this test suggests. A policy restricts which rows a
+   * statement sees, and truncate does not look at rows, so unlike delete it is not filtered by Row
+   * Level Security at all. Of everything anon once held it was the only write with no backstop
+   * underneath it.
+   */
+  // PERM-38
+  it("holds no write privilege on any relation, truncate included", async () => {
+    const { data, error } = await untypedServiceRoleClient()
+      .from("anon_write_privileges")
+      .select("table_name, may_insert, may_update, may_delete, may_truncate")
+      .order("table_name");
+
+    expect(error).toBeNull();
+    const relations = required(data, "the anon privilege view");
+    // Six tables and three views. If this number falls, a relation has stopped being reported and
+    // the assertions below would pass by not looking.
+    expect(relations).toHaveLength(9);
+
+    for (const relation of relations) {
+      expect(relation.may_insert, `insert on ${relation.table_name}`).toBe(false);
+      expect(relation.may_update, `update on ${relation.table_name}`).toBe(false);
+      expect(relation.may_delete, `delete on ${relation.table_name}`).toBe(false);
+      expect(relation.may_truncate, `truncate on ${relation.table_name}`).toBe(false);
+    }
+  });
+
+  /**
+   * The view is a verification tool, not part of the product, so nobody the product can be is
+   * allowed to read it.
+   */
+  // PERM-39
+  it("cannot read the view that reports its own privileges", async () => {
+    const { error } = await untypedAnonymousClient().from("anon_write_privileges").select("*");
+
+    expect(error?.code).toBe("42501");
     expect(error?.message).toContain("permission denied");
   });
 

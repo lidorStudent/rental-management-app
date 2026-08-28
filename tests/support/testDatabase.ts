@@ -143,3 +143,16 @@ export function untypedServiceRoleClient() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
+
+/**
+ * An anonymous client without the generated types, for the same reason as the one above.
+ *
+ * anon_write_privileges is a verification view rather than part of the product, so it is not in the
+ * generated types and no application code may read it. PERM-39 has to name it anyway, to prove that
+ * an anonymous caller cannot.
+ */
+export function untypedAnonymousClient() {
+  return createClient(readTestProjectUrl(), readAnonymousKey(), {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
