@@ -352,7 +352,7 @@ proved anywhere else.
 | EDGE-11 | **A payment for a future month** | A lease running into next year | Record a payment for a month whose due date has not passed | Accepted; the month reads `paid`, and outstanding does not go negative for periods not yet charged | U and E | Paying ahead is normal and must not look like an error |
 | EDGE-12 | A payment received in the future | Any lease | Record with tomorrow's date | Refused at the schema and at the constraint | E and D | The difference between paying ahead and pretending |
 | EDGE-13 | Rent due on the 28th in February | A lease with due day 28 | Build the schedule across February | Every month has a due date, including a non-leap February | U | Why the due day is capped at 28 |
-| EDGE-14 | A month with no rows in a statement | A range before the tenancy | Open the statement | An explicit empty statement, not a blank page | E | A blank document looks broken |
+| EDGE-14 | A range outside the tenancy | A range before the tenancy | Open the statement | The range is clamped into the tenancy and the statement lists the months it really covers. An empty statement is not reachable, which is the point | U | A blank document looks broken, so the product refuses to produce one |
 | EDGE-15 | A page number past the end | A short list | Ask for `?page=99` | Redirected to the first page, not shown an empty state | E | A stale bookmark must not claim the list is empty |
 | EDGE-16 | A page number that is not a number | Any list | Ask for `?page=abc` | Treated as page 1 | U | The URL is user input |
 | EDGE-17 | Two part payments in one month | A month charging 6500 | Record 3000 and 3500 | The month reads `paid` and both rows remain in the history | E | The commonest real ledger shape |
@@ -390,9 +390,13 @@ Record the outcome and the date in the table under each one.
 
 ### MAN-01 The print stylesheet
 
-**Why manual.** A browser test can assert that the navigation is hidden in print media, and UI-11
-does exactly that. What it cannot judge is whether the printed document looks like a document:
-margins, page breaks in sensible places, nothing clipped. That is a person looking at a PDF.
+**Why manual.** A browser test can assert that the chrome is hidden in print media, and UI-11 now
+does exactly that: it emulates print media on a statement and checks that the navigation, the back
+link, the print button and the range form all go while the statement itself stays. That assertion
+did not exist when this paragraph was first written, and the sentence claiming it did was wrong for
+as long as it stood. What a browser test still cannot judge is whether the printed document looks
+like a document: margins, page breaks in sensible places, nothing clipped. That is a person looking
+at a PDF, and it is the half this case keeps.
 
 **Steps**
 
@@ -506,12 +510,13 @@ confirming the real thing works at its real address.
 | 2026-08-27 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run after the theme deployment with `PLAYWRIGHT_BASE_URL` set, so the five checks executed rather than skipped: all five passed in 26.1s. Two things were confirmed on the deployed site by hand at the same time. The computed `font-family` on a rendered page is `Geist, "Geist Fallback"`, which is the self-referencing `--font-sans` fixed in production and not only locally. The session cookie is `httpOnly`, `secure`, `sameSite=Lax`, and `document.cookie` reads as the empty string to page script. Read only |
 | 2026-08-27 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run after the functions were moved to `fra1`, with `PLAYWRIGHT_BASE_URL` set: all five passed in **14.5s**, against 26.1s for the same five checks earlier the same day. The deployed site reports `x-vercel-id: fra1::fra1` where it reported `fra1::iad1` before, so the function now runs in the same city as the database. Both seeded roles signed in and reached their pages; the cookie's flags are unchanged. Read only |
 | 2026-08-28 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run after the security fixes, with `PLAYWRIGHT_BASE_URL` set. The suite is now **seven** checks rather than five: SEC-01 and SEC-02 join it, asserting the response headers and then that the policy does not stop a page working. All seven passed in 19.3s. The content security policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy and Permissions-Policy are all served, on pages and on `/api/health` alike. Both seeded roles signed in and reached their pages. Read only |
+| 2026-08-29 | Claude | https://rental-management-app-wine.vercel.app | **Pass** | Re-run after the five missing cases were written, with `PLAYWRIGHT_BASE_URL` set. All seven passed in 20.5s. Nothing in this round changed anything the deployment serves: the work was four new tests, their citations and the documents, so this run confirms the deployed copy is the same working one, not a new one. Read only |
 
 **The automated companion, and why it is skipped by default.** `e2e/deploymentSmoke.spec.ts`
 performs steps 1 to 4 of this case in a browser, and also carries SEC-01 and SEC-02, the two checks
 on the response headers, which can only be made where the platform actually serves them: seven tests
 in all. The file begins with a `test.skip` that skips all seven unless `PLAYWRIGHT_BASE_URL` is set,
-which is why an ordinary `npm run test:e2e` reports twenty-two passed and seven skipped. That is a deliberate decision, for three reasons: the file
+which is why an ordinary `npm run test:e2e` reports twenty-five passed and seven skipped. That is a deliberate decision, for three reasons: the file
 reads the deployed project, which serves the demo data people are shown, while every other E test
 creates and deletes rows in the test project, so one run must not point at both; the session
 cookie's `secure` flag is only set when `NODE_ENV` is `production`, so asserting it against a
@@ -547,29 +552,39 @@ Each case above is cited by its identifier in the test that proves it, in the sa
 and database cases already were, so a reader can go from a row in this document to the assertion
 without searching. The counts, as they stand:
 
-| Prefix | Cited in the test code | Total |
-| --- | --- | --- |
-| CORE | 25 | 27 |
-| INV | 43 | 52 |
-| PROC | 17 | 18 |
-| PERM | 42 | 42 |
-| DB | 25 | 25 |
-| EDGE | 17 | 18 |
-| UI | 9 | 11 |
+| Prefix | Cited in the test code | Total | Not cited, and why |
+| --- | --- | --- | --- |
+| CORE | 27 | 27 | — |
+| INV | 43 | 52 | INV-08, 09, 33, 34, 35, 40, 44, 49 and 50 are proved by the schema tests without naming their identifier. The assertions exist; the citations do not |
+| PROC | 18 | 18 | — |
+| PERM | 42 | 42 | — |
+| DB | 25 | 25 | — |
+| EDGE | 18 | 18 | — |
+| UI | 10 | 11 | UI-08 is a manual case by designation, discharged by MAN-02 |
 
-**The five that are specified and not yet automated.** In every one of them the behaviour exists and
-is reachable in the running product; what is missing is an assertion holding it there, so each is a
-place where a regression would pass unnoticed. They are listed rather than quietly dropped.
+Every automatable case now has an assertion behind it. Each of the five that did not was written
+against the behaviour first: the test was watched failing with the behaviour removed or inverted
+before it was accepted, so none of them is a test shaped around code that already passed.
 
-| Case | The behaviour, and where it lives | Why there is no test yet |
-| --- | --- | --- |
-| CORE-20 | `/tenant/payments` orders by `period_month` then `received_on`, both descending | The paging half is covered by `PaginatedTable.test.tsx`; the "newest first" half has no assertion. A component test over a fixed list of rows would close it |
-| CORE-27 | `MaintenanceFilters` puts both filters in the URL and the pages read them | The only component in `src/components/maintenance` with no test file. The filters are exercised by hand and by UI-06's page-link assertions, which is not the same thing |
-| PROC-17 | `updateMaintenanceRequestStatus` writes `tenant_confirmed_at: null` on every status change, so reopening clears a confirmation | Needs a D test that confirms, reopens, and reads the column back. The neighbouring rule, that reopening clears `resolved_at`, is covered by `resolvedAtForStatus` |
-| EDGE-14 | `RentStatement` branches on `periods.length === 0` and renders an explicit empty statement | Reachable only through a date range outside the tenancy, which no E test asks for |
-| UI-11 | `print:hidden` on both navigations and on the statement's range form | MAN-01 judges the printed document by eye and has passed twice. A Playwright `emulateMedia({ media: "print" })` check would make the chrome half automatic; the layout half stays manual for the reason MAN-01 gives |
+| Case | Level | Where it is now | Watched failing against |
+| --- | --- | --- | --- |
+| CORE-20 | E | `e2e/interfaceStates.spec.ts` | The ledger ordered ascending, and a page size of twenty |
+| CORE-27 | E | `e2e/interfaceStates.spec.ts` | The urgency filter removed, then the open-status filter removed |
+| PROC-17 | D | `tests/serverActions.test.ts` | `tenant_confirmed_at: null` removed from the status action, and the confirmation turned into a no-op |
+| EDGE-14 | U | `src/lib/rent/statementPeriodRange.test.ts` | See below: the case was rewritten, because the behaviour it described does not exist |
+| UI-11 | E | `e2e/interfaceStates.spec.ts` | `print:hidden` removed from the range form, then from the navigation |
 
-UI-08 is not in that list: it is a manual case by designation, discharged by MAN-02.
+**EDGE-14 was the case that was wrong, not the code.** It asked for a range before the tenancy to
+produce an explicit empty statement. It cannot: `chooseStatementRange` clamps both ends inside the
+tenancy on purpose, with the reason written in its own comment — "a statement for months a tenancy
+did not run would list nothing and look like a fault". Measured rather than argued: a request for
+`2019-01` to `2019-06` against a tenancy running from 2026-03-01 to 2027-02-28 comes back as
+`2026-03-01` to `2026-03-01`, and one rent period survives the filter, not zero. So the empty
+statement the case wanted is unreachable through any URL, and the `periods.length === 0` branch in
+`RentStatement` is dead code kept as a guard rather than a state a reader can reach. The case now
+describes the clamp, which is the real protection against a blank document, and sits at U where the
+existing assertion already proves it. Writing an E test for the old wording would have meant
+loosening the clamp, which is the one thing that must not be done to make a test pass.
 
 ## 10. What is deliberately not tested, and why
 

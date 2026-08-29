@@ -43,7 +43,7 @@ describe("chooseStatementRange", () => {
     expect(range).toEqual({ fromMonth: "2026-03-01", toMonth: "2026-06-01" });
   });
 
-  // CORE-22
+  // CORE-22, EDGE-14: clamping is what makes an empty statement unreachable.
   it("clamps a range that reaches outside the tenancy", () => {
     const range = chooseStatementRange({
       requestedFrom: "2020-01",
