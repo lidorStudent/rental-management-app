@@ -38,6 +38,7 @@ test.afterEach(async () => {
   );
 });
 
+// PROC-01, and the steps below carry the cases each one discharges
 test("a landlord sets up a portfolio, records rent, and closes a reported problem", async ({
   page,
 }) => {
@@ -52,6 +53,7 @@ test("a landlord sets up a portfolio, records rent, and closes a reported proble
   await expect(page).toHaveURL(/\/landlord$/);
   await expect(page.getByText("Nothing to show yet")).toBeVisible();
 
+  // CORE-01, EDGE-10
   await test.step("adds the first building", async () => {
     await page.getByRole("link", { name: "Add a property" }).click();
     await page.getByLabel("Name").fill(buildingName);
@@ -63,6 +65,7 @@ test("a landlord sets up a portfolio, records rent, and closes a reported proble
     await expect(page.getByText("No units yet")).toBeVisible();
   });
 
+  // CORE-05, CORE-06
   await test.step("adds a unit, which starts out vacant", async () => {
     await page.getByRole("link", { name: "Add a unit" }).first().click();
     await page.getByLabel("Label").fill("Flat 1");
@@ -73,6 +76,7 @@ test("a landlord sets up a portfolio, records rent, and closes a reported proble
     await expect(page.getByRole("cell", { name: "Vacant", exact: true })).toBeVisible();
   });
 
+  // CORE-09
   await test.step("records a tenancy on it", async () => {
     await page.getByRole("link", { name: "Leases" }).click();
     // The header offers this and so does the empty state; either will do.
@@ -91,6 +95,7 @@ test("a landlord sets up a portfolio, records rent, and closes a reported proble
 
   let temporaryPassword = "";
 
+  // CORE-12, CORE-13
   await test.step("creates the tenant's account and is given one password", async () => {
     await page.getByLabel("Tenant name").fill("Maya Test");
     await page.getByLabel("Tenant email").fill(tenantEmail);
@@ -105,6 +110,7 @@ test("a landlord sets up a portfolio, records rent, and closes a reported proble
     await expect(page.getByTestId("temporary-password")).toHaveCount(0);
   });
 
+  // CORE-17, PROC-13
   await test.step("records the rent that has arrived", async () => {
     await page.getByRole("link", { name: "Record a payment" }).first().click();
     await page.getByLabel("Amount received").fill("6500");
@@ -114,6 +120,7 @@ test("a landlord sets up a portfolio, records rent, and closes a reported proble
     await expect(page.getByText("Paid").first()).toBeVisible();
   });
 
+  // PROC-12
   await test.step("sees the dashboard reflect it", async () => {
     await page.getByRole("link", { name: "Dashboard" }).click();
 
@@ -123,6 +130,7 @@ test("a landlord sets up a portfolio, records rent, and closes a reported proble
     await expect(page.getByRole("link", { name: /Occupancy/ })).toContainText("1 of 1");
   });
 
+  // PROC-02, CORE-23
   await test.step("the tenant reports a problem", async () => {
     await signOut(page);
     await signIn(page, tenantEmail, temporaryPassword);
@@ -149,6 +157,7 @@ test("a landlord sets up a portfolio, records rent, and closes a reported proble
     ).toBeVisible();
   });
 
+  // CORE-25, PROC-16
   await test.step("the landlord takes it to resolved", async () => {
     await signOut(page);
     await signIn(page, landlord.email);
@@ -168,6 +177,7 @@ test("a landlord sets up a portfolio, records rent, and closes a reported proble
     await expect(page.getByRole("button", { name: "Mark it resolved" })).toHaveCount(0);
   });
 
+  // PROC-13
   await test.step("and the dashboard has nothing left to chase", async () => {
     await page.getByRole("link", { name: "Dashboard" }).click();
 

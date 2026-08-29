@@ -118,6 +118,7 @@ describe("createLeaseSchema", () => {
 });
 
 describe("endLeaseSchema", () => {
+  // CORE-15, PROC-03
   it("accepts a new end date for a named tenancy", () => {
     expect(endLeaseSchema.safeParse({ leaseId: UNIT_ID, endDate: "2026-06-30" }).success).toBe(
       true,
@@ -130,6 +131,7 @@ describe("endLeaseSchema", () => {
     );
   });
 
+  // CORE-15
   it("carries nothing but the tenancy and the date, because nothing else may change", () => {
     const parsed = endLeaseSchema.parse({
       leaseId: UNIT_ID,
@@ -154,6 +156,7 @@ describe("renewLeaseSchema", () => {
     ).toBe(true);
   });
 
+  // CORE-16
   it("refuses a renewal that ends before it starts", () => {
     expect(
       renewLeaseSchema.safeParse({
@@ -166,6 +169,7 @@ describe("renewLeaseSchema", () => {
     ).toBe(false);
   });
 
+  // CORE-16, PROC-04
   it("carries no unit and no tenant, because both come from the tenancy being renewed", () => {
     const parsed = renewLeaseSchema.parse({
       leaseId: UNIT_ID,

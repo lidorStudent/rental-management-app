@@ -67,6 +67,7 @@ describe("PropertyForm", () => {
     );
   });
 
+  // CORE-03
   it("starts an edit from the values already recorded, and saves through the edit action", async () => {
     const user = userEvent.setup();
     render(

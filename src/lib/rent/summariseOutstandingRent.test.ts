@@ -39,6 +39,7 @@ describe("summariseLeaseRentFromTotal", () => {
     expect(summary.overduePeriodCount).toBe(0);
   });
 
+  // PROC-11
   it("counts the months that are past their due date and unpaid", () => {
     const summary = summaryOn("2026-03-11", 650000);
 
@@ -51,6 +52,7 @@ describe("summariseLeaseRentFromTotal", () => {
    * A total is applied to the oldest month first, which is what a ledger does anyway: money that
    * arrives settles the oldest arrears. Half of one month leaves that month short, not the last.
    */
+  // EDGE-17
   it("settles the oldest month first when only a total is known", () => {
     const summary = summaryOn("2026-03-11", 975000);
 

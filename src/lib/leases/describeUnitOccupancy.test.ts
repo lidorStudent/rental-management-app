@@ -72,6 +72,7 @@ describe("occupancyWords", () => {
     ).toBe("Maya Levi, until 2026-12-31");
   });
 
+  // EDGE-18
   it("says a unit is let even when the tenant has no account yet", () => {
     expect(occupancyWords({ state: "occupied", tenantName: null, endDate: "2026-12-31" })).toBe(
       "Let until 2026-12-31, tenant account not created yet",

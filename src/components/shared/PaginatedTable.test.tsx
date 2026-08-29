@@ -46,6 +46,7 @@ describe("PaginatedTable", () => {
     expect(screen.getByRole("cell", { name: "2026-08" })).toBeVisible();
   });
 
+  // UI-05
   it("says which rows of how many are being shown", () => {
     renderTable({ rows: PAYMENTS, totalCount: 57, pageSize: 10, page: 1 });
 
@@ -53,6 +54,7 @@ describe("PaginatedTable", () => {
     expect(screen.getByText(/Page 1 of 6/)).toBeVisible();
   });
 
+  // UI-05
   it("offers a way forward but not back on the first page", () => {
     renderTable({ totalCount: 57, pageSize: 10, page: 1 });
 
@@ -64,6 +66,7 @@ describe("PaginatedTable", () => {
     expect(screen.getByText("Previous")).toBeVisible();
   });
 
+  // UI-05
   it("offers a way back but not forward on the last page", () => {
     renderTable({ totalCount: 25, pageSize: 10, page: 3 });
 
@@ -111,6 +114,7 @@ describe("PaginatedTable", () => {
    * A list that is not empty but whose current page is says so, rather than claiming the whole list
    * is empty. It happens when rows are removed while someone is looking at the last page.
    */
+  // EDGE-15
   it("explains an empty page of a list that is not empty", () => {
     renderTable({ rows: [], totalCount: 57, page: 9 });
 

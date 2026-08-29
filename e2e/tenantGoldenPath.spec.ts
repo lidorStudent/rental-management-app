@@ -58,9 +58,11 @@ test.afterEach(async () => {
   await removeEverything(portfolio.landlord.id, [tenant.id]);
 });
 
+// PROC-16, and the steps below carry the cases each one discharges
 test("a tenant arrives with a temporary password and ends up following a repair", async ({
   page,
 }) => {
+  // PROC-02
   await test.step("must choose their own password before anything else", async () => {
     await signIn(page, tenant.email, TEMPORARY_PASSWORD);
     await expect(page).toHaveURL(/\/change-password/);
@@ -80,6 +82,7 @@ test("a tenant arrives with a temporary password and ends up following a repair"
     await expect(page).toHaveURL(/\/tenant$/);
   });
 
+  // PROC-14, UI-09
   await test.step("sees their own tenancy and what it costs", async () => {
     await expect(page.getByRole("heading", { name: "Your tenancy" })).toBeVisible();
     await expect(page.getByText("This month")).toBeVisible();
@@ -93,6 +96,7 @@ test("a tenant arrives with a temporary password and ends up following a repair"
     await expect(page.getByText("Test Landlord")).toBeVisible();
   });
 
+  // PROC-14, UI-05
   await test.step("sees the payment their landlord recorded", async () => {
     await page
       .getByRole("navigation", { name: "Tenant" })
@@ -104,6 +108,7 @@ test("a tenant arrives with a temporary password and ends up following a repair"
     await expect(page.getByText("Showing 1 to 1 of 1")).toBeVisible();
   });
 
+  // CORE-23
   await test.step("reports a problem", async () => {
     await page
       .getByRole("navigation", { name: "Tenant" })
@@ -125,6 +130,7 @@ test("a tenant arrives with a temporary password and ends up following a repair"
     await expect(page.getByRole("button", { name: "Yes, this was fixed" })).toHaveCount(0);
   });
 
+  // CORE-26, PROC-16
   await test.step("sees the status change once the landlord has acted", async () => {
     const requestUrl = page.url();
 

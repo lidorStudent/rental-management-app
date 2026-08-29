@@ -9,6 +9,7 @@ import {
 const MARCH_TO_SEPTEMBER = { startDate: "2026-03-01", endDate: "2026-09-30" };
 
 describe("describeLeaseLifecycle", () => {
+  // CORE-11
   it("calls a tenancy upcoming before its first day", () => {
     expect(describeLeaseLifecycle({ ...MARCH_TO_SEPTEMBER, currentDate: "2026-02-28" })).toBe(
       "upcoming",
@@ -29,6 +30,7 @@ describe("describeLeaseLifecycle", () => {
     );
   });
 
+  // CORE-11
   it("calls a tenancy ended on the day after its last day", () => {
     expect(describeLeaseLifecycle({ ...MARCH_TO_SEPTEMBER, currentDate: "2026-10-01" })).toBe(
       "ended",

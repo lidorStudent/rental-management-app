@@ -45,7 +45,9 @@ describe("findConflictingLease", () => {
     ).toBeNull();
   });
 
-  // EDGE-01, EDGE-02: the boundary the product is built on.
+  // EDGE-01, EDGE-02, PROC-05: the boundary the product is built on. renewLease shares
+  // refuseIfDatesAreTaken with createLease, so a renewal starting on the current end date is
+  // refused by this same comparison.
   it("refuses a tenancy beginning on the day the existing one ends", () => {
     const conflict = findConflictingLease(
       { unitId: THE_UNIT, startDate: "2026-05-31", endDate: "2027-05-30" },

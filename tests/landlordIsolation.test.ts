@@ -265,6 +265,7 @@ describe("what one landlord can write to another's", () => {
  * rows and the rows are removed again afterwards.
  */
 describe("what a landlord can do with their own data", () => {
+  // CORE-03, CORE-04
   it("creates, reads, updates and deletes a property of their own", async () => {
     const noaProfileId = await profileIdFor(SEEDED_USERS.landlordNoa);
 
@@ -305,6 +306,7 @@ describe("what a landlord can do with their own data", () => {
     expect(deleted).toHaveLength(1);
   });
 
+  // CORE-19
   it("records and corrects a payment on their own tenancy, then removes it", async () => {
     const noaProfileId = await profileIdFor(SEEDED_USERS.landlordNoa);
 

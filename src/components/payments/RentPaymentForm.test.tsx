@@ -157,6 +157,7 @@ describe("RentPaymentForm", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
+  // CORE-19
   it("corrects an entry through the correction action, without naming a tenancy", async () => {
     const user = userEvent.setup();
     render(

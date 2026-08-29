@@ -31,6 +31,7 @@ describe("chooseStatementRange", () => {
     expect(range.toMonth).toBe("2026-12-01");
   });
 
+  // CORE-22
   it("uses the months that were asked for", () => {
     const range = chooseStatementRange({
       requestedFrom: "2026-03",
@@ -42,6 +43,7 @@ describe("chooseStatementRange", () => {
     expect(range).toEqual({ fromMonth: "2026-03-01", toMonth: "2026-06-01" });
   });
 
+  // CORE-22
   it("clamps a range that reaches outside the tenancy", () => {
     const range = chooseStatementRange({
       requestedFrom: "2020-01",

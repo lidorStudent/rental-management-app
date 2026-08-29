@@ -30,6 +30,7 @@ describe("a complete row", () => {
     expect(tenancy.lifecycle).toBe("active");
   });
 
+  // CORE-21
   it("counts what has been paid against what was charged by that date", () => {
     const tenancy = describeTenancyRent(completeRow, "2026-02-15");
 
@@ -63,6 +64,7 @@ describe("a row with the nulls a view really produces", () => {
     expect(tenancy.unitLabel).toBe("Flat 1");
   });
 
+  // CORE-21
   it("treats a tenancy with nothing paid as owing everything charged so far", () => {
     const tenancy = describeTenancyRent({ ...completeRow, total_paid_cents: null }, "2026-02-15");
 

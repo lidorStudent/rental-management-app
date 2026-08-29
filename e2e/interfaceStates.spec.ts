@@ -53,7 +53,7 @@ test("the navigation marks the page you are on, and only that one", async ({ pag
   }
 });
 
-// UI-10
+// UI-10, CORE-08
 test("deleting a flat states the consequence first, and refuses when there is history", async ({
   page,
 }) => {
@@ -94,7 +94,7 @@ test("deleting a flat states the consequence first, and refuses when there is hi
   }
 });
 
-// EDGE-07
+// EDGE-07, EDGE-09
 test("a tenant whose tenancy has ended keeps their history and is told where new problems go", async ({
   page,
 }) => {

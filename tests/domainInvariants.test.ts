@@ -224,6 +224,7 @@ describe("invariant 5: only a landlord writes to the ledger", () => {
     expect(deleted.data ?? []).toEqual([]);
   });
 
+  // CORE-18
   it("records who entered every payment, so the ledger is attributable", async () => {
     const { data } = await serviceRoleClient()
       .from("rent_payments")

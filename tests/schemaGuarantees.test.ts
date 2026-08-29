@@ -251,7 +251,7 @@ describe("the constraints on the ledger", () => {
     expect(error?.message).toContain("rent_payments_amount_positive");
   });
 
-  // DB-08
+  // DB-08, EDGE-12
   it("refuses money that has not arrived yet", async () => {
     const { error } = await serviceRoleClient().from("rent_payments").insert({
       lease_id: SEEDED_IDS.leaseMayaActive,

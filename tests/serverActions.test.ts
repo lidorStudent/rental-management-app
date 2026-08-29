@@ -103,6 +103,7 @@ describe("an action asked for by the wrong role", () => {
     ).rejects.toThrow(/for a landlord/);
   });
 
+  // CORE-24
   it("refuses a landlord reporting a problem on a tenant's behalf", async () => {
     await actingAs(SEEDED_USERS.landlordNoa);
 
@@ -247,6 +248,7 @@ describe("an action given another landlord's identifier", () => {
  * property created here names no landlord at all, and the row comes out owned by the acting user.
  */
 describe("where ownership comes from", () => {
+  // CORE-02
   it("stamps a new property with the acting landlord, not with anything sent", async () => {
     await actingAs(SEEDED_USERS.landlordEitan);
 
@@ -270,6 +272,7 @@ describe("where ownership comes from", () => {
     expect(data?.landlord_id).not.toBe(noaProfileId);
   });
 
+  // CORE-18
   it("stamps a payment with the landlord who recorded it", async () => {
     await actingAs(SEEDED_USERS.landlordNoa);
 

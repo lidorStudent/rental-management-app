@@ -95,6 +95,7 @@ describe("UnitForm", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
+  // CORE-07
   it("saves an edit through the edit action, returning to the building", async () => {
     const user = userEvent.setup();
     render(
