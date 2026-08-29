@@ -240,8 +240,8 @@ The long form is [docs/learning/04-security-model.md](learning/04-security-model
 | Suite | Proves |
 | --- | --- |
 | `npm test`, 346 tests | The rules are right at their boundaries, and the forms behave, including for a screen reader |
-| `npm run test:db`, 134 tests | The policies and constraints hold against a real Postgres, as real signed-in users |
-| `npm run test:e2e`, 22 tests | The whole processes work in a browser, including the refusals |
+| `npm run test:db`, 135 tests | The policies and constraints hold against a real Postgres, as real signed-in users |
+| `npm run test:e2e`, 25 tests | The whole processes work in a browser, including the refusals |
 
 **The one to be able to defend:** the permission tests do not drive the interface. Driving the
 interface only proves the interface offered no way in, and an attacker will not use the interface.
@@ -365,4 +365,4 @@ request, which the scale document prices and puts fourth on the list of things t
 Putting authorisation in the database. Everything else in the project could be rewritten - the
 framework, the interface, even the actions - and the guarantee would survive, because it does not
 depend on any of them being correct. It is also the only decision I can prove rather than assert:
-134 tests attack the database directly, and they are the evidence that the claim is true.
+135 tests attack the database directly, and they are the evidence that the claim is true.
