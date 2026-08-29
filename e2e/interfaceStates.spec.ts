@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import {
   adminClient,
   createLease,
+  createMaintenanceRequest,
   createPortfolio,
   createTenantAccount,
   endOfMonth,
@@ -15,8 +16,9 @@ import {
 
 /**
  * States the interface has to get right that are neither a golden path nor an attack: which link is
- * marked as the current one, what a destructive button says before it does anything, and the two
- * tenancies that are perfectly ordinary but are not running today.
+ * marked as the current one, what a destructive button says before it does anything, the two
+ * tenancies that are perfectly ordinary but are not running today, how a long list is ordered and
+ * paged, how two filters narrow one another, and what a page looks like on paper.
  */
 let portfolio: Portfolio;
 
@@ -147,6 +149,167 @@ test("a tenant whose tenancy has not started is told when it does", async ({ pag
     await page.goto("/tenant/maintenance/new");
     await expect(page.getByText(`Your tenancy starts on ${upcomingLease.startDate}`)).toBeVisible();
     await expect(page.getByRole("button", { name: "Report this problem" })).toBeHidden();
+  } finally {
+    await removeEverything(portfolio.landlord.id, [tenant.id]);
+  }
+});
+
+// CORE-20
+test("a tenancy's payment history is newest first, ten to a page, with the page in the address", async ({
+  page,
+}) => {
+  const tenant = await createTenantAccount(false);
+  const lease = await createLease({
+    portfolio,
+    tenantId: tenant.id,
+    startDate: monthsFromNow(-12),
+    endDate: endOfMonth(6),
+  });
+
+  // Twelve months of rent, one payment each, so the list runs to a second page. Each is received on
+  // the fifteenth of its own month, so the order the page must produce is unambiguous.
+  const periodMonths = Array.from({ length: 12 }, (unused, index) => monthsFromNow(index - 12));
+  for (const periodMonth of periodMonths) {
+    await recordPayment({
+      leaseId: lease.id,
+      landlordId: portfolio.landlord.id,
+      periodMonth,
+      amountInAgorot: 650000,
+      receivedOn: `${periodMonth.slice(0, 7)}-15`,
+    });
+  }
+
+  const newestReceivedOn = `${periodMonths[periodMonths.length - 1].slice(0, 7)}-15`;
+  const oldestReceivedOn = `${periodMonths[0].slice(0, 7)}-15`;
+
+  try {
+    await signIn(page, portfolio.landlord.email);
+    await page.goto(`/landlord/leases/${lease.id}`);
+
+    // Scoped to the ledger by its caption: the rent schedule above it is also a table, and the
+    // assertion is about the order of the payments, not of the months.
+    const ledger = page.getByRole("table", { name: "Payments recorded against this tenancy" });
+
+    await expect(ledger.locator("tbody tr").first().locator("td").first()).toHaveText(
+      newestReceivedOn,
+    );
+    await expect(page.getByText("Showing 1 to 10 of 12")).toBeVisible();
+    await expect(page.getByText("Page 1 of 2")).toBeVisible();
+    await expect(ledger.locator("tbody tr")).toHaveCount(10);
+    await expect(ledger.getByText(oldestReceivedOn)).toHaveCount(0);
+
+    await page.getByRole("link", { name: "Next" }).click();
+
+    await expect(page).toHaveURL(/[?&]page=2/);
+    await expect(page.getByText("Showing 11 to 12 of 12")).toBeVisible();
+    await expect(ledger.locator("tbody tr")).toHaveCount(2);
+    await expect(ledger.locator("tbody tr").last().locator("td").first()).toHaveText(
+      oldestReceivedOn,
+    );
+  } finally {
+    await removeEverything(portfolio.landlord.id, [tenant.id]);
+  }
+});
+
+// CORE-27
+test("the maintenance list filters by state and by urgency, both of them in the address", async ({
+  page,
+}) => {
+  const tenant = await createTenantAccount(false);
+  const lease = await createLease({
+    portfolio,
+    tenantId: tenant.id,
+    startDate: monthsFromNow(-1),
+    endDate: endOfMonth(11),
+  });
+
+  // One of each combination the two filters have to separate.
+  const planted = [
+    { title: "Urgent and still open", urgency: "urgent", status: "submitted" },
+    { title: "Urgent and already resolved", urgency: "urgent", status: "resolved" },
+    { title: "Normal and still open", urgency: "normal", status: "in_progress" },
+    { title: "Low and already resolved", urgency: "low", status: "resolved" },
+  ] as const;
+
+  for (const request of planted) {
+    await createMaintenanceRequest({
+      leaseId: lease.id,
+      landlordId: portfolio.landlord.id,
+      tenantId: tenant.id,
+      title: request.title,
+      urgency: request.urgency,
+      status: request.status,
+    });
+  }
+
+  try {
+    await signIn(page, portfolio.landlord.email);
+    await page.goto("/landlord/maintenance");
+
+    for (const request of planted) {
+      await expect(page.getByRole("link", { name: request.title })).toBeVisible();
+    }
+
+    await page.getByRole("navigation", { name: "Filter by state" }).getByRole("link", { name: "Open" }).click();
+
+    await expect(page).toHaveURL(/[?&]status=open/);
+    await expect(page.getByRole("link", { name: "Urgent and still open" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Normal and still open" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Urgent and already resolved" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Low and already resolved" })).toHaveCount(0);
+
+    // The second filter narrows the first rather than replacing it, which is the whole point of
+    // "urgent and still open" being one question.
+    await page
+      .getByRole("navigation", { name: "Filter by urgency" })
+      .getByRole("link", { name: "Urgent" })
+      .click();
+
+    await expect(page).toHaveURL(/[?&]status=open/);
+    await expect(page).toHaveURL(/[?&]urgency=urgent/);
+    await expect(page.getByRole("link", { name: "Urgent and still open" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Normal and still open" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Urgent and already resolved" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Low and already resolved" })).toHaveCount(0);
+  } finally {
+    await removeEverything(portfolio.landlord.id, [tenant.id]);
+  }
+});
+
+// UI-11
+test("print media hides the chrome around a statement and leaves the document", async ({ page }) => {
+  const tenant = await createTenantAccount(false);
+  const lease = await createLease({
+    portfolio,
+    tenantId: tenant.id,
+    startDate: monthsFromNow(-2),
+    endDate: endOfMonth(9),
+  });
+
+  try {
+    await signIn(page, portfolio.landlord.email);
+    await page.goto(`/landlord/leases/${lease.id}/statement`);
+
+    const navigation = page.getByRole("navigation", { name: "Landlord" });
+    const backLink = page.getByRole("link", { name: "Back to the tenancy" });
+    const printButton = page.getByRole("button", { name: /Print/ });
+    const rangeForm = page.getByRole("button", { name: "Show this range" });
+    const statementHeading = page.getByRole("heading", { name: "Rent statement" });
+
+    await expect(navigation).toBeVisible();
+    await expect(backLink).toBeVisible();
+    await expect(printButton).toBeVisible();
+    await expect(rangeForm).toBeVisible();
+    await expect(statementHeading).toBeVisible();
+
+    await page.emulateMedia({ media: "print" });
+
+    await expect(navigation).toBeHidden();
+    await expect(backLink).toBeHidden();
+    await expect(printButton).toBeHidden();
+    await expect(rangeForm).toBeHidden();
+    // The point of the case: the chrome goes and the document stays.
+    await expect(statementHeading).toBeVisible();
   } finally {
     await removeEverything(portfolio.landlord.id, [tenant.id]);
   }

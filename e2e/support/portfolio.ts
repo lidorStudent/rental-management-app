@@ -185,6 +185,41 @@ export async function recordPayment({
   }
 }
 
+export async function createMaintenanceRequest({
+  leaseId,
+  landlordId,
+  tenantId,
+  title,
+  urgency,
+  status,
+}: {
+  leaseId: string;
+  landlordId: string;
+  tenantId: string;
+  title: string;
+  urgency: "low" | "normal" | "urgent";
+  status: "submitted" | "acknowledged" | "in_progress" | "resolved";
+}): Promise<void> {
+  const { error } = await adminClient()
+    .from("maintenance_requests")
+    .insert({
+      lease_id: leaseId,
+      landlord_id: landlordId,
+      submitted_by: tenantId,
+      title,
+      description: "Written by the end-to-end tests, long enough to pass the length constraint.",
+      urgency,
+      status,
+      // Resolved and "has a resolution date" are the same fact, and a check constraint enforces the
+      // pairing, so a request planted as resolved has to carry one.
+      resolved_at: status === "resolved" ? new Date().toISOString() : null,
+    });
+
+  if (error !== null) {
+    throw new Error(`Could not create the maintenance request: ${error.message}`);
+  }
+}
+
 /**
  * Removes everything a test created, in the order the foreign keys allow: the rows that point at
  * others first, then the accounts. A tenant who has reported a problem cannot be deleted until the

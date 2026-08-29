@@ -9,6 +9,7 @@ import {
   serviceRoleClient,
   signInAs,
 } from "./support/testDatabase";
+import type { ActionResult } from "@/lib/actionResult";
 import type { Database } from "@/types/database";
 
 /**
@@ -46,6 +47,7 @@ let noaProfileId: string;
 let eitanProfileId: string;
 let yonatansRequestId: string;
 const propertiesToRemove: string[] = [];
+const requestsToRemove: string[] = [];
 
 async function actingAs(email: string): Promise<void> {
   activeClient.value = await signInAs(email);
@@ -65,6 +67,9 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  if (requestsToRemove.length > 0) {
+    await serviceRoleClient().from("maintenance_requests").delete().in("id", requestsToRemove);
+  }
   if (propertiesToRemove.length > 0) {
     await serviceRoleClient().from("properties").delete().in("id", propertiesToRemove);
   }
@@ -123,6 +128,63 @@ describe("an action asked for by the wrong role", () => {
     ).rejects.toThrow(/for a tenant/);
   });
 });
+
+describe("reopening a problem the tenant had agreed was fixed", () => {
+  // PROC-17
+  it("clears the resolution date and the tenant's confirmation", async () => {
+    await actingAs(SEEDED_USERS.tenantYonatan);
+    const reported = await submitMaintenanceRequest({
+      title: "The problem that comes back",
+      description: "Reported so that the reopening rule can be driven from end to end.",
+    });
+    if (reported.status !== "success") {
+      throw new Error(`Could not report the problem: ${reported.message}`);
+    }
+    const requestId = reported.value.requestId;
+    requestsToRemove.push(requestId);
+
+    await actingAs(SEEDED_USERS.landlordNoa);
+    expectOk(await updateMaintenanceRequestStatus({ requestId, nextStatus: "resolved" }));
+
+    await actingAs(SEEDED_USERS.tenantYonatan);
+    expectOk(await confirmMaintenanceRequestResolved({ requestId }));
+
+    const afterConfirming = await readRequest(requestId);
+    expect(afterConfirming.status).toBe("resolved");
+    expect(afterConfirming.resolved_at).not.toBeNull();
+    expect(afterConfirming.tenant_confirmed_at).not.toBeNull();
+
+    // The landlord reopens it. A problem that came back was never finished, so the tenant's
+    // agreement that it was does not survive the reopening.
+    await actingAs(SEEDED_USERS.landlordNoa);
+    expectOk(await updateMaintenanceRequestStatus({ requestId, nextStatus: "in_progress" }));
+
+    const afterReopening = await readRequest(requestId);
+    expect(afterReopening.status).toBe("in_progress");
+    expect(afterReopening.resolved_at).toBeNull();
+    expect(afterReopening.tenant_confirmed_at).toBeNull();
+  });
+});
+
+function expectOk(result: ActionResult<{ requestId: string }>): void {
+  if (result.status !== "success") {
+    throw new Error(`The action was refused: ${result.message}`);
+  }
+}
+
+/**
+ * Read back with the service role rather than through the action, because the assertion is about
+ * what is in the row and not about what a caller is allowed to see of it.
+ */
+async function readRequest(requestId: string) {
+  const { data } = await serviceRoleClient()
+    .from("maintenance_requests")
+    .select("status, resolved_at, tenant_confirmed_at")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  return required(data, `the maintenance request ${requestId}`);
+}
 
 describe("an action given another landlord's identifier", () => {
   it("answers a property that is not theirs exactly as it answers one that does not exist", async () => {
