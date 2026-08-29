@@ -209,7 +209,7 @@ Every page listed here is a server component unless the table says otherwise.
 | `/landlord/leases/[leaseId]/end` | End a tenancy early. Only the end date moves | Lease |
 | `/landlord/leases/[leaseId]/renew` | Record the next tenancy on the same unit for the same tenant, offered from the day after this one ends | Lease, tenant |
 | `/landlord/leases/[leaseId]/payments/new` | Record a payment received, pre-selecting the oldest unpaid period | Lease, derived schedule |
-| `/landlord/leases/[leaseId]/payments/[paymentId]/edit` | Correct or delete a recorded payment | Payment, lease |
+| `/landlord/leases/[leaseId]/payments/[paymentId]/edit` | Correct a recorded payment. There is no delete: the row keeps its identity and its attribution, and only its values change | Payment, lease |
 | `/landlord/leases/[leaseId]/statement` | Print-optimised rent statement for a month range taken from the URL query (C10). The lease id is not trusted: a lease belonging to another landlord is answered as not found | Lease, payments in range |
 | `/landlord/maintenance` | Every request across the portfolio, filterable by status through the URL query | Requests, leases, units |
 | `/landlord/maintenance/[requestId]` | One request, with the status controls | Request, lease, unit, tenant |
@@ -423,14 +423,50 @@ Every entry has one sentence I can defend under questioning.
 | `@hookform/resolvers` | The adapter that lets `react-hook-form` validate with the Zod schema the server action already uses |
 | `tailwindcss` | Styling stays in the markup for anything local to a component, so there is no second file to keep in sync with it. The exception is deliberate: the palette, the five status meanings and the type scale are tokens and three named classes in `globals.css`, because those must be identical everywhere and a value repeated in thirty files drifts |
 | `shadcn/ui` | Not a dependency but a generator: it copies accessible Radix-based components into the repository, so the accessibility work is done and the code is mine to read and change |
-| `date-fns` | Month arithmetic for the rent schedule needs to be correct across month lengths, and this is a tree-shakeable function library rather than a framework |
 | `vitest` | Runs the pure business logic and the component tests fast enough to run on every save |
 | `@testing-library/react` | Tests components the way a user reaches them, by role and label, rather than by implementation detail |
 | `@playwright/test` | The permission rules and the central processes are only meaningfully proven end to end in a real browser against a real database |
 
 Deliberately absent: any data-fetching library, any client state library, any ORM, any PDF library,
-any email service, any component library beyond the copied shadcn source, any date library beyond
-`date-fns`, and any charting library.
+any email service, any component library beyond the copied shadcn source, any charting library, and
+**any date library at all**.
+
+**Why there is no date library.** Dates in this product are calendar facts rather than instants: the
+tenth of March is the tenth of March whether the reader is in Tel Aviv or in London. So every date in
+the business rules is a `YYYY-MM-DD` string, which sorts correctly as text — `"2026-05-31" <
+"2026-06-01"` is both true and chronologically meaningful — and the rules compare dates with `<` and
+`<=` without parsing anything. That leaves two operations a string cannot do, and both live in
+`src/lib/dates/isoDate.ts`: `addDays`, which builds one `Date` in UTC with every field supplied, and
+`isValidIsoDate`, which rebuilds the parts and compares them back so that `2026-02-30` is rejected.
+The rent schedule's month arithmetic needs neither, because `buildRentSchedule` increments an
+integer month and rolls the year at thirteen; month lengths never arise, since the rent due day is
+constrained to 1 to 28 precisely so that every month has one.
+
+A date library would have been the reflex choice and would have earned its place if this product did
+zone conversions, formatted dates in several locales, or parsed user-typed dates in ambiguous forms.
+It does none of those: the browser's date input submits `YYYY-MM-DD` already. Adding one would have
+meant a dependency, a bundle cost, and an API to learn, in exchange for roughly forty lines that are
+fully tested by `src/lib/dates/isoDate.test.ts` and readable in one sitting.
+
+### 8.3 The rest of `package.json`
+
+The table above lists the choices. `package.json` holds thirty-two entries, and the remaining
+seventeen are not decisions so much as the cost of the five that are. They are recorded here so that
+nothing in the manifest is unaccounted for.
+
+| Group | Packages | What pulled them in |
+| --- | --- | --- |
+| What shadcn generates against | `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge`, `tw-animate-css` | The copied components import these directly: Radix is the unstyled behaviour underneath them, `cva` expresses a component's variants, and `clsx` with `tailwind-merge` is what `src/lib/classNames.ts` is made of. Choosing shadcn is choosing these; they are listed as direct dependencies because the generated code in `src/components/ui` imports them by name |
+| Test tooling | `jsdom`, `@testing-library/dom`, `@testing-library/jest-dom`, `@testing-library/user-event` | `jsdom` is the DOM Vitest renders into, `@testing-library/dom` is the query engine the React adapter is built on, `jest-dom` adds the matchers registered in `vitest.setup.ts`, and `user-event` types and clicks the way a person does rather than dispatching synthetic events |
+| Types | `@types/node`, `@types/react`, `@types/react-dom` | Type definitions for runtimes that ship none |
+| Build and style | `@tailwindcss/postcss` | The PostCSS plugin Tailwind v4 is consumed through |
+| Lint and format | `eslint`, `eslint-config-next`, `eslint-config-prettier`, `prettier` | The Next.js rule set, plus the config that stops the two arguing over formatting |
+
+Nothing is installed that nothing uses, and nothing is used that is not installed. Four are reached
+without an `import ... from`: `server-only` is a bare side-effect import in the nine modules that
+must never reach a browser, `tw-animate-css` is an `@import` in `globals.css`, and the `@types`
+packages and the lint and format configuration are consumed by the compiler and the tooling rather
+than by application code.
 
 ---
 
@@ -815,9 +851,9 @@ No index is added speculatively. Each one above has a query in this document tha
 
 ### 11.9 Aggregate views
 
-Two views exist so that no screen has to read a ledger row by row to add it up. Both are declared
-`security_invoker`, so they run with the Row Level Security of whoever selects from them; without
-that a view would be a hole straight through the policies underneath it.
+Three views exist so that no screen has to read a ledger row by row to add it up. All three are
+declared `security_invoker`, so they run with the Row Level Security of whoever selects from them;
+without that a view would be a hole straight through the policies underneath it.
 
 | View | One row per | Why it exists |
 | --- | --- | --- |
@@ -868,8 +904,14 @@ columns below are therefore not symmetrical, and that asymmetry is the architect
 | --- | --- | --- |
 | Create | Landlord | `createLease`, subject to the overlap rule in section 14.1 |
 | Read | Landlord for their own; tenant for the one they are on | `/landlord/leases`, `/landlord/leases/[leaseId]`, `/tenant`, `/tenant/lease` |
-| Update | Landlord, own only | `updateLease` for terms, `createTenantAccountForLease` for the tenant link |
-| Delete | Landlord, own only | `deleteLease`, refused when payments or requests exist |
+| Update | Landlord, own only, and only along two axes | `endLease` brings the end date forward; `renewLease` writes the next tenancy on the same unit for the same tenant; `createTenantAccountForLease` attaches the tenant. There is no action that re-types the terms |
+| Delete | Nobody | A lease recorded in error can only be ended |
+
+There is deliberately no general `updateLease`, and no delete. A lease is a record of what was
+agreed, so a form that re-types the rent on a running tenancy invites exactly the quiet rewriting of
+history the ledger exists to prevent. Ending brings the end date forward and changes nothing else;
+renewing writes a new row, so a change of rent reads as the new agreement it actually was. The cost
+is real and recorded in section 19: a lease typed in wrongly cannot be removed.
 
 ### 12.5 `rent_payments`
 
@@ -877,8 +919,13 @@ columns below are therefore not symmetrical, and that asymmetry is the architect
 | --- | --- | --- |
 | Create | Landlord only | `recordRentPayment` |
 | Read | Landlord for their own; tenant for their own lease's payments | `/landlord/leases/[leaseId]`, both statement pages, `/tenant/payments` |
-| Update | Landlord only | `updateRentPayment`, which is how a payment applied to the wrong period is corrected |
-| Delete | Landlord only | `deleteRentPayment` |
+| Update | Landlord only | `correctRentPayment`, which is how a payment applied to the wrong period is corrected. The lease cannot be changed, so a payment can never be moved onto another tenancy |
+| Delete | Nobody | A payment entered in error is corrected, not removed |
+
+A payment is what a dispute would be settled with, and other rows point at it, so removal is not
+offered: `correctRentPayment` changes the amount, the period, the date, the method or the reference
+while the row keeps its identity and its `recorded_by`. Correcting rather than deleting is what
+keeps the ledger an account of what happened rather than an account of what is currently believed.
 
 A tenant has no write operation on this table anywhere in the product. That is product rule 5: the
 ledger is the landlord's record of what they received.
@@ -1009,8 +1056,8 @@ is told which existing lease is in the way.
 | Layer | File or object | Role |
 | --- | --- | --- |
 | Database | `leases_no_overlap` exclusion constraint | The guarantee. Holds under concurrency, which a read-then-write check cannot |
-| Application | `src/lib/leases/findConflictingLease.ts` | Finds the conflicting lease first so the error can name its dates. A friendly message, not a safety mechanism |
-| Action | `createLease`, `updateLease` | Calls the finder, and also maps Postgres error code `23P01` to the same user-facing message, so the race that slips past the check still produces a sensible result |
+| Application | `src/lib/leases/findConflictingLease.ts` | Finds the conflicting lease first so the error can name its dates and the earliest free day. A friendly message, not a safety mechanism |
+| Action | `createLease`, `endLease`, `renewLease` | All three share `refuseIfDatesAreTaken`, which calls the finder, and all three map Postgres error code `23P01` through `leaseWriteFailure` to the same user-facing message, so the race that slips past the check still produces a sensible result |
 
 ### 14.2 Rent status derivation
 
@@ -1064,7 +1111,7 @@ There is almost none, and that is the design.
 | Application data | The database, read fresh by server components on each render | There is no client-side copy, so there is nothing to invalidate, refetch, or reconcile. `revalidatePath` after a write is the whole cache story |
 | Session | One cookie holding both tokens, refreshed by the proxy. `sessionCookieOptions.ts` sets it `httpOnly`, `sameSite=lax`, and `secure` in production | Not readable by page JavaScript, which the library allows by default and this project turns off because it never uses the browser client |
 | Form field state | `react-hook-form` inside one client component | Local to the form and gone when it unmounts |
-| Submission state | `useFormStatus` in `SubmitButton` | Pending state belongs to the button, not to a store |
+| Submission state | `useTransition` in each form, handed to `SubmitButton` as `isSubmitting` | Pending state belongs to the form that is submitting, not to a store. It is a prop rather than `useFormStatus` because these forms submit by calling the action inside a transition rather than through a form action, and `useFormStatus` only reads the latter |
 | Filters, and the statement date range | The URL query string | The URL is already shared, bookmarkable, and survives a refresh, and a server component can read it directly |
 
 No Redux, no Zustand, no Context provider holding data, and no React Query. The reason is specific
