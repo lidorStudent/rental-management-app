@@ -535,11 +535,41 @@ PLAYWRIGHT_BASE_URL=https://rental-management-app-wine.vercel.app npx playwright
 | Core features | Section 1, CORE-01 to CORE-27 |
 | Invalid inputs | Section 2, INV-01 to INV-52, every field of every form |
 | Central business processes | Section 3, PROC-01 to PROC-18: lease lifecycle, rent lifecycle with a month going overdue, maintenance lifecycle |
-| Permission differences between user types | Section 4, PERM-01 to PERM-35 |
-| Database | Section 5, DB-01 to DB-22: constraints, the overlap guarantee, cascades |
+| Permission differences between user types | Section 4, PERM-01 to PERM-42 |
+| Database | Section 5, DB-01 to DB-25: constraints, the overlap guarantee, cascades |
 | Edge cases | Section 6, EDGE-01 to EDGE-18 |
 | Basic UI | Section 7, UI-01 to UI-11 |
 | Documented manual tests where automation is not appropriate | Section 8, MAN-01 to MAN-05, each with a reason |
+
+### Every case, traced to the test that discharges it
+
+Each case above is cited by its identifier in the test that proves it, in the same way the permission
+and database cases already were, so a reader can go from a row in this document to the assertion
+without searching. The counts, as they stand:
+
+| Prefix | Cited in the test code | Total |
+| --- | --- | --- |
+| CORE | 25 | 27 |
+| INV | 43 | 52 |
+| PROC | 17 | 18 |
+| PERM | 42 | 42 |
+| DB | 25 | 25 |
+| EDGE | 17 | 18 |
+| UI | 9 | 11 |
+
+**The five that are specified and not yet automated.** In every one of them the behaviour exists and
+is reachable in the running product; what is missing is an assertion holding it there, so each is a
+place where a regression would pass unnoticed. They are listed rather than quietly dropped.
+
+| Case | The behaviour, and where it lives | Why there is no test yet |
+| --- | --- | --- |
+| CORE-20 | `/tenant/payments` orders by `period_month` then `received_on`, both descending | The paging half is covered by `PaginatedTable.test.tsx`; the "newest first" half has no assertion. A component test over a fixed list of rows would close it |
+| CORE-27 | `MaintenanceFilters` puts both filters in the URL and the pages read them | The only component in `src/components/maintenance` with no test file. The filters are exercised by hand and by UI-06's page-link assertions, which is not the same thing |
+| PROC-17 | `updateMaintenanceRequestStatus` writes `tenant_confirmed_at: null` on every status change, so reopening clears a confirmation | Needs a D test that confirms, reopens, and reads the column back. The neighbouring rule, that reopening clears `resolved_at`, is covered by `resolvedAtForStatus` |
+| EDGE-14 | `RentStatement` branches on `periods.length === 0` and renders an explicit empty statement | Reachable only through a date range outside the tenancy, which no E test asks for |
+| UI-11 | `print:hidden` on both navigations and on the statement's range form | MAN-01 judges the printed document by eye and has passed twice. A Playwright `emulateMedia({ media: "print" })` check would make the chrome half automatic; the layout half stays manual for the reason MAN-01 gives |
+
+UI-08 is not in that list: it is a manual case by designation, discharged by MAN-02.
 
 ## 10. What is deliberately not tested, and why
 
