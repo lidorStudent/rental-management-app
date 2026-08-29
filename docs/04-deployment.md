@@ -147,7 +147,9 @@ The smoke check is read only and signs in as a seeded landlord and a seeded tena
 `PLAYWRIGHT_BASE_URL` it is skipped, so it never runs as part of the ordinary suite, which creates
 and deletes data.
 
-Last run: **2026-08-26**, four checks passed against the live address: the health endpoint, the
-signed-out redirect, a landlord through the dashboard, properties, a tenancy, its statement, the rent
-overview and the maintenance list, and a tenant through their own tenancy, lease, payments and a
-refused landlord route.
+Last run: **2026-08-28**, seven checks passed against the live address in 19.3s: the health endpoint,
+the signed-out redirect, the session cookie's flags, a landlord through the dashboard, properties, a
+tenancy, its statement, the rent overview and the maintenance list, a tenant through their own
+tenancy, lease, payments and a refused landlord route, and the two header checks SEC-01 and SEC-02,
+which can only be made where the platform actually serves them. The run log for every execution is
+kept under MAN-05 in [docs/03-test-specification.md](03-test-specification.md).

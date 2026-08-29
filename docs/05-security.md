@@ -353,7 +353,7 @@ with the real one. Also refused now.
 
 **`full_name` is deliberately still writable.** Nothing in the interface offers editing it, so
 pinning it would change no behaviour today, and a person's own name is theirs: refusing it would be
-a functional restriction rather than a security fix. DB-24 asserts this so that it reads as a
+a functional restriction rather than a security fix. DB-25 asserts this so that it reads as a
 decision rather than as the trigger having been written carelessly.
 
 **The service role passes through**, exactly as it does in `restrict_tenant_maintenance_update`,
@@ -366,7 +366,7 @@ forever. It points the admin client at the id `getSignedInProfile` resolved from
 session, never at anything from the form. This makes `src/actions/authenticationActions.ts` the
 second caller of the service role client, alongside `src/actions/tenantAccountActions.ts`.
 
-DB-22 and DB-23 are the tests. DB-22 fails without the trigger — it was written that way, and
+DB-23 and DB-24 are the tests. DB-23 fails without the trigger — it was written that way, and
 returned no error code at all before the trigger existed.
 
 ---
