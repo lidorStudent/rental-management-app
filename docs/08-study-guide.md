@@ -239,7 +239,7 @@ The long form is [docs/learning/04-security-model.md](learning/04-security-model
 
 | Suite | Proves |
 | --- | --- |
-| `npm test`, 346 tests | The rules are right at their boundaries, and the forms behave, including for a screen reader |
+| `npm test`, 354 tests | The rules are right at their boundaries, and the forms behave, including for a screen reader |
 | `npm run test:db`, 135 tests | The policies and constraints hold against a real Postgres, as real signed-in users |
 | `npm run test:e2e`, 25 tests | The whole processes work in a browser, including the refusals |
 

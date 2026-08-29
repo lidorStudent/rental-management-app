@@ -175,7 +175,7 @@ Follow the click list below exactly. Speaking notes are inside it.
 
 ## Slide 11 - The tests (1:00)
 
-**On screen:** 346 unit and component. 135 permission and database. 25 end to end. Plus five
+**On screen:** 354 unit and component. 135 permission and database. 25 end to end. Plus five
 documented manual checks.
 
 **Say:** "Three suites. Three hundred and forty-six unit and component tests cover the rules at

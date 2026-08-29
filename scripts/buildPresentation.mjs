@@ -139,7 +139,7 @@ const slides = [
   bulletSlide({
     title: "The tests",
     bullets: [
-      "346 unit and component tests — the rules at their boundaries",
+      "354 unit and component tests — the rules at their boundaries",
       "135 permission and database tests — against a real Postgres",
       "25 end-to-end tests — whole processes in a browser",
       "5 documented manual checks — print, layout, screen reader",

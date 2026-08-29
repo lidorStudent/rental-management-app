@@ -83,6 +83,7 @@ anything clever is asked of it.
 | CORE-20 | Payment history is newest first and paged | More payments than one page | Open the lease | Ten per page, most recent first, page controls in the URL | E | Three years of history must stay usable |
 | CORE-21 | Rent overview across all units | Several tenancies with payments | Open the rent overview | Every tenancy with charged, received and outstanding, arrears first | E | Business goal G4: "how much am I owed" without arithmetic |
 | CORE-22 | Statement for a month range | A lease with payments | Open the statement for a range | Charges and payments for that range, with charged, received and balance | E | Deliverable P7: a document a third party can be handed |
+| CORE-28 | A tenancy that has never been charged | A tenancy starting next month | Open the rent overview | It reads as where the tenancy is in its life, **Upcoming**, and never as `paid`. The tenancy list says the same word for the same row | U | "Paid" would assert a settlement that never happened, and two screens must not disagree about one row |
 
 ### 1.4 Maintenance
 
@@ -537,7 +538,7 @@ PLAYWRIGHT_BASE_URL=https://rental-management-app-wine.vercel.app npx playwright
 
 | Requirement, from `docs/00-course-requirements.md` section 5 | Where it is covered |
 | --- | --- |
-| Core features | Section 1, CORE-01 to CORE-27 |
+| Core features | Section 1, CORE-01 to CORE-28 |
 | Invalid inputs | Section 2, INV-01 to INV-52, every field of every form |
 | Central business processes | Section 3, PROC-01 to PROC-18: lease lifecycle, rent lifecycle with a month going overdue, maintenance lifecycle |
 | Permission differences between user types | Section 4, PERM-01 to PERM-42 |
@@ -554,7 +555,7 @@ without searching. The counts, as they stand:
 
 | Prefix | Cited in the test code | Total | Not cited, and why |
 | --- | --- | --- | --- |
-| CORE | 27 | 27 | — |
+| CORE | 28 | 28 | — |
 | INV | 43 | 52 | INV-08, 09, 33, 34, 35, 40, 44, 49 and 50 are proved by the schema tests without naming their identifier. The assertions exist; the citations do not |
 | PROC | 18 | 18 | — |
 | PERM | 42 | 42 | — |
