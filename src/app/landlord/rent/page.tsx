@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { LeaseStatusBadge } from "@/components/leases/LeaseStatusBadge";
 import { RentStatusBadge } from "@/components/leases/RentStatusBadge";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -15,7 +16,8 @@ import { cn } from "@/lib/classNames";
 import { currentIsoDateInUtc } from "@/lib/dates/currentDate";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
 import { describeTenancyRent, type TenancyRent } from "@/lib/rent/describeTenancyRent";
-import { totalArrearsInAgorot, type LeaseRentSummary } from "@/lib/rent/summariseOutstandingRent";
+import { describeTenancyRentStatus } from "@/lib/rent/describeTenancyRentStatus";
+import { totalArrearsInAgorot } from "@/lib/rent/summariseOutstandingRent";
 import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
 
 export const metadata = { title: "Rent" };
@@ -117,7 +119,7 @@ export default async function RentOverviewPage() {
                   </TableCell>
                   <TableCell>{row.summary.earliestOverdueDueDate ?? ""}</TableCell>
                   <TableCell>
-                    <RentStatusBadge status={statusFor(row.summary)} />
+                    <TenancyStatusBadge row={row} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -134,14 +136,19 @@ function byMostOwed(first: TenancyRent, second: TenancyRent): number {
   return second.summary.outstandingInAgorot - first.summary.outstandingInAgorot;
 }
 
-function statusFor(summary: LeaseRentSummary) {
-  if (summary.overduePeriodCount > 0) {
-    return "overdue" as const;
-  }
-  if (summary.outstandingInAgorot > 0) {
-    return "partial" as const;
-  }
-  return "paid" as const;
+/**
+ * The status of a whole tenancy, which is a rent status only once rent has fallen due. Before that
+ * there is nothing to be paid or owing, so the row shows where the tenancy is in its life, using
+ * the same badge the tenancy list uses so that the two screens cannot disagree about one row.
+ */
+function TenancyStatusBadge({ row }: { row: TenancyRent }) {
+  const status = describeTenancyRentStatus({ summary: row.summary, lifecycle: row.lifecycle });
+
+  return status.kind === "rent" ? (
+    <RentStatusBadge status={status.status} />
+  ) : (
+    <LeaseStatusBadge lifecycle={status.lifecycle} />
+  );
 }
 
 function describeOutstanding(outstandingInAgorot: number): string {
