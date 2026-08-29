@@ -22,10 +22,10 @@ Password for all of them: `Demo-Rental-2026!`
 
 | Role | Email | What it shows |
 | --- | --- | --- |
-| Landlord | `noa.bendavid@example.co.il` | Two buildings, five units, tenancies that are active, ended and upcoming, a ledger with a paid, a partial and an overdue month, and repairs in every status |
+| Landlord | `noa.bendavid@example.co.il` | Two buildings, five units, tenancies that are active, ended and upcoming, a ledger holding settled months, a part payment and months in arrears, and repairs in every status |
 | Landlord | `eitan.shapira@example.co.il` | A different building and tenant, and no sight of anything of Noa's. Sign in as both to see the isolation the policies enforce |
 | Tenant | `maya.levi@example.co.il` | An active tenancy of Noa's, two months in arrears |
-| Tenant | `yonatan.azoulay@example.co.il` | An active tenancy of Noa's, part paid for the current month |
+| Tenant | `yonatan.azoulay@example.co.il` | An active tenancy of Noa's with a part payment against the current month. The month reads **Part paid** while its due day is still ahead and **Overdue** once that day has passed, with the remainder shown beside it either way: past due outranks part paid, because that is what needs chasing |
 | Tenant | `shira.mizrahi@example.co.il` | A tenancy that has ended, with its history still readable |
 | Tenant | `dana.peretz@example.co.il` | An active tenancy of Eitan's, with the current month unpaid |
 
@@ -40,7 +40,7 @@ Password for all of them: `Demo-Rental-2026!`
 | 3 | Product specification | [docs/01-product-specification.md](docs/01-product-specification.md) |
 | 4 | Technical planning document | [docs/02-technical-plan.md](docs/02-technical-plan.md) |
 | 5 | Test specification | [docs/03-test-specification.md](docs/03-test-specification.md) |
-| 6 | Test code | [src/](src/) 346 unit and component tests in 31 files, beside the code they test; [tests/](tests/) 135 database and permission tests in 7 files; [e2e/](e2e/) 25 browser tests, plus 7 read-only checks against the deployed address |
+| 6 | Test code | [src/](src/) 354 unit and component tests in 32 files, beside the code they test; [tests/](tests/) 135 database and permission tests in 7 files; [e2e/](e2e/) 25 browser tests, plus 7 read-only checks against the deployed address |
 | 7 | Scale document | [docs/06-scale.md](docs/06-scale.md) |
 | 8 | Security document | [docs/05-security.md](docs/05-security.md) |
 | 9 | Local run instructions, with every environment variable explained | [README.md](README.md), sections "Local setup, from a clean clone" and "Environment variables" |

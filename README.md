@@ -197,7 +197,7 @@ between them, or run them one at a time.
 
 ### `npm test` - unit and component tests
 
-346 tests in 31 files, no network, about three seconds. Vitest, with React Testing Library for the
+354 tests in 32 files, no network, about three seconds. Vitest, with React Testing Library for the
 components. They live beside what they test, as `<name>.test.ts` next to `<name>.ts`.
 
 Covers the derived rules, which is where the product's thinking lives: the rent schedule and the
@@ -261,10 +261,10 @@ Password for all of them: `Demo-Rental-2026!` (or whatever `SEED_USER_PASSWORD` 
 
 | Role | Email | What they see |
 | --- | --- | --- |
-| Landlord | `noa.bendavid@example.co.il` | Two buildings, five units, tenancies that are active, ended and upcoming, a ledger with a paid, a partial and an overdue month, and repairs in every status |
+| Landlord | `noa.bendavid@example.co.il` | Two buildings, five units, tenancies that are active, ended and upcoming, a ledger holding settled months, a part payment and months in arrears, and repairs in every status |
 | Landlord | `eitan.shapira@example.co.il` | A different building with its own tenant, and no sight of anything of Noa's. Sign in as both to see the isolation the policies enforce |
 | Tenant | `maya.levi@example.co.il` | An active tenancy of Noa's, in arrears: her ledger stops two months short, so the portal shows overdue months and an outstanding balance. Checked on the deployed site: ₪6,500.00 due this month, ₪13,000.00 outstanding, two months past their due date |
-| Tenant | `yonatan.azoulay@example.co.il` | An active tenancy of Noa's, part paid: a cash payment covers some of the current month, which is what a partial rent status looks like |
+| Tenant | `yonatan.azoulay@example.co.il` | An active tenancy of Noa's with a part payment: a cash payment covers ₪2,500.00 of the current month's ₪5,800.00. The month reads **Part paid** while its due day is still ahead, and **Overdue** once that day has passed, with ₪3,300.00 shown as outstanding either way. Both readings are correct, and which one you see depends on the date you sign in: past due outranks part paid, so that a month needing to be chased is not filed as merely incomplete |
 | Tenant | `shira.mizrahi@example.co.il` | A tenancy that has ended |
 | Tenant | `dana.peretz@example.co.il` | An active tenancy of Eitan's, with the current month unpaid. Sign in as Eitan to see the same tenancy from the landlord's side |
 

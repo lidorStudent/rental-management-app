@@ -105,6 +105,6 @@ set. The seeded accounts are:
 | `noa.bendavid@example.co.il` | Landlord | Two buildings, five units, four leases |
 | `eitan.shapira@example.co.il` | Landlord | A separate portfolio, used to prove the two never see each other |
 | `maya.levi@example.co.il` | Tenant | Active lease with an overdue month |
-| `yonatan.azoulay@example.co.il` | Tenant | Active lease, current period part paid |
+| `yonatan.azoulay@example.co.il` | Tenant | Active lease with a part payment against the current period, which reads Part paid before its due day and Overdue after it |
 | `shira.mizrahi@example.co.il` | Tenant | Ended lease, fully paid, history still readable |
 | `dana.peretz@example.co.il` | Tenant | The second landlord's tenant |
