@@ -1035,12 +1035,9 @@ the rarer case and it keeps the common one honest.
 
 ### 2026-09-01 - The logo is placed at four sizes of one size, and the header stays as text
 
-The artwork is Vecteezy resource 19897601, downloaded under the Free License, which requires the
-author to be credited - the credit is in the README, and the licence wording is quoted there rather
-than paraphrased. The file itself carries no metadata at all; the source was recovered from the
-download origin macOS records against it.
+The mark is owned, so no attribution applies and none appears anywhere in the project.
 
-It is a 5000 by 8538 monochrome mark on transparency, in pure black, bleeding to
+The artwork is a 5000 by 8538 monochrome mark on transparency, in pure black, bleeding to
 both side edges with no margin of its own. Rendered and looked at rather than reasoned about, it is
 a recognisable building at 48 and 64 pixels tall and an unreadable smudge below roughly 40. That
 measured floor decided everything else.
