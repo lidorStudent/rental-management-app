@@ -74,6 +74,22 @@ every phase.
 - TypeScript strict mode. No `any`. No non-null assertions unless the invariant is proven
   immediately above.
 
+## UI CHANGES
+
+- "Styling" means CSS and Tailwind class changes. Nothing else counts as styling.
+- No new DOM. Do not add, remove or re-nest elements to achieve a visual result. Changing the
+  classes on an element that is already there is styling; adding a wrapper to hang classes on is
+  not.
+- No new dependency for a visual problem. No component library, no animation library, no charting
+  library, no icon package.
+- Never modify a test to accommodate a UI change. If a change breaks a test, the change is wrong
+  until proven otherwise: report the break and what it means. A test edited to make a UI change pass
+  is a test that no longer tests anything.
+- If a change genuinely needs new DOM, say so and stop. Do not do it because the result would look
+  better; ask, and let the user decide whether it is worth the exception.
+- Prefer the token to the value. The palette, the five status meanings and the type scale live in
+  `src/app/globals.css`; a colour or size written inline is a value that will drift.
+
 ## EXPLAINABILITY
 
 - The user has to present this project and answer questions about it as if in a job interview. Code
