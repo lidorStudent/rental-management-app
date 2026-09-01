@@ -218,7 +218,7 @@ and real policies. Refuses to run if `.env.test` points at the deployed project.
 | `tests/anonymousAccess.test.ts` | The anonymous key, which is in the browser bundle, reads and writes nothing anywhere |
 | `tests/serverActions.test.ts` | Actions refuse the wrong role, answer another landlord's identifier exactly as they answer one that does not exist, and take ownership from the session rather than from the payload |
 | `tests/domainInvariants.test.ts` | The five domain invariants at the database level, including the exclusion constraint that refuses overlapping tenancies |
-| `tests/schemaGuarantees.test.ts` | What the schema refuses on its own: the check constraints, the per-building uniqueness of a flat label, every cascade and restrict, and the two triggers |
+| `tests/schemaGuarantees.test.ts` | What the schema refuses on its own: the check constraints, the per-building uniqueness of a flat label, every cascade and restrict, and the three triggers: the one that stamps `updated_at`, the one that gives every new account a profile, and the one that pins the two profile columns its owner may not write |
 | `tests/passwordChange.test.ts` | Changing a password requires the current one: a session alone cannot take an account over, the tenant's temporary-password path still completes, and a throttled attempt is told to wait rather than told it was wrong |
 
 ### `npm run test:e2e` - browser tests
@@ -263,7 +263,7 @@ Password for all of them: `Demo-Rental-2026!` (or whatever `SEED_USER_PASSWORD` 
 | --- | --- | --- |
 | Landlord | `noa.bendavid@example.co.il` | Two buildings, five units, tenancies that are active, ended and upcoming, a ledger holding settled months, a part payment and months in arrears, and repairs in every status |
 | Landlord | `eitan.shapira@example.co.il` | A different building with its own tenant, and no sight of anything of Noa's. Sign in as both to see the isolation the policies enforce |
-| Tenant | `maya.levi@example.co.il` | An active tenancy of Noa's, in arrears: her ledger stops two months short, so the portal shows overdue months and an outstanding balance. Checked on the deployed site: ₪6,500.00 due this month, ₪13,000.00 outstanding, two months past their due date |
+| Tenant | `maya.levi@example.co.il` | An active tenancy of Noa's, in arrears. Her ledger stops short of the present: rent of ₪6,500.00 falls due on the 10th of each month and the last payment recorded is for the seventh month of the tenancy, so every month since reads **Overdue** and the outstanding balance is that many months of rent. How many depends on the day you sign in, which is the point of the portal: the figure is derived from the ledger and today's date, never stored |
 | Tenant | `yonatan.azoulay@example.co.il` | An active tenancy of Noa's with a part payment: a cash payment covers ₪2,500.00 of the current month's ₪5,800.00. The month reads **Part paid** while its due day is still ahead, and **Overdue** once that day has passed, with ₪3,300.00 shown as outstanding either way. Both readings are correct, and which one you see depends on the date you sign in: past due outranks part paid, so that a month needing to be chased is not filed as merely incomplete |
 | Tenant | `shira.mizrahi@example.co.il` | A tenancy that has ended |
 | Tenant | `dana.peretz@example.co.il` | An active tenancy of Eitan's, with the current month unpaid. Sign in as Eitan to see the same tenancy from the landlord's side |
