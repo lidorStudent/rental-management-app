@@ -12,6 +12,49 @@ Rental Management: a rental system for small landlords, with a tenant portal.
 
 ---
 
+## How to review this in ten minutes
+
+Sign in as the landlord `noa.bendavid@example.co.il` (password below). The dashboard opens on what
+needs attention rather than on a menu: rent outstanding, problems open, tenancies ending. Follow
+**Rent** for every tenancy with what has been charged, received and left over. No status there is
+stored. Each is derived from the ledger and today's date, which is why a month moves from part paid
+to overdue on its own.
+
+Then break it on purpose. **Leases → Record a tenancy**, choose **Flat 1**, enter dates inside Maya
+Levi's term. It is refused, naming the tenancy in the way and the first free day:
+
+> This unit is already let from 2026-01-01 to 2027-01-31. Both of those days belong to that tenancy,
+> so a new one can start on 2027-02-01 at the earliest.
+
+Nothing is written. That rule is a Postgres exclusion constraint rather than a check in application
+code, so two browser tabs cannot race past it.
+
+Sign out and in as `maya.levi@example.co.il`. She sees her own tenancy and nothing else: no landlord
+navigation, no way to record a payment, and a landlord address returns her to her own portal. What
+matters is where that is enforced. The same request made straight to the database with her
+credentials returns zero rows, so a mistake in a page yields nothing rather than somebody else's
+data.
+
+If you read three documents, read these sections:
+
+- [Product specification](docs/01-product-specification.md) **section 9** — everything the product
+  deliberately does not do, each exclusion with the reason it was a decision.
+- [Security](docs/05-security.md) **section 12** — the risks that remain, including a finding where
+  three fixes were designed, tested and rejected, with the reasoning kept.
+- [Scale](docs/06-scale.md) **section 3** — hundreds of landlords, measured: one landlord's queries
+  tripled because of another landlord's rows.
+
+The [architecture explainer](docs/07-architecture-explainer.md) traces five flows from click to
+rendered page if you want the code.
+
+Tests sit at three levels. `src/` holds 354 unit and component tests of the rules at their
+boundaries. `tests/` holds 135 against a real Postgres as real signed-in users, attacking the
+database rather than the interface, which is the only way a policy is proved. `e2e/` holds 25 browser
+tests of whole processes. Section 8 of the [test specification](docs/03-test-specification.md)
+records five checks a machine cannot judge, with dated results.
+
+---
+
 ## Demo accounts
 
 **Demo data.** Every account below is created by `supabase/seed.ts`, and the portfolio behind them is
@@ -24,7 +67,7 @@ Password for all of them: `Demo-Rental-2026!`
 | --- | --- | --- |
 | Landlord | `noa.bendavid@example.co.il` | Two buildings, five units, tenancies that are active, ended and upcoming, a ledger holding settled months, a part payment and months in arrears, and repairs in every status |
 | Landlord | `eitan.shapira@example.co.il` | A different building and tenant, and no sight of anything of Noa's. Sign in as both to see the isolation the policies enforce |
-| Tenant | `maya.levi@example.co.il` | An active tenancy of Noa's, two months in arrears |
+| Tenant | `maya.levi@example.co.il` | An active tenancy of Noa's, in arrears: her ledger stops at the seventh month, so every month charged since reads Overdue. How many that is depends on the day you sign in |
 | Tenant | `yonatan.azoulay@example.co.il` | An active tenancy of Noa's with a part payment against the current month. The month reads **Part paid** while its due day is still ahead and **Overdue** once that day has passed, with the remainder shown beside it either way: past due outranks part paid, because that is what needs chasing |
 | Tenant | `shira.mizrahi@example.co.il` | A tenancy that has ended, with its history still readable |
 | Tenant | `dana.peretz@example.co.il` | An active tenancy of Eitan's, with the current month unpaid |
