@@ -59,6 +59,7 @@ anything clever is asked of it.
 | CORE-06 | Unit occupancy is derived | A unit with an active lease | Open the property page | The unit shows the tenant's name and the end date, with no occupancy column in the database | E | A stored occupancy flag is wrong the moment a lease is ended early |
 | CORE-07 | Edit a unit | A unit exists | Change its label | The new label is shown | E | Buildings get renumbered |
 | CORE-08 | Delete a unit with no tenancies | A unit never let | Confirm the delete | The unit is gone | E | Same as CORE-04, at the unit level |
+| CORE-29 | Only a vacant unit offers a tenancy | Three units in one building: one let today, one empty, one reserved by a tenancy that has not started | Open the property page | The empty one carries a link to the tenancy form with its own `unitId`, and the form arrives with that unit chosen. The let one and the reserved one carry no such link. Every row keeps its edit link | E | The third step of section 18.1's guided first session. The reserved unit is the case worth guarding: it is free today and looks vacant, and offering it a tenancy the overlap rule would refuse is the mistake this rule exists to avoid |
 
 ### 1.2 Leases
 
@@ -518,7 +519,7 @@ confirming the real thing works at its real address.
 performs steps 1 to 4 of this case in a browser, and also carries SEC-01 and SEC-02, the two checks
 on the response headers, which can only be made where the platform actually serves them: seven tests
 in all. The file begins with a `test.skip` that skips all seven unless `PLAYWRIGHT_BASE_URL` is set,
-which is why an ordinary `npm run test:e2e` reports twenty-five passed and seven skipped. That is a deliberate decision, for three reasons: the file
+which is why an ordinary `npm run test:e2e` reports twenty-six passed and seven skipped. That is a deliberate decision, for three reasons: the file
 reads the deployed project, which serves the demo data people are shown, while every other E test
 creates and deletes rows in the test project, so one run must not point at both; the session
 cookie's `secure` flag is only set when `NODE_ENV` is `production`, so asserting it against a
@@ -539,7 +540,7 @@ PLAYWRIGHT_BASE_URL=https://rental-management-app-wine.vercel.app npx playwright
 
 | Requirement, from `docs/00-course-requirements.md` section 5 | Where it is covered |
 | --- | --- |
-| Core features | Section 1, CORE-01 to CORE-28 |
+| Core features | Section 1, CORE-01 to CORE-29 |
 | Invalid inputs | Section 2, INV-01 to INV-52, every field of every form |
 | Central business processes | Section 3, PROC-01 to PROC-18: lease lifecycle, rent lifecycle with a month going overdue, maintenance lifecycle |
 | Permission differences between user types | Section 4, PERM-01 to PERM-42 |
@@ -556,7 +557,7 @@ without searching. The counts, as they stand:
 
 | Prefix | Cited in the test code | Total | Not cited, and why |
 | --- | --- | --- | --- |
-| CORE | 28 | 28 | — |
+| CORE | 29 | 29 | — |
 | INV | 43 | 52 | INV-08, 09, 33, 34, 35, 40, 44, 49 and 50 are proved by the schema tests without naming their identifier. The assertions exist; the citations do not |
 | PROC | 18 | 18 | — |
 | PERM | 42 | 42 | — |
@@ -564,7 +565,7 @@ without searching. The counts, as they stand:
 | EDGE | 18 | 18 | — |
 | UI | 10 | 11 | UI-08 is a manual case by designation, discharged by MAN-02 |
 
-Every automatable case now has an assertion behind it. Each of the five that did not was written
+Every automatable case now has an assertion behind it. Each of the six listed below was written
 against the behaviour first: the test was watched failing with the behaviour removed or inverted
 before it was accepted, so none of them is a test shaped around code that already passed.
 
@@ -575,6 +576,7 @@ before it was accepted, so none of them is a test shaped around code that alread
 | PROC-17 | D | `tests/serverActions.test.ts` | `tenant_confirmed_at: null` removed from the status action, and the confirmation turned into a no-op |
 | EDGE-14 | U | `src/lib/rent/statementPeriodRange.test.ts` | See below: the case was rewritten, because the behaviour it described does not exist |
 | UI-11 | E | `e2e/interfaceStates.spec.ts` | `print:hidden` removed from the range form, then from the navigation |
+| CORE-29 | E | `e2e/interfaceStates.spec.ts` | The vacancy condition removed so every row offered the link: the count went to 3 of an expected 1, and with that assertion muted in turn, the let unit and then the reserved unit each reported 1 where 0 was expected |
 
 **EDGE-14 was the case that was wrong, not the code.** It asked for a range before the tenancy to
 produce an explicit empty statement. It cannot: `chooseStatementRange` clamps both ends inside the

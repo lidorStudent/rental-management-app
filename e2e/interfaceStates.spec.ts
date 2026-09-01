@@ -314,3 +314,78 @@ test("print media hides the chrome around a statement and leaves the document", 
     await removeEverything(portfolio.landlord.id, [tenant.id]);
   }
 });
+
+// CORE-29
+test("only a vacant unit offers a tenancy, and it carries the unit with it", async ({ page }) => {
+  const client = adminClient();
+  const tenant = await createTenantAccount(false);
+
+  // Flat 1 is let today.
+  await createLease({
+    portfolio,
+    tenantId: tenant.id,
+    startDate: monthsFromNow(-1),
+    endDate: endOfMonth(10),
+  });
+
+  // Flat 2 stands empty.
+  const { data: vacantUnit } = await client
+    .from("units")
+    .insert({ property_id: portfolio.propertyId, landlord_id: portfolio.landlord.id, label: "Flat 2" })
+    .select("id")
+    .single();
+
+  // Flat 3 is free today but already reserved by a tenancy that has not started. This is the case
+  // the rule was written for and the one most likely to be lost: it looks vacant on the surface.
+  const { data: reservedUnit } = await client
+    .from("units")
+    .insert({ property_id: portfolio.propertyId, landlord_id: portfolio.landlord.id, label: "Flat 3" })
+    .select("id")
+    .single();
+  await client.from("leases").insert({
+    unit_id: reservedUnit?.id as string,
+    landlord_id: portfolio.landlord.id,
+    tenant_profile_id: null,
+    rent_amount_cents: 500000,
+    deposit_amount_cents: 0,
+    start_date: monthsFromNow(2),
+    end_date: endOfMonth(13),
+    rent_due_day: 10,
+  });
+
+  try {
+    await signIn(page, portfolio.landlord.email);
+    await page.goto(`/landlord/properties/${portfolio.propertyId}`);
+
+    // Scoped to the unit table by its caption rather than to the page, so a second table added
+    // later cannot make these counts mean something else.
+    const units = page.getByRole("table", { name: `Units in ${portfolio.propertyName}` });
+    await expect(units.getByRole("cell", { name: "Flat 2", exact: true })).toBeVisible();
+
+    const offered = units.getByRole("link", { name: /^Record a tenancy on / });
+    await expect(offered).toHaveCount(1);
+
+    await expect(
+      units.getByRole("link", { name: "Record a tenancy on Flat 2", exact: true }),
+    ).toBeVisible();
+    await expect(
+      units.getByRole("link", { name: "Record a tenancy on Flat 1", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      units.getByRole("link", { name: "Record a tenancy on Flat 3", exact: true }),
+    ).toHaveCount(0);
+
+    // Every row keeps its own edit link, so the count above is a statement about the new link
+    // rather than about the row having lost its actions.
+    await expect(units.getByRole("link", { name: /^Edit Flat / })).toHaveCount(3);
+
+    await units.getByRole("link", { name: "Record a tenancy on Flat 2", exact: true }).click();
+
+    await expect(page).toHaveURL(new RegExp(`/landlord/leases/new\\?unitId=${vacantUnit?.id}$`));
+    // The form arrived with that unit chosen, not merely with the id in the address.
+    await expect(page.getByLabel("Unit")).toHaveValue(vacantUnit?.id as string);
+    await expect(page.getByTestId("unit-occupancy")).toHaveText("Currently: Vacant");
+  } finally {
+    await removeEverything(portfolio.landlord.id, [tenant.id]);
+  }
+});
