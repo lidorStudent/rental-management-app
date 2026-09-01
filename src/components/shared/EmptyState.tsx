@@ -6,7 +6,9 @@ import type { ReactNode } from "react";
  * can end up as a blank area that leaves the reader wondering whether it is broken or empty.
  *
  * Every empty state names the next action, because the first hour with this product is a sequence
- * of them: no properties yet, then a property with no units, then a unit with no tenancy.
+ * of them: no properties yet, then a property with no units, then a unit with no tenancy. That
+ * action carries the accent, because on an empty screen it is the only thing to do and an outline
+ * button reads as one option among several that are not there.
  */
 export function EmptyState({
   title,
@@ -24,7 +26,7 @@ export function EmptyState({
       {action === undefined ? null : (
         <Link
           href={action.href}
-          className="mt-4 inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium hover:bg-accent"
+          className="bg-primary text-primary-foreground hover:bg-primary/80 mt-4 inline-flex h-9 items-center rounded-md px-4 text-sm font-medium"
         >
           {action.label}
         </Link>

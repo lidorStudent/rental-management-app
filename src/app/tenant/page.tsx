@@ -42,7 +42,15 @@ export default async function TenantPortalPage() {
         endDate={lease.endDate}
       />
 
-      <Suspense fallback={<PanelSkeleton lineCount={2} />}>
+      <Suspense
+        fallback={
+          <PanelSkeleton
+            lineCount={2}
+            className="grid gap-px space-y-0 overflow-hidden border-0 bg-border p-0 sm:grid-cols-3"
+            lineClassName="h-[104px] w-full rounded-none"
+          />
+        }
+      >
         <TenantRentPosition lease={lease} />
       </Suspense>
 

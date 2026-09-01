@@ -229,6 +229,15 @@
   }
 
   /*
+   * The dashboard is the one page whose heading repeats the navigation pill above it, so its title
+   * steps down and the figure the page exists to answer is the largest thing on the screen. The
+   * scale itself is unchanged; only this page's h1 moves.
+   */
+  .dashboard-page .page-title {
+    @apply text-lg;
+  }
+
+  /*
     The status badge.
 
     The five meanings are also five amounts of ink: a dashed outline, a solid outline, a tint, a
@@ -298,5 +307,21 @@
 
   a[href]::after {
     content: "";
+  }
+}
+
+/*
+ * Anything that moves, stops moving when the reader has asked for that. Two things move here: the
+ * skeleton's pulse while a page streams, and the transitions on buttons and links. Neither carries
+ * meaning, so both are safe to remove outright rather than shorten.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

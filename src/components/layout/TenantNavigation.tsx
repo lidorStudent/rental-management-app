@@ -25,15 +25,15 @@ export function TenantNavigation({ signedInAs }: { signedInAs: string }) {
 
   return (
     <header className="bg-card border-b print:hidden">
-      <div className="mx-auto flex max-w-3xl items-center gap-4 px-6 py-3">
-        <nav aria-label="Tenant" className="flex min-w-0 flex-wrap items-center gap-1">
+      <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:gap-x-4 sm:px-6">
+        <nav aria-label="Tenant" className="order-last flex w-full min-w-0 flex-wrap items-center gap-1 lg:order-none lg:w-auto">
           {TENANT_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               aria-current={isCurrent(currentPath, link.href) ? "page" : undefined}
               className={cn(
-                "rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground",
+                "rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground sm:px-2.5 sm:text-sm",
                 isCurrent(currentPath, link.href) && "bg-accent font-medium text-foreground",
               )}
             >

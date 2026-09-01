@@ -83,17 +83,12 @@ export async function DashboardOverview() {
     <div className="space-y-6">
       <dl className="grid gap-px overflow-hidden rounded-md border bg-border sm:grid-cols-2 lg:grid-cols-4">
         <Figure
-          label="Rent collected this month"
-          value={formatCentsAsCurrency(orZero(collectedThisMonth.data?.collected_cents))}
-          detail={describePaymentCount(orZero(collectedThisMonth.data?.payment_count))}
-          href="/landlord/rent"
-        />
-        <Figure
           label="Outstanding"
           value={formatCentsAsCurrency(arrears)}
           detail={arrears === 0 ? "Nothing owed" : "Across every tenancy"}
           href="/landlord/rent"
           isAlarming={arrears > 0}
+          isLeading
         />
         <Figure
           label="Open problems"
@@ -107,6 +102,12 @@ export async function DashboardOverview() {
           value={`${occupiedUnits} of ${totalUnits}`}
           detail={occupiedUnits === totalUnits ? "Every unit is let" : "Units currently let"}
           href="/landlord/properties"
+        />
+        <Figure
+          label="Rent collected this month"
+          value={formatCentsAsCurrency(orZero(collectedThisMonth.data?.collected_cents))}
+          detail={describePaymentCount(orZero(collectedThisMonth.data?.payment_count))}
+          href="/landlord/rent"
         />
       </dl>
 
@@ -155,12 +156,15 @@ function Figure({
   detail,
   href,
   isAlarming = false,
+  isLeading = false,
 }: {
   label: string;
   value: string;
   detail: string;
   href: string;
   isAlarming?: boolean;
+  /** The one figure the page exists to answer, sized so it is read before the other three. */
+  isLeading?: boolean;
 }) {
   return (
     <div className="bg-card">
@@ -168,7 +172,8 @@ function Figure({
         <dt className="text-muted-foreground text-xs">{label}</dt>
         <dd
           className={cn(
-            "text-xl font-medium tabular-nums",
+            "font-medium tabular-nums",
+            isLeading ? "text-3xl" : "text-xl",
             isAlarming && "text-status-critical-ink",
           )}
         >

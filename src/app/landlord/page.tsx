@@ -13,10 +13,18 @@ export const metadata = { title: "Dashboard" };
  */
 export default function LandlordDashboardPage() {
   return (
-    <div className="space-y-6">
+    <div className="dashboard-page space-y-6">
       <PageHeader title="Dashboard" description="What needs attention across your portfolio." />
 
-      <Suspense fallback={<PanelSkeleton lineCount={3} />}>
+      <Suspense
+        fallback={
+          <PanelSkeleton
+            lineCount={3}
+            className="grid gap-px space-y-0 overflow-hidden border-0 bg-border p-0 sm:grid-cols-2 lg:grid-cols-4"
+            lineClassName="h-[86px] w-full rounded-none"
+          />
+        }
+      >
         <DashboardOverview />
       </Suspense>
     </div>

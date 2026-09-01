@@ -25,19 +25,19 @@ export function LandlordNavigation({ signedInAs }: { signedInAs: string }) {
 
   return (
     <header className="bg-card border-b print:hidden">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:gap-x-6 sm:px-6">
         <Link href="/landlord" className="text-sm font-semibold tracking-tight">
           Rental Management
         </Link>
 
-        <nav aria-label="Landlord" className="flex min-w-0 flex-wrap items-center gap-1">
+        <nav aria-label="Landlord" className="order-last flex w-full min-w-0 flex-wrap items-center gap-1 lg:order-none lg:w-auto">
           {LANDLORD_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               aria-current={isCurrent(currentPath, link.href) ? "page" : undefined}
               className={cn(
-                "rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground",
+                "rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground sm:px-2.5 sm:text-sm",
                 isCurrent(currentPath, link.href) && "bg-accent font-medium text-foreground",
               )}
             >
@@ -47,7 +47,7 @@ export function LandlordNavigation({ signedInAs }: { signedInAs: string }) {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">{signedInAs}</span>
+          <span className="hidden text-sm text-muted-foreground sm:inline">{signedInAs}</span>
           <SignOutButton />
         </div>
       </div>
