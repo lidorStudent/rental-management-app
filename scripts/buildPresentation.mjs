@@ -141,7 +141,7 @@ const slides = [
     bullets: [
       "354 unit and component tests — the rules at their boundaries",
       "135 permission and database tests — against a real Postgres",
-      "25 end-to-end tests — whole processes in a browser",
+      "26 end-to-end tests — whole processes in a browser",
       "5 documented manual checks — print, layout, screen reader",
     ],
     closing: "The permission tests attack the database, not the interface.",

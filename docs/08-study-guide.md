@@ -241,7 +241,7 @@ The long form is [docs/learning/04-security-model.md](learning/04-security-model
 | --- | --- |
 | `npm test`, 354 tests | The rules are right at their boundaries, and the forms behave, including for a screen reader |
 | `npm run test:db`, 135 tests | The policies and constraints hold against a real Postgres, as real signed-in users |
-| `npm run test:e2e`, 25 tests | The whole processes work in a browser, including the refusals |
+| `npm run test:e2e`, 26 tests | The whole processes work in a browser, including the refusals |
 
 **The one to be able to defend:** the permission tests do not drive the interface. Driving the
 interface only proves the interface offered no way in, and an attacker will not use the interface.

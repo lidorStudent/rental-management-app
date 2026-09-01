@@ -223,7 +223,7 @@ and real policies. Refuses to run if `.env.test` points at the deployed project.
 
 ### `npm run test:e2e` - browser tests
 
-25 tests in a real Chromium against the test project, about three minutes. Playwright starts the dev
+26 tests in a real Chromium against the test project, about three minutes. Playwright starts the dev
 server itself. Each test builds its own landlord, building and tenant through the admin API and
 removes them afterwards, so the suite can be run twice in a row in any order.
 

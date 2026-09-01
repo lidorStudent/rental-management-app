@@ -49,7 +49,7 @@ rendered page if you want the code.
 
 Tests sit at three levels. `src/` holds 354 unit and component tests of the rules at their
 boundaries. `tests/` holds 135 against a real Postgres as real signed-in users, attacking the
-database rather than the interface, which is the only way a policy is proved. `e2e/` holds 25 browser
+database rather than the interface, which is the only way a policy is proved. `e2e/` holds 26 browser
 tests of whole processes. Section 8 of the [test specification](docs/03-test-specification.md)
 records five checks a machine cannot judge, with dated results.
 
@@ -83,7 +83,7 @@ Password for all of them: `Demo-Rental-2026!`
 | 3 | Product specification | [docs/01-product-specification.md](docs/01-product-specification.md) |
 | 4 | Technical planning document | [docs/02-technical-plan.md](docs/02-technical-plan.md) |
 | 5 | Test specification | [docs/03-test-specification.md](docs/03-test-specification.md) |
-| 6 | Test code | [src/](src/) 354 unit and component tests in 32 files, beside the code they test; [tests/](tests/) 135 database and permission tests in 7 files; [e2e/](e2e/) 25 browser tests, plus 7 read-only checks against the deployed address |
+| 6 | Test code | [src/](src/) 354 unit and component tests in 32 files, beside the code they test; [tests/](tests/) 135 database and permission tests in 7 files; [e2e/](e2e/) 26 browser tests, plus 7 read-only checks against the deployed address |
 | 7 | Scale document | [docs/06-scale.md](docs/06-scale.md) |
 | 8 | Security document | [docs/05-security.md](docs/05-security.md) |
 | 9 | Local run instructions, with every environment variable explained | [README.md](README.md), sections "Local setup, from a clean clone" and "Environment variables" |
