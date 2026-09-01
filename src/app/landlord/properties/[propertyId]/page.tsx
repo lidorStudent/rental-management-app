@@ -122,6 +122,23 @@ export default async function PropertyDetailPage({
                     <TableCell>{occupancyWords(occupancy)}</TableCell>
                     <TableCell className="text-right tabular-nums">{unit.leases.length}</TableCell>
                     <TableCell className="text-right">
+                      {/*
+                       * A unit with nobody in it is the third step of a landlord's first hour, and
+                       * until now the only way on from here was to know that Leases is where a
+                       * tenancy is recorded. Offered only when the unit is vacant: a unit that is
+                       * occupied, or already reserved by an upcoming tenancy, would have the
+                       * tenancy refused by the overlap rule, and offering an action that is going
+                       * to be refused is worse than not offering it.
+                       */}
+                      {occupancy.state === "vacant" ? (
+                        <Link
+                          href={`/landlord/leases/new?unitId=${unit.id}`}
+                          aria-label={`Record a tenancy on ${unit.label}`}
+                          className="mr-3 text-sm underline"
+                        >
+                          Record a tenancy
+                        </Link>
+                      ) : null}
                       <Link
                         href={`/landlord/units/${unit.id}/edit`}
                         aria-label={`Edit ${unit.label}`}
