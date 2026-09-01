@@ -1032,3 +1032,40 @@ refusal is the likely outcome.
 
 The cost is that back-to-back tenancies on a reserved unit still start from the Leases page. That is
 the rarer case and it keeps the common one honest.
+
+### 2026-09-01 - The logo is placed at four sizes of one size, and the header stays as text
+
+The artwork is Vecteezy resource 19897601, downloaded under the Free License, which requires the
+author to be credited - the credit is in the README, and the licence wording is quoted there rather
+than paraphrased. The file itself carries no metadata at all; the source was recovered from the
+download origin macOS records against it.
+
+It is a 5000 by 8538 monochrome mark on transparency, in pure black, bleeding to
+both side edges with no margin of its own. Rendered and looked at rather than reasoned about, it is
+a recognisable building at 48 and 64 pixels tall and an unreadable smudge below roughly 40. That
+measured floor decided everything else.
+
+It is therefore not in the header. A header mark would sit at 24 to 32 pixels beside the wordmark,
+which is under the floor, and a smudge next to clean type reads as a rendering fault rather than as
+a brand - worse than no mark at all. It appears only where there is room to draw it at 48: sign in,
+registration, the forced password change, and the head of the rent statement. Those are also the
+four screens with no navigation around them, so the mark is doing the job navigation does elsewhere.
+
+It is drawn as a CSS mask over `background-color: var(--foreground)`, not as an image. The artwork is
+pure black and nothing else in the product is pure black, so an `<img>`, which paints its own pixels
+and lets nothing through, would put the one true black on a page whose text is not. The instruction
+was to serve it through `next/image`, and that could not be done as written: a mask `url()` does not
+participate in an image element's srcset, so the optimiser never sees it. The reason behind the
+instruction was honoured instead - the full-size original decodes to 163 MB of bitmap however small
+it is drawn, so the mask loads `logo-mark.png`, a 150 by 256 copy that decodes to 150 KB and stays
+sharp past 64 pixels on a four-times display. The original stays in the repository as the source.
+
+Two consequences worth knowing. A CSS mask is blocked over `file://`, so the pages render the mark
+blank when opened straight from disk; that is the protocol refusing the mask, not a broken asset.
+And a background colour is a background graphic, which browsers drop from print by default, so the
+component sets `print-color-adjust: exact` - without it the statement would print a blank gap.
+
+The accessible name is "Rental Management", not "logo". A masked span has no content of its own, so
+the name has to be given rather than inferred, and on all four screens the mark stands alone with no
+wordmark beside it. Naming it "logo" would tell a screen reader user that a picture exists without
+telling them what it says; naming it as the product says the thing the mark is standing in for.

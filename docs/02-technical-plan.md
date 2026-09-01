@@ -187,9 +187,9 @@ Every page listed here is a server component unless the table says otherwise.
 | Route | Purpose | Who reaches it |
 | --- | --- | --- |
 | `/` | Not a landing page. A signed-out visitor is sent to `/login` by the middleware, and a signed-in one is sent to their own area | Anyone |
-| `/login` | Email and password sign in for both roles | Signed-out users |
-| `/register` | Landlord registration. Tenants cannot register here; they are created by their landlord (P1) | Signed-out users |
-| `/change-password` | Sets a new password. Forced for any profile with `must_change_password` set, and reachable voluntarily afterwards | Any signed-in user |
+| `/login` | Email and password sign in for both roles, under the logo mark | Signed-out users |
+| `/register` | Landlord registration, under the logo mark. Tenants cannot register here; they are created by their landlord (P1) | Signed-out users |
+| `/change-password` | Sets a new password, under the logo mark. Forced for any profile with `must_change_password` set, and reachable voluntarily afterwards | Any signed-in user |
 
 ### 4.2 Landlord area, under `/landlord`
 
@@ -521,7 +521,12 @@ rental-management-app/
 │   ├── deploymentSmoke.spec.ts        read only, against a deployed address
 │   ├── landlordGoldenPath.spec.ts
 │   ├── tenantGoldenPath.spec.ts
-│   └── negativePaths.spec.ts
+│   ├── negativePaths.spec.ts
+│   ├── interfaceStates.spec.ts        pagination, filters, print hiding, the vacant unit link
+│   └── sessionCookie.spec.ts
+├── public/
+│   ├── logo.png                       the artwork as supplied, kept as the source of the mark
+│   └── logo-mark.png                  the 150 by 256 copy the CSS mask actually loads
 └── src/                               unit and component tests live beside what they test,
     │                                   as <name>.test.ts next to <name>.ts
     ├── proxy.ts                        session refresh and the area guards
@@ -598,6 +603,7 @@ rental-management-app/
     │   │   ├── EmptyState.tsx
     │   │   ├── FieldError.tsx
     │   │   ├── FormErrorSummary.tsx
+    │   │   ├── LogoMark.tsx
     │   │   ├── PageHeader.tsx
     │   │   ├── PaginatedTable.tsx
     │   │   ├── PanelSkeleton.tsx
@@ -713,8 +719,9 @@ Files that do the same job have the same shape, so learning one teaches all of t
 | `TenantAccessPanel` | Shows whether the lease has a tenant account, offers the create action when it does not, and displays the one-time temporary password returned by that action. Never reads a password from anywhere |
 | `AttentionPanel` | The dashboard's reason for existing: overdue periods, leases ending within sixty days, open requests. Receives already-computed lists |
 | `OutstandingTotal` | Portfolio-wide outstanding rent, computed by `summariseOutstandingRent` on the server |
-| `RentStatement` | The statement itself, read from the ledger rather than from any aggregate: a statement that cannot be checked against its own lines is not a statement. The chrome carries `print:hidden`, and `globals.css` sets the page margins, so printing leaves the document alone |
+| `RentStatement` | The statement itself, read from the ledger rather than from any aggregate: a statement that cannot be checked against its own lines is not a statement. The chrome carries `print:hidden`, and `globals.css` sets the page margins, so printing leaves the document alone. It opens with `LogoMark`, the one place the mark is meant to reach paper |
 | `MaintenanceStatusControl` | Renders only the transitions `allowedStatusTransitions` permits from the current status, and calls the update action |
+| `LogoMark` | The logo, drawn as a CSS mask over the `--foreground` token rather than as an image, because an `<img>` paints its own pure black and nothing else in the product is pure black. Carries its own accessible name, since a masked element has no content to read. Appears on the three pages that have no navigation around them and at the head of the statement, never smaller than 48 pixels |
 | `EmptyState` | The single empty-state component, so every list that has no rows explains what to do next instead of showing a blank area |
 | `FormErrorSummary` | Renders the action's error message and field errors above the form, so a failure is never silent |
 

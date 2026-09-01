@@ -331,3 +331,15 @@ redirect if the page is past the end, render with `PaginatedTable`.
 | [docs/learning/03-data-flow.md](docs/learning/03-data-flow.md) | What happens between a click and a row |
 | [docs/learning/04-security-model.md](docs/learning/04-security-model.md) | The authorisation model, layer by layer |
 | [supabase/README.md](supabase/README.md) | The database: the two projects, the migrations, what each one contains |
+
+## Attribution
+
+The logo is "Modern Real Estate And Construction Logo" (resource 19897601) from
+[Vecteezy.com](https://www.vecteezy.com/), used under the Vecteezy Free License, which requires the
+author to be credited. The licence wording is: "If you downloaded this resource under the Free
+License, remember to always attribute the author which can be done by adding 'Vecteezy.com' to your
+design and linking to vecteezy.com where possible."
+
+The artwork is unmodified in `public/logo.png`. `public/logo-mark.png` is a scaled-down copy of it,
+and the application draws that copy as a CSS mask so the mark takes the foreground colour of the
+page rather than the pure black the file carries.
