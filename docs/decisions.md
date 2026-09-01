@@ -1014,3 +1014,21 @@ the gap being closed - somebody throttled after a typo would be told their passw
 sent to reset a password that was correct. Both the status and the code are checked, and the codes
 were measured rather than assumed.
 
+### 2026-09-01 - A tenancy is offered from a vacant unit, and only from a vacant one
+
+Section 18.1 described a guided first session in three steps and the product only had two: a landlord
+who had just added their first unit was looking at a row that said Vacant, offered Add a unit and
+Edit, and had to work out unaided that Leases is where a tenancy is recorded. The vacant row now
+links to the tenancy form with that unit preselected, through the `unitId` query string the form had
+always accepted and nothing was passing.
+
+Offered only when the unit is vacant. The alternative was to offer it on every row and let the
+overlap rule refuse the ones that cannot take a tenancy, which would have been less code and one
+fewer condition. It was rejected because an action that is going to be refused is worse than no
+action: the landlord clicks, fills in a form, and is told no, having learned nothing they could not
+have been told by the absence of a link. A reserved unit is excluded for the same reason as an
+occupied one - it has an upcoming tenancy, so the dates a new one could take are narrow and the
+refusal is the likely outcome.
+
+The cost is that back-to-back tenancies on a reserved unit still start from the Leases page. That is
+the rarer case and it keeps the common one honest.

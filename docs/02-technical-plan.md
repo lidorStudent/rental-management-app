@@ -199,12 +199,12 @@ Every page listed here is a server component unless the table says otherwise.
 | `/landlord/rent` | What every tenancy has been charged so far, what has arrived and what is left, read from the `lease_rent_summary` aggregate rather than from the payments | One aggregate row per tenancy |
 | `/landlord/properties` | Every property, with unit counts | Properties, unit counts |
 | `/landlord/properties/new` | Create a property | None |
-| `/landlord/properties/[propertyId]` | One property and its units, each showing its occupancy derived from its tenancies. Units are a plain table: a building has as many as it has, and the number does not grow with time | Property, units, their leases and tenant names |
+| `/landlord/properties/[propertyId]` | One property and its units, each showing its occupancy derived from its tenancies. A unit standing vacant carries a link to the tenancy form with that unit already chosen, which is the third step of section 18.1's sequence; an occupied or already reserved unit does not, because the overlap rule would refuse the tenancy. Units are a plain table: a building has as many as it has, and the number does not grow with time | Property, units, their leases and tenant names |
 | `/landlord/properties/[propertyId]/edit` | Edit or delete a property | Property |
 | `/landlord/properties/[propertyId]/units/new` | Add a unit to a property | Property |
 | `/landlord/units/[unitId]/edit` | Edit or delete a unit | Unit |
 | `/landlord/leases` | Every lease, filtered by lifecycle through the URL query with the same comparison `describeLeaseLifecycle` makes | Leases, units, properties, tenant names |
-| `/landlord/leases/new` | Create a lease, optionally pre-filled with a unit from the query string | Units without a current lease |
+| `/landlord/leases/new` | Create a lease, optionally pre-filled with a unit from the `unitId` query string, which the vacant unit rows on a property page supply | Units without a current lease |
 | `/landlord/leases/[leaseId]` | The centre of the landlord's day: lease terms, the derived rent schedule with a status per period, the payment ledger, tenant access, and the link to the statement | Lease, unit, property, tenant profile, payments |
 | `/landlord/leases/[leaseId]/end` | End a tenancy early. Only the end date moves | Lease |
 | `/landlord/leases/[leaseId]/renew` | Record the next tenancy on the same unit for the same tenant, offered from the day after this one ends | Lease, tenant |
@@ -1176,9 +1176,10 @@ The landlord signs in and lands on the dashboard, which is a list of things that
 a set of charts. If nothing needs attention it says so in a sentence rather than showing empty
 panels.
 
-The first session is a guided sequence of empty states: no properties yet, so add one; a property
-with no units, so add one; a unit with no lease, so record one. Each empty state names the next
-action, so the landlord is never looking at a blank page wondering what the product wants.
+The first session is a guided sequence: no properties yet, so add one; a property with no units, so
+add one; a unit standing vacant, so record a tenancy on it. The first two prompts are empty states
+and the third is a link on the vacant row, because by then the page is no longer empty. Each names
+the next action, so the landlord is never looking at a screen wondering what the product wants.
 
 The recurring session is short and one-handed. Open the lease, record a payment, done, on a phone,
 at lunch. The payment form pre-selects the oldest unpaid period and defaults the received date to
