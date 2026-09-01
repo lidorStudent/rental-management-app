@@ -1,4 +1,5 @@
 import { currentIsoDateInUtc } from "@/lib/dates/currentDate";
+import { LogoMark } from "@/components/shared/LogoMark";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
 import { buildRentSchedule } from "@/lib/rent/buildRentSchedule";
 import type { StatementRange } from "@/lib/rent/statementPeriodRange";
@@ -160,6 +161,10 @@ function StatementHeader({
 }) {
   return (
     <header className="space-y-1 border-b pb-4">
+      {/* Prints as well as shows: this is the one place the mark is meant to reach paper. */}
+      <div className="pb-2 pl-1">
+        <LogoMark className="h-12" />
+      </div>
       <h1 className="page-title">Rent statement</h1>
       <p>
         {unitLabel}, {propertyName}
