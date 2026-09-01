@@ -100,6 +100,9 @@ describe("what one landlord can read of another's", () => {
   it("shows a landlord only problems reported against their own units", async () => {
     const { data } = await eitan.from("maintenance_requests").select("lease_id");
 
+    // The count first: [].every() is true, so without it a policy that returned nothing to
+    // everybody would pass this test while breaking the page.
+    expect(data).toHaveLength(1);
     expect(data?.every((row) => row.lease_id === SEEDED_IDS.leaseDanaActive)).toBe(true);
   });
 
@@ -126,6 +129,10 @@ describe("what one landlord can read of another's", () => {
   it("shows a landlord only their own months in the collection view", async () => {
     const { data } = await eitan.from("rent_collected_by_month").select("landlord_id");
 
+    // A view that returned nothing to anybody would satisfy every() and prove nothing about
+    // security_invoker, which is the only thing standing between this view and every landlord's
+    // totals. The count is what makes the assertion below mean something.
+    expect(data).toHaveLength(3);
     expect(data?.every((row) => row.landlord_id === eitanProfileId)).toBe(true);
   });
 
@@ -133,12 +140,21 @@ describe("what one landlord can read of another's", () => {
   it("shows a landlord only their own months in the period totals view", async () => {
     const { data } = await eitan.from("lease_period_totals").select("lease_id");
 
+    expect(data).toHaveLength(3);
     expect(data?.every((row) => row.lease_id === SEEDED_IDS.leaseDanaActive)).toBe(true);
   });
 });
 
 describe("what one landlord can write to another's", () => {
   it("changes nothing when a landlord updates another landlord's property", async () => {
+    const service = serviceRoleClient();
+    const before = await service
+      .from("properties")
+      .select("name")
+      .eq("id", SEEDED_IDS.propertyRothschild)
+      .single();
+    const originalName = required(before.data, "Noa's building").name;
+
     const { data } = await eitan
       .from("properties")
       .update({ name: "Taken over" })
@@ -146,10 +162,28 @@ describe("what one landlord can write to another's", () => {
       .select();
 
     expect(data).toEqual([]);
+
+    // An empty result says the policy matched no rows. Reading the row back says the row is
+    // still what it was, which is the claim the title actually makes.
+    const after = await service
+      .from("properties")
+      .select("name")
+      .eq("id", SEEDED_IDS.propertyRothschild)
+      .single();
+    expect(required(after.data, "Noa's building").name).toBe(originalName);
   });
 
   // PERM-06
   it("changes nothing when a landlord updates another landlord's tenancy", async () => {
+    const service = serviceRoleClient();
+    const before = await service
+      .from("leases")
+      .select("rent_amount_cents")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    const originalRent = required(before.data, "Maya's tenancy").rent_amount_cents;
+    expect(originalRent).not.toBe(1);
+
     const { data } = await eitan
       .from("leases")
       .update({ rent_amount_cents: 1 })
@@ -157,9 +191,25 @@ describe("what one landlord can write to another's", () => {
       .select();
 
     expect(data).toEqual([]);
+
+    const after = await service
+      .from("leases")
+      .select("rent_amount_cents")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    expect(required(after.data, "Maya's tenancy").rent_amount_cents).toBe(originalRent);
   });
 
   it("changes nothing when a landlord corrects another landlord's payment", async () => {
+    const service = serviceRoleClient();
+    const before = await service
+      .from("rent_payments")
+      .select("id, amount_cents")
+      .eq("lease_id", SEEDED_IDS.leaseMayaActive)
+      .order("received_on");
+    const originalAmounts = required(before.data, "Maya's ledger").map((row) => row.amount_cents);
+    expect(originalAmounts.length).toBeGreaterThan(0);
+
     const { data } = await eitan
       .from("rent_payments")
       .update({ amount_cents: 1 })
@@ -167,9 +217,29 @@ describe("what one landlord can write to another's", () => {
       .select();
 
     expect(data).toEqual([]);
+
+    const after = await service
+      .from("rent_payments")
+      .select("id, amount_cents")
+      .eq("lease_id", SEEDED_IDS.leaseMayaActive)
+      .order("received_on");
+    expect(required(after.data, "Maya's ledger").map((row) => row.amount_cents)).toEqual(
+      originalAmounts,
+    );
   });
 
   it("changes nothing when a landlord moves another landlord's request along", async () => {
+    const service = serviceRoleClient();
+    const before = await service
+      .from("maintenance_requests")
+      .select("id, status")
+      .eq("lease_id", SEEDED_IDS.leaseMayaActive)
+      .order("created_at");
+    const originalStatuses = required(before.data, "Maya's reported problems").map(
+      (row) => row.status,
+    );
+    expect(originalStatuses.length).toBeGreaterThan(0);
+
     const { data } = await eitan
       .from("maintenance_requests")
       .update({ status: "resolved" })
@@ -177,6 +247,15 @@ describe("what one landlord can write to another's", () => {
       .select();
 
     expect(data).toEqual([]);
+
+    const after = await service
+      .from("maintenance_requests")
+      .select("id, status")
+      .eq("lease_id", SEEDED_IDS.leaseMayaActive)
+      .order("created_at");
+    expect(required(after.data, "Maya's reported problems").map((row) => row.status)).toEqual(
+      originalStatuses,
+    );
   });
 
   // PERM-07
@@ -204,6 +283,12 @@ describe("what one landlord can write to another's", () => {
       .select();
 
     expect(data).toEqual([]);
+
+    const { data: stillThere } = await serviceRoleClient()
+      .from("properties")
+      .select("id")
+      .eq("id", SEEDED_IDS.propertyEmekRefaim);
+    expect(stillThere).toHaveLength(1);
   });
 
   // PERM-08

@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import {
   anonymousClient,
   required,
   SEEDED_IDS,
+  serviceRoleClient,
   untypedAnonymousClient,
   untypedServiceRoleClient,
 } from "./support/testDatabase";
@@ -29,6 +30,38 @@ const EVERY_VIEW = [
   "lease_period_totals",
   "rent_collected_by_month",
 ] as const;
+
+/**
+ * Every assertion below is that an anonymous caller reads nothing. An empty database satisfies all
+ * of them without a single policy being correct, so this runs first and proves there was something
+ * to be refused: the service role, which bypasses Row Level Security, must see rows in every
+ * relation anon is about to be asked about. Unlike the rest of this suite it never calls signInAs,
+ * so nothing else here would notice an unseeded project.
+ */
+function refuseIfEmpty(relation: string, count: number | null, error: { message: string } | null) {
+  if (error !== null) {
+    throw new Error(`Could not count ${relation} as the service role: ${error.message}`);
+  }
+  if ((count ?? 0) === 0) {
+    throw new Error(
+      `${relation} is empty, so "reads nothing" would prove nothing. Run "npm run db:seed" against the test project first.`,
+    );
+  }
+}
+
+beforeAll(async () => {
+  const service = serviceRoleClient();
+
+  // Tables and views are separate overloads on the typed client, so they are counted separately.
+  for (const table of EVERY_TABLE) {
+    const { count, error } = await service.from(table).select("*", { count: "exact", head: true });
+    refuseIfEmpty(table, count, error);
+  }
+  for (const view of EVERY_VIEW) {
+    const { count, error } = await service.from(view).select("*", { count: "exact", head: true });
+    refuseIfEmpty(view, count, error);
+  }
+});
 
 describe("a client with no session", () => {
   // PERM-30
@@ -87,6 +120,18 @@ describe("a client with no session", () => {
   // PERM-30
   it("changes and deletes nothing", async () => {
     const client = anonymousClient();
+    const service = serviceRoleClient();
+
+    const leaseBefore = await service
+      .from("leases")
+      .select("rent_amount_cents")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    const originalRent = required(leaseBefore.data, "Maya's tenancy").rent_amount_cents;
+    const { count: paymentsBefore } = await service
+      .from("rent_payments")
+      .select("id", { count: "exact", head: true })
+      .eq("lease_id", SEEDED_IDS.leaseMayaActive);
 
     const updated = await client
       .from("leases")
@@ -99,8 +144,23 @@ describe("a client with no session", () => {
       .eq("lease_id", SEEDED_IDS.leaseMayaActive)
       .select();
 
-    expect(updated.data ?? []).toEqual([]);
-    expect(deleted.data ?? []).toEqual([]);
+    // No "?? []": that turned an error into an empty array, so the assertion held whether the write
+    // was refused or never reached the database at all.
+    expect(updated.data).toBeNull();
+    expect(deleted.data).toBeNull();
+
+    const leaseAfter = await service
+      .from("leases")
+      .select("rent_amount_cents")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    const { count: paymentsAfter } = await service
+      .from("rent_payments")
+      .select("id", { count: "exact", head: true })
+      .eq("lease_id", SEEDED_IDS.leaseMayaActive);
+
+    expect(required(leaseAfter.data, "Maya's tenancy").rent_amount_cents).toBe(originalRent);
+    expect(paymentsAfter).toBe(paymentsBefore);
   });
 
   /**

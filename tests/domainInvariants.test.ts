@@ -171,6 +171,14 @@ describe("invariant 4: a landlord reaches only their own rows", () => {
 
   it("changes nothing when a landlord edits another landlord's tenancy", async () => {
     const eitan = await signInAs(SEEDED_USERS.landlordEitan);
+    const service = serviceRoleClient();
+    const before = await service
+      .from("leases")
+      .select("rent_amount_cents")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    const originalRent = required(before.data, "Maya's tenancy").rent_amount_cents;
+    expect(originalRent).not.toBe(1);
 
     const { data } = await eitan
       .from("leases")
@@ -179,6 +187,13 @@ describe("invariant 4: a landlord reaches only their own rows", () => {
       .select();
 
     expect(data).toEqual([]);
+
+    const after = await service
+      .from("leases")
+      .select("rent_amount_cents")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    expect(required(after.data, "Maya's tenancy").rent_amount_cents).toBe(originalRent);
   });
 });
 
@@ -209,6 +224,15 @@ describe("invariant 5: only a landlord writes to the ledger", () => {
   it("changes and deletes nothing in the ledger for a tenant", async () => {
     const maya = await signInAs(SEEDED_USERS.tenantMaya);
 
+    const service = serviceRoleClient();
+    const before = await service
+      .from("rent_payments")
+      .select("id, amount_cents")
+      .eq("lease_id", SEEDED_IDS.leaseMayaActive)
+      .order("received_on");
+    const originalLedger = required(before.data, "Maya's ledger");
+    expect(originalLedger.length).toBeGreaterThan(0);
+
     const updated = await maya
       .from("rent_payments")
       .update({ amount_cents: 999999 })
@@ -220,8 +244,17 @@ describe("invariant 5: only a landlord writes to the ledger", () => {
       .eq("lease_id", SEEDED_IDS.leaseMayaActive)
       .select();
 
-    expect(updated.data ?? []).toEqual([]);
-    expect(deleted.data ?? []).toEqual([]);
+    // No "?? []": an error would otherwise be indistinguishable from a refusal that returned rows,
+    // and both would satisfy the assertion without the ledger being checked.
+    expect(updated.data).toEqual([]);
+    expect(deleted.data).toEqual([]);
+
+    const after = await service
+      .from("rent_payments")
+      .select("id, amount_cents")
+      .eq("lease_id", SEEDED_IDS.leaseMayaActive)
+      .order("received_on");
+    expect(required(after.data, "Maya's ledger")).toEqual(originalLedger);
   });
 
   // CORE-18

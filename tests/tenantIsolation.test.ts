@@ -80,6 +80,9 @@ describe("what one tenant can read of another's", () => {
   it("shows a tenant only problems they reported", async () => {
     const { data } = await maya.from("maintenance_requests").select("lease_id");
 
+    // The count first: [].every() is true, so a policy that showed the tenant nothing at all would
+    // pass the assertion below without the tenant portal working.
+    expect(data).toHaveLength(2);
     expect(data?.every((row) => row.lease_id === SEEDED_IDS.leaseMayaActive)).toBe(true);
   });
 
@@ -155,6 +158,15 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
 
   // PERM-20
   it("changes nothing when a tenant edits a payment on their own tenancy", async () => {
+    const service = serviceRoleClient();
+    const before = await service
+      .from("rent_payments")
+      .select("id, amount_cents")
+      .eq("lease_id", SEEDED_IDS.leaseMayaActive)
+      .order("received_on");
+    const originalAmounts = required(before.data, "Maya's ledger").map((row) => row.amount_cents);
+    expect(originalAmounts.length).toBeGreaterThan(0);
+
     const { data } = await maya
       .from("rent_payments")
       .update({ amount_cents: 1 })
@@ -162,6 +174,15 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
       .select();
 
     expect(data).toEqual([]);
+
+    const after = await service
+      .from("rent_payments")
+      .select("id, amount_cents")
+      .eq("lease_id", SEEDED_IDS.leaseMayaActive)
+      .order("received_on");
+    expect(required(after.data, "Maya's ledger").map((row) => row.amount_cents)).toEqual(
+      originalAmounts,
+    );
   });
 
   // PERM-20
@@ -183,6 +204,15 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
 
   // PERM-21
   it("changes nothing when a tenant extends their own tenancy", async () => {
+    const service = serviceRoleClient();
+    const before = await service
+      .from("leases")
+      .select("end_date")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    const originalEndDate = required(before.data, "Maya's tenancy").end_date;
+    expect(originalEndDate).not.toBe("2030-12-31");
+
     const { data } = await maya
       .from("leases")
       .update({ end_date: "2030-12-31" })
@@ -190,10 +220,26 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
       .select();
 
     expect(data).toEqual([]);
+
+    const after = await service
+      .from("leases")
+      .select("end_date")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    expect(required(after.data, "Maya's tenancy").end_date).toBe(originalEndDate);
   });
 
   // PERM-21
   it("changes nothing when a tenant lowers their own rent", async () => {
+    const service = serviceRoleClient();
+    const before = await service
+      .from("leases")
+      .select("rent_amount_cents")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    const originalRent = required(before.data, "Maya's tenancy").rent_amount_cents;
+    expect(originalRent).not.toBe(1);
+
     const { data } = await maya
       .from("leases")
       .update({ rent_amount_cents: 1 })
@@ -201,6 +247,13 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
       .select();
 
     expect(data).toEqual([]);
+
+    const after = await service
+      .from("leases")
+      .select("rent_amount_cents")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    expect(required(after.data, "Maya's tenancy").rent_amount_cents).toBe(originalRent);
   });
 
   // PERM-22
@@ -227,6 +280,12 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
       .select();
 
     expect(data).toEqual([]);
+
+    const { data: stillThere } = await serviceRoleClient()
+      .from("leases")
+      .select("id")
+      .eq("id", SEEDED_IDS.leaseMayaActive);
+    expect(stillThere).toHaveLength(1);
   });
 
   it("refuses a property or a unit created by a tenant", async () => {
@@ -244,6 +303,16 @@ describe("what a tenant can write to the ledger and the tenancy", () => {
 
     expect(property.error?.code).toBe("42501");
     expect(unit.error?.code).toBe("42501");
+
+    // The refusal codes say the statements were rejected. These say no row arrived anyway.
+    const service = serviceRoleClient();
+    const { data: plantedProperty } = await service
+      .from("properties")
+      .select("id")
+      .eq("name", "My own building");
+    const { data: plantedUnit } = await service.from("units").select("id").eq("label", "Mine now");
+    expect(plantedProperty).toEqual([]);
+    expect(plantedUnit).toEqual([]);
   });
 });
 
@@ -431,6 +500,14 @@ describe("what a tenant can do with maintenance", () => {
 
   // PERM-16
   it("changes nothing when a tenant confirms another tenant's request", async () => {
+    const service = serviceRoleClient();
+    const before = await service
+      .from("maintenance_requests")
+      .select("tenant_confirmed_at")
+      .eq("id", yonatansRequestId)
+      .single();
+    const originalConfirmation = required(before.data, "Yonatan's request").tenant_confirmed_at;
+
     const { data } = await maya
       .from("maintenance_requests")
       .update({ tenant_confirmed_at: new Date().toISOString() })
@@ -438,15 +515,32 @@ describe("what a tenant can do with maintenance", () => {
       .select();
 
     expect(data).toEqual([]);
+
+    const after = await service
+      .from("maintenance_requests")
+      .select("tenant_confirmed_at")
+      .eq("id", yonatansRequestId)
+      .single();
+    expect(required(after.data, "Yonatan's request").tenant_confirmed_at).toBe(
+      originalConfirmation,
+    );
   });
 
   // PERM-19
   it("shows the two tenants of one landlord nothing of each other", async () => {
-    const mayaRows = await maya.from("maintenance_requests").select("id");
-    const yonatanRows = await yonatan.from("maintenance_requests").select("id");
-    const shared = (mayaRows.data ?? []).filter((row) =>
-      (yonatanRows.data ?? []).some((other) => other.id === row.id),
+    const mayaRows = required(
+      (await maya.from("maintenance_requests").select("id")).data,
+      "Maya's reported problems",
     );
+    const yonatanRows = required(
+      (await yonatan.from("maintenance_requests").select("id")).data,
+      "Yonatan's reported problems",
+    );
+    // Both must see something of their own, or an overlap of nothing would prove nothing.
+    expect(mayaRows.length).toBeGreaterThan(0);
+    expect(yonatanRows.length).toBeGreaterThan(0);
+
+    const shared = mayaRows.filter((row) => yonatanRows.some((other) => other.id === row.id));
 
     expect(shared).toEqual([]);
   });
@@ -481,6 +575,14 @@ describe("what a tenant can do to their own account", () => {
   });
 
   it("changes nothing when a tenant renames somebody else", async () => {
+    const service = serviceRoleClient();
+    const before = await service
+      .from("profiles")
+      .select("full_name")
+      .eq("id", yonatanProfileId)
+      .single();
+    const originalName = required(before.data, "Yonatan's profile").full_name;
+
     const { data } = await maya
       .from("profiles")
       .update({ full_name: "Renamed by another tenant" })
@@ -488,5 +590,12 @@ describe("what a tenant can do to their own account", () => {
       .select();
 
     expect(data).toEqual([]);
+
+    const after = await service
+      .from("profiles")
+      .select("full_name")
+      .eq("id", yonatanProfileId)
+      .single();
+    expect(required(after.data, "Yonatan's profile").full_name).toBe(originalName);
   });
 });
