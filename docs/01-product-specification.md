@@ -2,8 +2,19 @@
 
 Rental management app for small landlords, with a tenant portal.
 
-Document status: baseline for all later phases. Business and product level only. Technical design
-lives in the technical planning document.
+A landlord with a handful of units keeps the facts in a spreadsheet, a bank app, a camera roll of
+lease photographs and several WhatsApp threads. That arrangement does not fail loudly. It fails by
+going quietly out of date, because the facts live in several places and nothing reconciles them:
+leases expire unnoticed, rent goes overdue before anyone flags it, repairs scroll away in a chat
+thread, and nobody can say what is owed without half an hour of arithmetic. Section 2 puts a cost on
+each of the four.
+
+Every one of them is a failure of visibility rather than of effort. The landlord is willing to act
+and is not being told there is anything to act on. So the product holds those facts in one place and
+puts the ones that need attention in front of the landlord when they open it. It records money the
+landlord says arrived and derives everything else from that record; it never moves money.
+
+Business and product level only. The technical design lives in the technical planning document.
 
 ## 1. What the product is
 
