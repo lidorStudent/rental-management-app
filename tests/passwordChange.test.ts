@@ -12,8 +12,9 @@ import type { Database } from "@/types/database";
  * observed instead of thrown past, and a switchable password-check client, so the throttled branch
  * can be exercised without making thirty failed sign-ins inside a test run.
  *
- * The check itself is real everywhere except that one test. PERM-40 is the finding: a session was
- * once enough on its own to take an account over.
+ * The check itself is real everywhere except that one test. PERM-40 is where the finding is written
+ * down: a session was once enough on its own to take an account over. See the note above that
+ * describe block for what this file did and did not witness.
  */
 const { activeClient } = vi.hoisted(() => ({
   activeClient: { value: null as SupabaseClient<Database> | null },
@@ -97,8 +98,15 @@ afterAll(async () => {
 });
 
 /**
- * The finding, stated as a test. Before the current-password check existed, holding a session was
- * the whole of the requirement: this same call succeeded and the owner was locked out.
+ * The finding, locked in as a test.
+ *
+ * The defect was real and was demonstrated before it was fixed: with no current-password check,
+ * holding a session was the whole of the requirement, and this same call succeeded and locked the
+ * owner out. The fix shipped in e681f45; this file arrived two commits later in 80e7a0f, so the
+ * test itself has never been run against the vulnerable code. It is a regression lock, not the
+ * reproduction. What makes it worth trusting is not its history but its assertions: it ends by
+ * signing in with both passwords, so it fails if the original stops working or the attacker's
+ * starts.
  */
 describe("somebody holding a session who does not know the password", () => {
   // PERM-40
