@@ -117,7 +117,9 @@ test("a landlord sets up a portfolio, records rent, and closes a reported proble
     await page.getByRole("button", { name: "Record this payment" }).click();
 
     await expect(page.getByRole("cell", { name: "Bank transfer" })).toBeVisible();
-    await expect(page.getByText("Paid").first()).toBeVisible();
+    // Exact, because getByText matches substrings: "Paid" alone also matches a "Part paid" badge,
+    // so the loose form passed whether the month settled or only half did.
+    await expect(page.getByText("Paid", { exact: true }).first()).toBeVisible();
   });
 
   // PROC-12
