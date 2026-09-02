@@ -1,5 +1,4 @@
 import { currentIsoDateInUtc } from "@/lib/dates/currentDate";
-import { LogoMark } from "@/components/shared/LogoMark";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
 import { buildRentSchedule } from "@/lib/rent/buildRentSchedule";
 import type { StatementRange } from "@/lib/rent/statementPeriodRange";
@@ -161,9 +160,20 @@ function StatementHeader({
 }) {
   return (
     <header className="space-y-1 border-b pb-4">
-      {/* Prints as well as shows: this is the one place the mark is meant to reach paper. */}
+      {/*
+        An image element here, where everywhere else in the product uses the masked LogoMark.
+        A CSS mask is a paint-time effect. Print pipelines that flatten a page without applying the
+        mask paint the background across the whole box instead, and `print-color-adjust: exact`,
+        which this mark needs so the browser does not drop it as a background graphic, then
+        guarantees that unmasked box reaches the paper: a solid black rectangle on the one document
+        a landlord hands a tenant. An image has no paint-time dependency, so it cannot fail that way.
+        The mark is black on transparency and print wants black on white, so the artwork needs no
+        recolouring here - which is the only thing the mask was buying.
+      */}
       <div className="pb-2 pl-1">
-        <LogoMark className="h-12" />
+        {/* eslint-disable-next-line @next/next/no-img-element -- see above: the optimiser serves
+            through srcset, and this element has to be exactly the bytes in public/, printed. */}
+        <img src="/logo-mark.png" alt="Rentbook" className="h-12 w-auto" />
       </div>
       <h1 className="page-title">Rent statement</h1>
       <p>
