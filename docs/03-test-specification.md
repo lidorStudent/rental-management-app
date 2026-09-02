@@ -40,6 +40,20 @@ Neither suite reseeds on its own: the D suite expects the seeded portfolio and s
 a seeded row is missing, and every E test builds its own landlord, building and tenant through the
 admin API and removes them afterwards, so it depends on nothing the seed wrote.
 
+**An E run that is killed leaves its portfolio behind.** Each end-to-end test creates a landlord, a
+tenant and a portfolio and deletes them in its own teardown, so a run that finishes cleans up after
+itself. A run stopped part way - `Ctrl-C`, a `pkill`, a crashed worker - never reaches that teardown,
+and its `e2e-*` accounts and every row they own stay in the test project. They accumulate: after a
+day of interrupted runs the project held 23 accounts where the seed writes 6, with 13 properties
+against 3 and 42 payments against 29.
+
+**Returning the test project to the seed needs a deletion, not a reseed.** `npm run db:seed` is
+upsert-only by design: it writes the seeded rows and leaves everything else alone, so running it
+against a project full of orphans reports the totals including them and removes nothing. The way
+back is to delete the `e2e-*` accounts, which cascades the buildings, units, tenancies, payments and
+requests they own. Match on the `e2e-` prefix rather than on anything else, since that prefix is what
+the E suite generates and no seeded account carries it.
+
 ---
 
 ## 1. Core features
