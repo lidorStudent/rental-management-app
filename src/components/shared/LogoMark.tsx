@@ -36,14 +36,25 @@ const MASK: React.CSSProperties = {
   printColorAdjust: "exact",
 };
 
-export function LogoMark({ className }: { className?: string }) {
+/**
+ * `decorative` is for the callers that already show the name in text beside or beneath the mark.
+ * There the mark has nothing of its own to say, and naming it would announce the name twice.
+ */
+export function LogoMark({
+  className,
+  decorative = false,
+}: {
+  className?: string;
+  decorative?: boolean;
+}) {
   return (
     <span
-      // A masked span has no content of its own, so the accessible name has to be given. It reads
-      // as the product rather than as "logo", because that is what the mark stands for on a page
-      // where no wordmark sits beside it.
-      role="img"
-      aria-label="Rentbook"
+      // A masked span has no content of its own, so where it stands alone the accessible name has to
+      // be given. It reads as the product rather than as "logo", because that is what the mark
+      // stands for on a page where no wordmark sits beside it.
+      role={decorative ? undefined : "img"}
+      aria-label={decorative ? undefined : "Rentbook"}
+      aria-hidden={decorative ? true : undefined}
       style={MASK}
       className={cn("bg-foreground block aspect-[150/256] print:bg-black", className)}
     />

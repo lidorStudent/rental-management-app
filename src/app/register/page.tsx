@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { RegisterLandlordForm } from "@/components/authentication/RegisterLandlordForm";
-import { LogoMark } from "@/components/shared/LogoMark";
+import { LogoLockup } from "@/components/shared/LogoLockup";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function RegisterPage() {
@@ -9,10 +9,7 @@ export default function RegisterPage() {
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center p-4 sm:p-6">
       <Card>
         <CardHeader>
-          {/* The mark bleeds to both side edges, so the row below gives it its own room. */}
-          <div className="flex justify-center px-2 pb-2">
-            <LogoMark className="h-12" />
-          </div>
+          <LogoLockup />
           <CardTitle>
             <h1 className="page-title">Create a landlord account</h1>
           </CardTitle>
