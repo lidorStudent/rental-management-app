@@ -1,6 +1,7 @@
 import { RentStatusBadge } from "@/components/leases/RentStatusBadge";
 import { cn } from "@/lib/classNames";
 import { currentIsoDateInUtc } from "@/lib/dates/currentDate";
+import { describeOutstandingAmount } from "@/lib/money/describeOutstandingAmount";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
 import { buildRentScheduleWithStatus } from "@/lib/rent/buildRentSchedule";
 import { firstDayOfTheMonthOf } from "@/lib/rent/isPeriodMonthWithinLease";
@@ -56,7 +57,7 @@ export async function TenantRentPosition({ lease }: { lease: TenantLease }) {
         />
         <Figure
           label="Outstanding"
-          value={describeOutstanding(outstanding)}
+          value={describeOutstandingAmount(outstanding)}
           detail={
             outstanding > 0
               ? "Everything charged so far, less what your landlord has recorded"
@@ -84,13 +85,6 @@ export async function TenantRentPosition({ lease }: { lease: TenantLease }) {
       )}
     </div>
   );
-}
-
-function describeOutstanding(outstandingInAgorot: number): string {
-  if (outstandingInAgorot < 0) {
-    return `${formatCentsAsCurrency(-outstandingInAgorot)} in credit`;
-  }
-  return formatCentsAsCurrency(outstandingInAgorot);
 }
 
 function Figure({

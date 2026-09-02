@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DetailRow } from "@/components/shared/DetailRow";
 
 import {
   MaintenanceStatusBadge,
@@ -55,17 +56,17 @@ export default async function MaintenanceRequestPage({
           {request.description}
         </p>
         <dl className="bg-card divide-y rounded-md border text-sm">
-          <Row
+          <DetailRow
             label="Reported by"
             value={request.submitted_by_profile?.full_name ?? "The tenant"}
           />
-          <Row label="Reported on" value={request.created_at.slice(0, 10)} />
-          <Row label="Urgency" value={URGENCY_WORDS[request.urgency] ?? request.urgency} />
-          <Row
+          <DetailRow label="Reported on" value={request.created_at.slice(0, 10)} />
+          <DetailRow label="Urgency" value={URGENCY_WORDS[request.urgency] ?? request.urgency} />
+          <DetailRow
             label="Resolved on"
             value={request.resolved_at === null ? "Not yet" : request.resolved_at.slice(0, 10)}
           />
-          <Row
+          <DetailRow
             label="Tenant confirmed"
             value={
               request.tenant_confirmed_at === null
@@ -73,7 +74,7 @@ export default async function MaintenanceRequestPage({
                 : `Confirmed on ${request.tenant_confirmed_at.slice(0, 10)}`
             }
           />
-          <Row
+          <DetailRow
             label="Tenancy"
             value="Open the lease"
             href={`/landlord/leases/${request.lease_id}`}
@@ -85,23 +86,6 @@ export default async function MaintenanceRequestPage({
         <h2 className="section-title">Move it along</h2>
         <MaintenanceStatusControl requestId={request.id} currentStatus={request.status} />
       </section>
-    </div>
-  );
-}
-
-function Row({ label, value, href }: { label: string; value: string; href?: string }) {
-  return (
-    <div className="flex flex-wrap justify-between gap-2 px-4 py-2.5">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium">
-        {href === undefined ? (
-          value
-        ) : (
-          <Link href={href} className="underline">
-            {value}
-          </Link>
-        )}
-      </dd>
     </div>
   );
 }

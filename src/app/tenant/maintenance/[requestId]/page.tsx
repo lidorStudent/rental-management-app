@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DetailRow } from "@/components/shared/DetailRow";
 
 import { ConfirmResolutionButton } from "@/components/maintenance/ConfirmResolutionButton";
 import {
@@ -53,10 +54,10 @@ export default async function TenantMaintenanceRequestPage({
       </p>
 
       <dl className="bg-card divide-y rounded-md border text-sm">
-        <Row label="Reported on" value={request.created_at.slice(0, 10)} />
-        <Row label="Urgency" value={URGENCY_WORDS[request.urgency] ?? request.urgency} />
-        <Row label="Where it has got to" value={STATUS_EXPLANATIONS[request.status]} />
-        <Row
+        <DetailRow label="Reported on" value={request.created_at.slice(0, 10)} />
+        <DetailRow label="Urgency" value={URGENCY_WORDS[request.urgency] ?? request.urgency} />
+        <DetailRow label="Where it has got to" value={STATUS_EXPLANATIONS[request.status]} />
+        <DetailRow
           label="Resolved on"
           value={request.resolved_at === null ? "Not yet" : request.resolved_at.slice(0, 10)}
         />
@@ -81,12 +82,3 @@ const STATUS_EXPLANATIONS: Record<string, string> = {
   in_progress: "Being worked on",
   resolved: "Your landlord has marked it fixed",
 };
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-wrap justify-between gap-2 px-4 py-2.5">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium">{value}</dd>
-    </div>
-  );
-}

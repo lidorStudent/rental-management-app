@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/classNames";
+import { describeOutstandingAmount } from "@/lib/money/describeOutstandingAmount";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
 import type { RentPeriodWithStatus } from "@/lib/rent/buildRentSchedule";
 
@@ -63,12 +64,13 @@ export function RentScheduleTable({ periods }: { periods: readonly RentPeriodWit
   );
 }
 
+/**
+ * Nothing outstanding is left blank rather than shown as a zero: this table has one row per month,
+ * and a column of zeroes is noise in a place a reader is scanning for the months that are not.
+ */
 function describeOutstanding(outstandingInAgorot: number): string {
   if (outstandingInAgorot === 0) {
     return "";
   }
-  if (outstandingInAgorot < 0) {
-    return `${formatCentsAsCurrency(-outstandingInAgorot)} in credit`;
-  }
-  return formatCentsAsCurrency(outstandingInAgorot);
+  return describeOutstandingAmount(outstandingInAgorot);
 }

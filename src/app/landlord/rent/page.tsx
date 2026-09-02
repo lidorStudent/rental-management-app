@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/classNames";
 import { currentIsoDateInUtc } from "@/lib/dates/currentDate";
+import { describeOutstandingAmount } from "@/lib/money/describeOutstandingAmount";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
 import { describeTenancyRent, type TenancyRent } from "@/lib/rent/describeTenancyRent";
 import { describeTenancyRentStatus } from "@/lib/rent/describeTenancyRentStatus";
@@ -115,7 +116,7 @@ export default async function RentOverviewPage() {
                     {formatCentsAsCurrency(row.summary.paidInAgorot)}
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
-                    {describeOutstanding(row.summary.outstandingInAgorot)}
+                    {describeOutstandingAmount(row.summary.outstandingInAgorot)}
                   </TableCell>
                   <TableCell>{row.summary.earliestOverdueDueDate ?? ""}</TableCell>
                   <TableCell>
@@ -149,13 +150,6 @@ function TenancyStatusBadge({ row }: { row: TenancyRent }) {
   ) : (
     <LeaseStatusBadge lifecycle={status.lifecycle} />
   );
-}
-
-function describeOutstanding(outstandingInAgorot: number): string {
-  if (outstandingInAgorot < 0) {
-    return `${formatCentsAsCurrency(-outstandingInAgorot)} in credit`;
-  }
-  return formatCentsAsCurrency(outstandingInAgorot);
 }
 
 function Figure({

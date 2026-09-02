@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { TenancyState } from "@/components/tenant/TenancyState";
 import { loadTenantLease } from "@/components/tenant/loadTenantLease";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
+import { DetailRow } from "@/components/shared/DetailRow";
 
 export const metadata = { title: "Your lease" };
 
@@ -41,15 +42,16 @@ export default async function TenantLeasePage() {
       <section className="space-y-3">
         <h2 className="section-title">Your home</h2>
         <dl className="bg-card divide-y rounded-md border text-sm">
-          <Row label="Unit" value={lease.unitLabel} />
-          <Row
+          <DetailRow isNumeric label="Unit" value={lease.unitLabel} />
+          <DetailRow
+            isNumeric
             label="Address"
             value={[lease.addressLine, lease.city, lease.postalCode]
               .filter((part) => part !== null && part !== "")
               .join(", ")}
           />
           {lease.bedroomCount === null ? null : (
-            <Row label="Bedrooms" value={String(lease.bedroomCount)} />
+            <DetailRow isNumeric label="Bedrooms" value={String(lease.bedroomCount)} />
           )}
         </dl>
       </section>
@@ -57,11 +59,16 @@ export default async function TenantLeasePage() {
       <section className="space-y-3">
         <h2 className="section-title">Terms</h2>
         <dl className="bg-card divide-y rounded-md border text-sm">
-          <Row label="Runs from" value={lease.startDate} />
-          <Row label="Until, inclusive" value={lease.endDate} />
-          <Row label="Monthly rent" value={formatCentsAsCurrency(lease.rentAmountInAgorot)} />
-          <Row label="Rent due" value={`Day ${lease.rentDueDay} of each month`} />
-          <Row
+          <DetailRow isNumeric label="Runs from" value={lease.startDate} />
+          <DetailRow isNumeric label="Until, inclusive" value={lease.endDate} />
+          <DetailRow
+            isNumeric
+            label="Monthly rent"
+            value={formatCentsAsCurrency(lease.rentAmountInAgorot)}
+          />
+          <DetailRow isNumeric label="Rent due" value={`Day ${lease.rentDueDay} of each month`} />
+          <DetailRow
+            isNumeric
             label="Deposit"
             value={
               lease.depositAmountInAgorot === 0
@@ -75,23 +82,14 @@ export default async function TenantLeasePage() {
       <section className="space-y-3">
         <h2 className="section-title">Your landlord</h2>
         <dl className="bg-card divide-y rounded-md border text-sm">
-          <Row label="Name" value={lease.landlordName ?? "Not recorded"} />
-          <Row label="Email" value={lease.landlordEmail ?? "Not recorded"} />
+          <DetailRow isNumeric label="Name" value={lease.landlordName ?? "Not recorded"} />
+          <DetailRow isNumeric label="Email" value={lease.landlordEmail ?? "Not recorded"} />
         </dl>
         <p className="text-muted-foreground text-sm">
           Anything this portal does not cover goes to them directly. Rent is recorded here by your
           landlord when it arrives; it is not collected through this application.
         </p>
       </section>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-wrap justify-between gap-2 px-4 py-2.5">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium tabular-nums">{value}</dd>
     </div>
   );
 }

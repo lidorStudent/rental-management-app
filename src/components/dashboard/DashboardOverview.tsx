@@ -7,6 +7,7 @@ import { addDays } from "@/lib/dates/isoDate";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
 import { describeTenancyRent } from "@/lib/rent/describeTenancyRent";
 import { totalArrearsInAgorot } from "@/lib/rent/summariseOutstandingRent";
+import { countOrZero } from "@/lib/supabase/countOrZero";
 import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
 import { firstDayOfTheMonthOf } from "@/lib/rent/isPeriodMonthWithinLease";
 
@@ -55,7 +56,7 @@ export async function DashboardOverview() {
       .neq("status", "resolved"),
   ]);
 
-  const totalUnits = orZero(unitCount.count);
+  const totalUnits = countOrZero(unitCount.count);
 
   if (totalUnits === 0) {
     return (
@@ -92,10 +93,10 @@ export async function DashboardOverview() {
         />
         <Figure
           label="Open problems"
-          value={String(orZero(openRequestCount.count))}
+          value={String(countOrZero(openRequestCount.count))}
           detail="Reported and not resolved"
           href="/landlord/maintenance?status=open"
-          isAlarming={orZero(openRequestCount.count) > 0}
+          isAlarming={countOrZero(openRequestCount.count) > 0}
         />
         <Figure
           label="Occupancy"
@@ -105,8 +106,8 @@ export async function DashboardOverview() {
         />
         <Figure
           label="Rent collected this month"
-          value={formatCentsAsCurrency(orZero(collectedThisMonth.data?.collected_cents))}
-          detail={describePaymentCount(orZero(collectedThisMonth.data?.payment_count))}
+          value={formatCentsAsCurrency(countOrZero(collectedThisMonth.data?.collected_cents))}
+          detail={describePaymentCount(countOrZero(collectedThisMonth.data?.payment_count))}
           href="/landlord/rent"
         />
       </dl>
@@ -183,10 +184,6 @@ function Figure({
       </Link>
     </div>
   );
-}
-
-function orZero(value: number | null | undefined): number {
-  return value ?? 0;
 }
 
 function describePaymentCount(paymentCount: number): string {

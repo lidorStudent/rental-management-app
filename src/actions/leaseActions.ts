@@ -13,6 +13,7 @@ import { requireLandlordProfile } from "@/lib/authentication/requireLandlordProf
 import { nextDay } from "@/lib/dates/isoDate";
 import { findConflictingLease, type ExistingLease } from "@/lib/leases/findConflictingLease";
 import { firstDayOfTheMonthOf } from "@/lib/rent/isPeriodMonthWithinLease";
+import { countOrZero } from "@/lib/supabase/countOrZero";
 import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
 import {
   createLeaseSchema,
@@ -344,9 +345,4 @@ async function revalidateAfterLeaseWrite(
   }
 
   revalidateLeasePaths(leaseId, unit.property_id);
-}
-
-/** A head count comes back as null when Postgres declines to count; nothing counted is zero. */
-function countOrZero(count: number | null): number {
-  return count === null ? 0 : count;
 }
