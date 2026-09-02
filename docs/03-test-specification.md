@@ -54,6 +54,36 @@ back is to delete the `e2e-*` accounts, which cascades the buildings, units, ten
 requests they own. Match on the `e2e-` prefix rather than on anything else, since that prefix is what
 the E suite generates and no seeded account carries it.
 
+**A date written down in a test coupled to a seeded lease has an expiry.** The seed places its
+tenancies relative to the day it runs - Maya's is `startOfMonth(-8)` to `endOfMonth(4)` - so every
+seeded lease slides forward a month each month. A literal date that sits inside that window today
+sits outside it eventually, and the test then asserts the wrong thing without failing in a way that
+says so. DB-03 hit this first: it named a start date that was the day after the tenancy ended when
+it was written, the tenancy moved across it, and the exclusion constraint began refusing an insert
+the test expected to succeed. DB-01 was the same defect pointed the other way, and would have been
+worse: its literal range would have stopped overlapping around April 2027, the insert would have
+succeeded, and the test would have gone on passing while proving nothing about the invariant.
+
+**How to spot one.** Search the D suite for `"20`. Then ask of each hit: does this date have to be
+in a particular relationship with a seeded row - inside a tenancy, on its boundary, the day after
+it? If yes it is a defect waiting for a reseed. If it only has to be a valid date, or a date in the
+past, it is fine: `received_on` values are checked against `current_date` and nothing else, and the
+`2030` dates used to create tenancies on units the seed never lets are unconstrained by any seeded
+row.
+
+**What to do instead.** Read the seeded row the test depends on and derive the date from it, the way
+DB-01, DB-02 and DB-03 now do. The day arithmetic lives in `shiftIsoDate` at the foot of
+`tests/domainInvariants.test.ts` rather than being imported from `src/lib/dates`, because this suite
+exists to reach the database with no application code in between, and a date the application
+computed would be a date the application had a say in.
+
+**Then check the derived test can still fail.** A test that derives its dates can be written so that
+it passes whatever the database does, which is worse than the literal it replaced. Both were checked
+against a deliberately broken constraint: with `daterange(start_date, end_date + 1, '[]')` DB-03
+reported `expected { code: '23P01' } to be null`, and with the constraint dropped altogether DB-01
+reported `expected undefined to be '23P01'`. The constraint was restored from the migration and
+`pg_get_constraintdef` compared against its definition beforehand, character for character.
+
 ---
 
 ## 1. Core features

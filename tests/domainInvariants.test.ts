@@ -41,12 +41,24 @@ afterAll(async () => {
 describe("invariant 1: a unit is never let twice over the same dates", () => {
   // DB-01
   it("refuses an overlapping tenancy even with every application check bypassed", async () => {
-    const { error } = await serviceRoleClient().from("leases").insert({
+    const service = serviceRoleClient();
+    const { data: existing } = await service
+      .from("leases")
+      .select("start_date")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+
+    // A month sitting wholly inside the existing tenancy, derived from it. A fixed range would
+    // stop overlapping as soon as the seed slid the tenancy past it, and the insert would then
+    // succeed: the test would pass while proving nothing about the invariant.
+    const insideExisting = shiftIsoDate(required(existing, "Maya's tenancy").start_date, 1);
+
+    const { error } = await service.from("leases").insert({
       unit_id: SEEDED_IDS.unitRothschildOne,
       landlord_id: noaProfileId,
       rent_amount_cents: 100000,
-      start_date: "2026-06-01",
-      end_date: "2026-07-31",
+      start_date: insideExisting,
+      end_date: shiftIsoDate(insideExisting, 29),
       rent_due_day: 1,
     });
 
@@ -62,12 +74,14 @@ describe("invariant 1: a unit is never let twice over the same dates", () => {
       .eq("id", SEEDED_IDS.leaseMayaActive)
       .single();
 
+    const lastDayOfExisting = required(existing, "Maya's tenancy").end_date;
+
     const { error } = await service.from("leases").insert({
       unit_id: SEEDED_IDS.unitRothschildOne,
       landlord_id: noaProfileId,
       rent_amount_cents: 100000,
-      start_date: required(existing, "Maya's tenancy").end_date,
-      end_date: "2028-12-31",
+      start_date: lastDayOfExisting,
+      end_date: shiftIsoDate(lastDayOfExisting, 365),
       rent_due_day: 1,
     });
 
