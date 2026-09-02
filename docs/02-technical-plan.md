@@ -1239,3 +1239,13 @@ Recorded here so they are not discovered during questioning.
   not built; it is the first screen to add.
 - **The dashboard informs a landlord who opens it.** With no email or push, an inactive landlord is
   not reached. This is the accepted consequence of the product's scope boundary on reminders.
+- **The header's tab order departs from its visual order below the `lg` breakpoint.** The navigation
+  is second in the DOM, and at 768 and 390 it wraps onto a second row, so a keyboard reaches it
+  before the sign-out button that is drawn above it. What a keyboard moves through is brand, then
+  navigation, then account actions, which is a coherent sequence in its own right; what differs at
+  those widths is where those things sit on the screen. Correcting it means either reordering the
+  DOM to match a layout that only exists below a breakpoint, or giving up the wrapped two-row header
+  that keeps the bar at 93 and 89 pixels rather than pushing it taller. Both cost more than the
+  departure does, so this is accepted rather than deferred: it is not on a list of things to fix.
+  MAN-04's procedure asks the tester to confirm the departure rather than to assert an order that
+  does not hold.
