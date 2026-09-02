@@ -1035,12 +1035,24 @@ the rarer case and it keeps the common one honest.
 
 ### 2026-09-01 - The logo is placed at four sizes of one size, and the header stays as text
 
+> **Superseded on 2026-09-02** by "The headers carry the whole mark, at 32 pixels", below. The
+> header no longer stays as text: both headers carry the whole artwork at 32 pixels. The entry is
+> kept because the sequence matters, and because the paragraph on the legibility floor below turned
+> out to be the thing that needed correcting, not the placement it argued for.
+
 The mark is owned, so no attribution applies and none appears anywhere in the project.
 
 The artwork is a 5000 by 8538 monochrome mark on transparency, in pure black, bleeding to
 both side edges with no margin of its own. Rendered and looked at rather than reasoned about, it is
-a recognisable building at 48 and 64 pixels tall and an unreadable smudge below roughly 40. That
-measured floor decided everything else.
+a recognisable building at 48 and 64 pixels tall and an unreadable smudge at 20 and 24.
+
+The sentence that stood here originally called roughly 40 pixels a measured floor. That was wrong,
+and it is corrected rather than removed because it went on to decide the placement below. Four sizes
+were rendered that day - 20, 24, 48 and 64 - and 40 was never among them. It was interpolated as the
+midpoint between the smallest size that read and the largest that did not, and then written down as
+though it had been observed. Rendering the missing sizes afterwards put the real boundary lower: at
+32 the two forms stay separate and legible, though the strokes are thin, and at 40 the mark is
+comfortable. What is genuinely unreadable is 24 and below, which is what was actually looked at.
 
 It is therefore not in the header. A header mark would sit at 24 to 32 pixels beside the wordmark,
 which is under the floor, and a smudge next to clean type reads as a rendering fault rather than as
@@ -1093,7 +1105,10 @@ So the choice was the whole artwork or no mark at all, and the whole artwork nee
 cost was measured rather than guessed. The header is 24 pixels of padding plus its tallest row plus
 a one pixel border, and the row is already 28 to 32 pixels because of the sign-out button and the
 navigation pills, so 32 pixels is free at 1440 and costs four pixels below it: 57, 93 and 89 become
-57, 97 and 93 at 1440, 768 and 390. Row counts do not change - one, two and two - and the navigation
+57, 97 and 93 at 1440, 768 and 390. Thirty-two is below the forty-pixel floor the 2026-09-01 entry
+recorded, and that is not a contradiction the shipped size has to answer for: the forty was an
+interpolation between sizes that were rendered, not a size that was rendered, and the entry above is
+corrected to say so. The sizes either side of it were rendered before this was decided. Row counts do not change - one, two and two - and the navigation
 still wraps as a single unbroken line, so no link is orphaned. Four pixels was judged worth paying
 for a mark that reads as finished.
 

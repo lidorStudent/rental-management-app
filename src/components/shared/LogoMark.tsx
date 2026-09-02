@@ -19,7 +19,9 @@ import { cn } from "@/lib/classNames";
  * The artwork bleeds to both side edges with no margin of its own, so the padding on the wrapper at
  * each call site is doing real work rather than decorating.
  *
- * The measured legibility floor is about 40 pixels tall, so nothing here draws it smaller than 48.
+ * Callers draw this at 48 pixels on the signed-out pages and the statement, and at 32 in the two
+ * headers. Below about 24 the strokes merge and the mark stops reading; 32 is legible but thin, and
+ * the four-pixel cost of it in the header was accepted deliberately. See the decisions log.
  */
 const MASK: React.CSSProperties = {
   WebkitMaskImage: "url(/logo-mark.png)",
