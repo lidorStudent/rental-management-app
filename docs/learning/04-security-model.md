@@ -1,7 +1,7 @@
 # What the permission tests prove
 
 A study note for the questions that follow "how do you know one landlord cannot see another's
-data?" The honest answer is not "I checked in the browser". It is a suite of ninety-eight tests that
+data?" The honest answer is not "I checked in the browser". It is a suite of a hundred and thirty-five tests that
 attack the database directly, with real credentials, and are refused.
 
 Run them with `npm run test:db`.
@@ -59,7 +59,7 @@ database were left exposed to the internet with the public key, these tests woul
 
 ## What is in the suite
 
-Ninety-eight tests in five files, all against the **test** project, never production.
+A hundred and thirty-five tests in seven files, all against the **test** project, never production.
 
 | File | Proves |
 | --- | --- |
@@ -68,6 +68,8 @@ Ninety-eight tests in five files, all against the **test** project, never produc
 | `tests/anonymousAccess.test.ts` | The key that ships in every browser is worth nothing on its own: every table and every view answers a session-less client with `[]` |
 | `tests/serverActions.test.ts` | The action layer refuses a mismatched role and a forged identifier, with a message that does not say whether the row exists, and stamps ownership from the session rather than from the payload |
 | `tests/domainInvariants.test.ts` | One test per invariant from CLAUDE.md, so each can be pointed at directly |
+| `tests/schemaGuarantees.test.ts` | What the schema refuses without any application code running: rent of nothing, a negative deposit, a tenancy ending before it starts, a rent day that does not exist in every month |
+| `tests/passwordChange.test.ts` | Changing a password proves the old one, a tenant can replace the temporary password they were given, and a throttled attempt is told to wait rather than told the password is wrong |
 
 ### The positive control
 

@@ -102,7 +102,7 @@ fetching happens, and therefore where authorisation happens.
 [src/app/landlord/page.tsx](../src/app/landlord/page.tsx),
 [src/components/dashboard/DashboardOverview.tsx](../src/components/dashboard/DashboardOverview.tsx),
 [src/components/tenant/loadTenantLease.ts](../src/components/tenant/loadTenantLease.ts). Twenty-five
-of the fifty-one component files are client components, and every one of them is there for
+of the fifty-four component files are client components, and every one of them is there for
 interaction: forms, the navigation, delete confirmations, the print button. There is no Supabase
 client in the browser at all.
 
@@ -301,7 +301,7 @@ service rather than trusting what the cookie claims.
 
 **9. What is the difference between a server component and a client component here?**
 Server components query the database and send HTML; client components are for interaction and get
-everything as props. Twenty-five of fifty-one component files are client components, and none of
+everything as props. Twenty-five of fifty-four component files are client components, and none of
 them can reach the database, because there is no Supabase client in the browser.
 
 **10. How does a tenant account get created without an email service?**

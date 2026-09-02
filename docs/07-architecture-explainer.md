@@ -35,7 +35,7 @@ The same picture in text, because a diagram that cannot be drawn on a whiteboard
                                v
   Supabase (eu-central-1)
     Auth                verifies the token, issues and rotates sessions
-    Postgres            6 tables, 29 policies, 3 views, constraints, triggers
+    Postgres            6 tables, 29 policies, 3 aggregate views, constraints, triggers
     Row Level Security  decides which rows exist for this user
 ```
 
@@ -108,6 +108,7 @@ could drift from the rows it summarises.
 | [src/app/landlord/layout.tsx](../src/app/landlord/layout.tsx), [src/app/tenant/layout.tsx](../src/app/tenant/layout.tsx) | The role assertion for each area, and the navigation. The profile is read once here and passed down as a prop |
 | [src/components/shared/PaginatedTable.tsx](../src/components/shared/PaginatedTable.tsx) | Every list's table and pager, as a server component |
 | [src/components/forms/](../src/components/forms/) | `TextField`, `TextAreaField`, `SelectField`: label, hint, error, and the `aria-describedby` wiring |
+| [src/components/shared/LogoMark.tsx](../src/components/shared/LogoMark.tsx), [src/components/layout/LogoWordmark.tsx](../src/components/layout/LogoWordmark.tsx), [src/components/shared/LogoLockup.tsx](../src/components/shared/LogoLockup.tsx) | The mark, and the two ways it is paired with the name. `LogoMark` paints the artwork as a CSS mask over the `--foreground` token, because an `<img>` would paint its own pure black and nothing else here is pure black. `LogoWordmark` is the header lockup: mark and name inside one link, so one focus stop and one accessible name. `LogoLockup` is the vertical version on the three signed-out pages. In both, the mark is `aria-hidden`, because the name is already there in text |
 | [src/components/tenant/loadTenantLease.ts](../src/components/tenant/loadTenantLease.ts) | The tenancy the portal is about, resolved from the session with no identifier in any URL |
 | [src/app/globals.css](../src/app/globals.css) | The design tokens. The palette, the five status meanings that the rent, maintenance and lease badges all name, and the type scale. The only place a status meaning becomes a colour |
 

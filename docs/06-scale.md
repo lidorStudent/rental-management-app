@@ -367,7 +367,7 @@ deleted, so importing it is impossible rather than merely discouraged.
 each starting with a role guard and a Zod parse. A form posts to one; nothing in the browser
 constructs a database query, because nothing in the browser can.
 
-**What is a client component, and why.** Twenty-five of the fifty-one files in `src/components`, and every one of them
+**What is a client component, and why.** Twenty-five of the fifty-four files in `src/components`, and every one of them
 is there for interaction rather than for data: the forms, which use react-hook-form for field-level
 feedback; the navigation, which highlights the current link; the delete buttons, which confirm; the
 print button, which calls `window.print()`. The parent server component reads the data and hands it
