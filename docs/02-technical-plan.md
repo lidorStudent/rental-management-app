@@ -525,8 +525,9 @@ rental-management-app/
 │   ├── interfaceStates.spec.ts        pagination, filters, print hiding, the vacant unit link
 │   └── sessionCookie.spec.ts
 ├── public/
-│   ├── logo.png                       the artwork as supplied, kept as the source of the mark
-│   └── logo-mark.png                  the 150 by 256 copy the CSS mask actually loads
+│   ├── logo.png                       the artwork as supplied, kept as the source of both crops
+│   ├── logo-mark.png                  the whole mark, for the four places that draw it at 48px
+│   └── logo-header-mark.png           the upper form alone, for the headers at 24px
 └── src/                               unit and component tests live beside what they test,
     │                                   as <name>.test.ts next to <name>.ts
     ├── proxy.ts                        session refresh and the area guards
@@ -589,6 +590,7 @@ rental-management-app/
     │   ├── layout/
     │   │   ├── LandlordNavigation.tsx
     │   │   ├── TenantNavigation.tsx
+    │   │   ├── LogoWordmark.tsx       the mark and the name as one link, in both headers
     │   │   └── SignOutButton.tsx
     │   ├── authentication/
     │   │   ├── ChangePasswordForm.tsx
@@ -722,6 +724,7 @@ Files that do the same job have the same shape, so learning one teaches all of t
 | `RentStatement` | The statement itself, read from the ledger rather than from any aggregate: a statement that cannot be checked against its own lines is not a statement. The chrome carries `print:hidden`, and `globals.css` sets the page margins, so printing leaves the document alone. It opens with `LogoMark`, the one place the mark is meant to reach paper |
 | `MaintenanceStatusControl` | Renders only the transitions `allowedStatusTransitions` permits from the current status, and calls the update action |
 | `LogoMark` | The logo, drawn as a CSS mask over the `--foreground` token rather than as an image, because an `<img>` paints its own pure black and nothing else in the product is pure black. Carries its own accessible name, since a masked element has no content to read. Appears on the three pages that have no navigation around them and at the head of the statement, never smaller than 48 pixels |
+| `LogoWordmark` | The mark and the words "Rental Management" as a single link home, used by both headers: `/landlord` for a landlord, `/tenant` for a tenant. One link, so one focus stop and one accessible name; the mark inside is `aria-hidden`, because the name it would carry is the text beside it. It draws `logo-header-mark.png` rather than the whole mark, for the reason in the decisions log |
 | `EmptyState` | The single empty-state component, so every list that has no rows explains what to do next instead of showing a blank area |
 | `FormErrorSummary` | Renders the action's error message and field errors above the form, so a failure is never silent |
 

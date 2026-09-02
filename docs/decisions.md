@@ -1066,3 +1066,36 @@ The accessible name is "Rental Management", not "logo". A masked span has no con
 the name has to be given rather than inferred, and on all four screens the mark stands alone with no
 wordmark beside it. Naming it "logo" would tell a screen reader user that a picture exists without
 telling them what it says; naming it as the product says the thing the mark is standing in for.
+
+### 2026-09-02 - The headers carry a fragment of the mark, not the mark
+
+Both headers now open with the mark and the words "Rental Management" as one link home. The mark
+they draw is not the mark the sign-in, registration, password and statement pages draw. It is the
+upper form of it, cropped out and used on its own.
+
+The reason is width, not weight. The whole mark is portrait, 5000 by 8538, so constraining it to a
+header's height starves it of width: at 24 pixels tall it is 14 pixels wide, and its busiest
+horizontal scanline crosses five strokes inside those 14 pixels. They merge, and what is left is a
+smudge that reads as a rendering fault rather than as a logo. The upper form alone is near-square,
+so the same 24 pixels of height buy 23 of width for three strokes - roughly 2.7 times the room each.
+Rendered at 20, 24 and 32 pixels and looked at rather than reasoned about, it holds at all three.
+
+The alternative was to grow the header until the whole mark fitted. That was measured rather than
+guessed. The header is 24 pixels of padding plus its tallest row plus a one pixel border, and the
+row is already 28 to 32 pixels tall because of the sign-out button and the navigation pills, so
+anything up to 24 pixels costs nothing at all. Above that it starts pushing: the whole mark at its
+minimum legible 40 pixels takes the header from 57, 93 and 89 pixels at 1440, 768 and 390 to 65,
+105 and 101. Twelve pixels of a phone's header, to get a mark that still reads worse at 40 than the
+crop does at 24 - the two were rendered side by side to check. The crop costs nothing, so the header
+is unchanged at 57, 93 and 89.
+
+The tenant header gained a wordmark it never had. That is a product change, not a placement: a
+tenant on a sub-page had no way back to their own overview except the navigation, which a landlord
+has never needed because the wordmark was already there. It points at `/tenant` and never at
+`/landlord`.
+
+One link wraps both the mark and the words, so it is one focus stop with one accessible name. The
+mark inside is `aria-hidden`: it would otherwise announce a name identical to the text beside it,
+and hearing "Rental Management" twice is worse than a picture nobody mentions. This is the opposite
+choice from `LogoMark` on the authentication pages, which does carry a name, because there it stands
+alone with no words next to it.
