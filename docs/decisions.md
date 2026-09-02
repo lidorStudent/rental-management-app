@@ -1067,27 +1067,41 @@ the name has to be given rather than inferred, and on all four screens the mark 
 wordmark beside it. Naming it "logo" would tell a screen reader user that a picture exists without
 telling them what it says; naming it as the product says the thing the mark is standing in for.
 
-### 2026-09-02 - The headers carry a fragment of the mark, not the mark
+### 2026-09-02 - The headers carry the whole mark, at 32 pixels
 
-Both headers now open with the mark and the words "Rentbook" as one link home. The mark
-they draw is not the mark the sign-in, registration, password and statement pages draw. It is the
-upper form of it, cropped out and used on its own.
+Both headers open with the mark and the words "Rentbook" as one link home, drawing the same
+artwork the sign-in, registration, password and statement pages draw, at 32 pixels rather than 48.
 
-The reason is width, not weight. The whole mark is portrait, 5000 by 8538, so constraining it to a
-header's height starves it of width: at 24 pixels tall it is 14 pixels wide, and its busiest
-horizontal scanline crosses five strokes inside those 14 pixels. They merge, and what is left is a
-smudge that reads as a rendering fault rather than as a logo. The upper form alone is near-square,
-so the same 24 pixels of height buy 23 of width for three strokes - roughly 2.7 times the room each.
-Rendered at 20, 24 and 32 pixels and looked at rather than reasoned about, it holds at all three.
+This took three attempts and the first two were wrong, which is the part worth keeping.
 
-The alternative was to grow the header until the whole mark fitted. That was measured rather than
-guessed. The header is 24 pixels of padding plus its tallest row plus a one pixel border, and the
-row is already 28 to 32 pixels tall because of the sign-out button and the navigation pills, so
-anything up to 24 pixels costs nothing at all. Above that it starts pushing: the whole mark at its
-minimum legible 40 pixels takes the header from 57, 93 and 89 pixels at 1440, 768 and 390 to 65,
-105 and 101. Twelve pixels of a phone's header, to get a mark that still reads worse at 40 than the
-crop does at 24 - the two were rendered side by side to check. The crop costs nothing, so the header
-is unchanged at 57, 93 and 89.
+The whole artwork is portrait, 5000 by 8538, so constraining it to a header's height starves it of
+width: at 24 pixels tall it is 14 pixels wide, and its busiest horizontal scanline crosses five
+strokes inside those 14 pixels. They merge. So the header first carried a crop instead - a rectangle
+chosen by eye off a coordinate grid, which turned out to slice through the artwork and drag in
+severed fragments of a neighbouring shape. Replacing the rectangle with a properly isolated
+connected component fixed the severing and produced clean, well separated strokes, and it was still
+wrong: what it produced was an open corner, an unfinished outline rather than a mark.
+
+The structural fact underneath, which would have settled it at the start: this artwork encloses no
+space anywhere. Flood filling the background at thresholds of 10, 40, 128 and 200 reaches one
+hundred percent of the white from outside every time, and finds zero enclosed regions. Every stroke
+is an open outline, and the building is a gestalt of two overlapping open forms rather than a closed
+shape. No crop of it can read as finished, however clean its strokes are, because there is no closed
+region in it to crop.
+
+So the choice was the whole artwork or no mark at all, and the whole artwork needs 32 pixels. The
+cost was measured rather than guessed. The header is 24 pixels of padding plus its tallest row plus
+a one pixel border, and the row is already 28 to 32 pixels because of the sign-out button and the
+navigation pills, so 32 pixels is free at 1440 and costs four pixels below it: 57, 93 and 89 become
+57, 97 and 93 at 1440, 768 and 390. Row counts do not change - one, two and two - and the navigation
+still wraps as a single unbroken line, so no link is orphaned. Four pixels was judged worth paying
+for a mark that reads as finished.
+
+The verification lesson is separate and sharper. The crop passed an automated check three times: no
+painted ink touched any edge of the element at any width. That check answers "is it clipped", which
+is not the same question as "is it a shape", and it kept passing against a mark that was visibly
+wrong to anyone who looked at it. Geometry cannot tell you whether something reads as finished. That
+one has to be looked at.
 
 The tenant header gained a wordmark it never had. That is a product change, not a placement: a
 tenant on a sub-page had no way back to their own overview except the navigation, which a landlord
