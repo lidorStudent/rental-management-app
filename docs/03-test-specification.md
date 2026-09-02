@@ -569,9 +569,10 @@ without searching. The counts, as they stand:
 | EDGE | 18 | 18 | — |
 | UI | 10 | 11 | UI-08 is a manual case by designation, discharged by MAN-02 |
 
-Every automatable case now has an assertion behind it. Each of the six listed below was written
-against the behaviour first: the test was watched failing with the behaviour removed or inverted
-before it was accepted, so none of them is a test shaped around code that already passed.
+Every automatable case now has an assertion behind it. Each of the thirteen listed below was
+watched failing before it was accepted: the behaviour it describes was removed, inverted or widened,
+the test was seen to go red, the behaviour was restored, and the test was seen to go green again.
+None of them is a test shaped around code that already passed.
 
 | Case | Level | Where it is now | Watched failing against |
 | --- | --- | --- | --- |
@@ -581,6 +582,32 @@ before it was accepted, so none of them is a test shaped around code that alread
 | EDGE-14 | U | `src/lib/rent/statementPeriodRange.test.ts` | See below: the case was rewritten, because the behaviour it described does not exist |
 | UI-11 | E | `e2e/interfaceStates.spec.ts` | `print:hidden` removed from the range form, then from the navigation |
 | CORE-29 | E | `e2e/interfaceStates.spec.ts` | The vacancy condition removed so every row offered the link: the count went to 3 of an expected 1, and with that assertion muted in turn, the let unit and then the reserved unit each reported 1 where 0 was expected |
+| PERM-01 | D | `tests/landlordIsolation.test.ts` | `properties_select_own` widened to `using (true)`: `expected [ 'Rothschild 12', …(12) ] to deeply equal [ 'HaNamal 5' ]` |
+| PERM-03 | D | `tests/landlordIsolation.test.ts` | `leases_select_own` widened to `using (true)`: `expected [ …(14) ] to have a length of 1 but got 14` |
+| PERM-04 | D | `tests/landlordIsolation.test.ts` | `rent_payments_select_own` widened to `using (true)`: `expected false to be true` |
+| PERM-12 | D | `tests/tenantIsolation.test.ts` | `leases_select_as_tenant` widened to `using (true)`: `expected [ …(14) ] to have a length of 1 but got 14` |
+| PERM-14 | D | `tests/tenantIsolation.test.ts` | `maintenance_requests_select_as_tenant` widened to `using (true)`: `expected [ …(9) ] to have a length of 2 but got 9` |
+| PERM-20 | D | `tests/tenantIsolation.test.ts` | `rent_payments_insert_own` widened to `with check (true)`: the insert succeeded, and the test read `expected undefined to be '42501'` where 42501 is Postgres refusing for insufficient privilege |
+| PERM-30 | D | `tests/anonymousAccess.test.ts` | A permissive policy **added**, not widened: `create policy ... on public.properties for select to anon using (true)`, then dropped. `expected [ Array(1) ] to deeply equal []` |
+
+**The seven permission demonstrations were run against the test project on 2026-09-02**, one policy
+at a time, each restored from its own `create policy` statement in the migration file before the next
+was touched. After every restore the policy set was compared against the 29 recorded beforehand, and
+matched every time. The migration files were byte-identical at the end to their hashes at the start.
+
+**A correction to the obvious method, which does not work.** Dropping a restrictive policy proves
+nothing about isolation. Row Level Security denies by default, so removing a policy makes access
+*narrower*, not wider: with `leases_select_own` dropped, a landlord sees no tenancies at all, and a
+test asserting "this landlord cannot see the other landlord's" still passes. Every demonstration
+above therefore widened the policy to `true` instead, which is what actually breaks the claim being
+tested. The anonymous case is the one exception and has the opposite shape: an anonymous client reads
+nothing precisely *because* no policy grants it anything, so there was nothing to widen and a
+permissive policy had to be added and then dropped.
+
+One row was written as a side effect: with `rent_payments_insert_own` widened, the tenant's insert
+succeeded rather than being refused. It was identified by `recorded_by` pointing at a tenant, which
+the real policy makes impossible, and removed by id; the payment ids were compared before and after
+to confirm nothing else changed.
 
 **EDGE-14 was the case that was wrong, not the code.** It asked for a range before the tenancy to
 produce an explicit empty statement. It cannot: `chooseStatementRange` clamps both ends inside the
