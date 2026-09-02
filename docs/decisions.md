@@ -1062,14 +1062,14 @@ blank when opened straight from disk; that is the protocol refusing the mask, no
 And a background colour is a background graphic, which browsers drop from print by default, so the
 component sets `print-color-adjust: exact` - without it the statement would print a blank gap.
 
-The accessible name is "Rental Management", not "logo". A masked span has no content of its own, so
+The accessible name is "Rentbook", not "logo". A masked span has no content of its own, so
 the name has to be given rather than inferred, and on all four screens the mark stands alone with no
 wordmark beside it. Naming it "logo" would tell a screen reader user that a picture exists without
 telling them what it says; naming it as the product says the thing the mark is standing in for.
 
 ### 2026-09-02 - The headers carry a fragment of the mark, not the mark
 
-Both headers now open with the mark and the words "Rental Management" as one link home. The mark
+Both headers now open with the mark and the words "Rentbook" as one link home. The mark
 they draw is not the mark the sign-in, registration, password and statement pages draw. It is the
 upper form of it, cropped out and used on its own.
 
@@ -1096,6 +1096,40 @@ has never needed because the wordmark was already there. It points at `/tenant` 
 
 One link wraps both the mark and the words, so it is one focus stop with one accessible name. The
 mark inside is `aria-hidden`: it would otherwise announce a name identical to the text beside it,
-and hearing "Rental Management" twice is worse than a picture nobody mentions. This is the opposite
+and hearing "Rentbook" twice is worse than a picture nobody mentions. This is the opposite
 choice from `LogoMark` on the authentication pages, which does carry a name, because there it stands
 alone with no words next to it.
+
+### 2026-09-02 - The product is called Rentbook, and the header mark was cut through
+
+Two separate things, recorded together because they landed together.
+
+**The name.** The product is Rentbook. The rename covers every place the words were the product's
+name: the wordmark in both headers, the accessible name on the mark, the page title and its template,
+the deck's title slide and its per-slide footer, and the headings of README and link.md. Sixteen
+occurrences. Eight were left alone, because "rental management" is also the name of the category and
+those are descriptions rather than the name - "a rental management app for small landlords" says what
+kind of thing this is, and renaming it to "a Rentbook app" would be nonsense. Nothing that is an
+identifier moved: not the repository, the Vercel project, the Supabase projects, the package name,
+or the deployed hostname. A display name and a slug are different things, and only one of them is
+safe to change after deployment.
+
+**The mark.** The header mark had been cropped as a rectangle, (400, 0) to (3900, 3500), chosen by
+eye off a coordinate grid. That was wrong, and it showed: the shape read as cut off in the top bar.
+The cause was not a container clipping it, not a forced aspect ratio, and not the size. The artwork
+is two separate connected shapes - an upper one occupying (943, 0) to (3788, 3341) which touches no
+edge of the file, and a lower one which bleeds off the left, right and bottom. The rectangle reached
+past the upper shape on two sides and swept in fragments of the lower one, and those fragments had
+nowhere to close, so they ran off the edge of the mask.
+
+The fix was to take the shape rather than a rectangle: label the connected components, keep the
+upper one, and pad it by four percent so rounding can never shave an edge. Verified by measuring
+painted ink along all four edges of the element itself at 1440, 768 and 390 on both headers: zero.
+The lesson worth keeping is that cropping artwork by eye off a grid is guessing, and the artwork
+could say exactly where its own shapes were the whole time.
+
+**The name under the mark.** The three signed-out pages now show "Rentbook" beneath the mark. It is
+set at the size the headers use for the same word, not at the page-title size, so it reads as part of
+the lockup rather than as a second heading competing with "Sign in" underneath it. The mark inside
+the lockup became decorative when the text arrived, for the same reason it is decorative in the
+header: the name is now sitting there in words, and announcing it twice helps nobody.
