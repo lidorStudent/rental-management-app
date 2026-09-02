@@ -72,7 +72,7 @@ test("a seeded landlord can sign in and reach every part of their portfolio", as
   await expect(page.getByRole("link", { name: /Occupancy/ })).not.toContainText("0 of 0");
   await expect(page.getByRole("link", { name: /Rent collected this month/ })).toBeVisible();
 
-  // Scoped to the navigation: "Rent" would otherwise also match the "Rental Management" brand link.
+  // Scoped to the navigation: "Rent" would otherwise also match the "Rentbook" brand link.
   const navigation = page.getByRole("navigation", { name: "Landlord" });
 
   await navigation.getByRole("link", { name: "Properties" }).click();

@@ -45,7 +45,7 @@ function diagramSlide({ title, diagram, caption }) {
 
 const slides = [
   `<section class="slide title" data-number="NUMBER">
-     <h1>Rental Management</h1>
+     <h1>Rentbook</h1>
      <p class="subtitle">A rental system for small landlords, with a tenant portal</p>
      <p class="meta">Lidor Amraby &nbsp;·&nbsp; final project &nbsp;·&nbsp; ${DEPLOYED_ADDRESS}</p>
    </section>`,
@@ -197,7 +197,7 @@ const html = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Rental Management</title>
+<title>Rentbook</title>
 <style>
   @page { size: 13.3333in 7.5in; margin: 0; }
   * { box-sizing: border-box; }
@@ -227,7 +227,7 @@ const html = `<!doctype html>
     color: #888888;
   }
   .slide::before {
-    content: "Rental Management";
+    content: "Rentbook";
     position: absolute;
     left: 88px;
     bottom: 44px;

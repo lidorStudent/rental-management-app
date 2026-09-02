@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Rental Management",
-    template: "%s - Rental Management",
+    default: "Rentbook",
+    template: "%s - Rentbook",
   },
   description: "Rental management for small landlords, with a tenant portal.",
 };

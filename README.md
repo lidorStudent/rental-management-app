@@ -1,4 +1,4 @@
-# Rental Management
+# Rentbook
 
 A rental management application for small landlords, with a portal for their tenants. A landlord
 records their buildings, the units inside them and who rents which unit for how long, writes down

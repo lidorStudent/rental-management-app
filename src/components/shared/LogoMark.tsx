@@ -43,7 +43,7 @@ export function LogoMark({ className }: { className?: string }) {
       // as the product rather than as "logo", because that is what the mark stands for on a page
       // where no wordmark sits beside it.
       role="img"
-      aria-label="Rental Management"
+      aria-label="Rentbook"
       style={MASK}
       className={cn("bg-foreground block aspect-[150/256] print:bg-black", className)}
     />

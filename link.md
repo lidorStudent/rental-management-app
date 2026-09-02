@@ -1,6 +1,6 @@
 # Submission
 
-Rental Management: a rental system for small landlords, with a tenant portal.
+Rentbook: a rental system for small landlords, with a tenant portal.
 
 **Submission deadline: 6 September 2026.**
 

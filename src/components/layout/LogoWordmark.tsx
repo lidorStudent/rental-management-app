@@ -11,7 +11,7 @@ import Link from "next/link";
  * pixels of height at 390, and it would still read worse than this does.
  *
  * One link, so it is one focus stop with one accessible name. The mark is decorative: the name it
- * would carry is the text sitting next to it, and a screen reader announcing "Rental Management"
+ * would carry is the text sitting next to it, and a screen reader announcing "Rentbook"
  * twice is worse than a picture nobody mentions.
  *
  * No print rule, unlike `LogoMark`. Both headers carry `print:hidden`, so this never reaches paper.
@@ -35,7 +35,7 @@ export function LogoWordmark({ href }: { href: string }) {
         style={HEADER_MASK}
         className="bg-foreground block h-6 flex-none aspect-[221/256]"
       />
-      Rental Management
+      Rentbook
     </Link>
   );
 }

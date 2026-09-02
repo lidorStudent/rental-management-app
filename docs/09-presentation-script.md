@@ -37,7 +37,7 @@ fifteen minute slot with room to be interrupted. The deck itself is
 
 ## Slide 1 - Title (0:15)
 
-**On screen:** Rental Management. A rental system for small landlords, with a tenant portal. Your
+**On screen:** Rentbook. A rental system for small landlords, with a tenant portal. Your
 name, the date, the deployed address.
 
 **Say:** "This is a rental management system for landlords with a handful of flats, and a portal for
