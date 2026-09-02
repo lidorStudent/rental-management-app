@@ -77,14 +77,26 @@ describe("invariant 1: a unit is never let twice over the same dates", () => {
   // DB-03
   it("allows a tenancy beginning the day after, so the rule is a boundary and not a wall", async () => {
     const service = serviceRoleClient();
+    const { data: existing } = await service
+      .from("leases")
+      .select("end_date")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+
+    // Both endpoints derived from the tenancy in the way, never written down. The seed places its
+    // leases relative to the day it runs, so a fixed date here is only correct until the next
+    // reseed moves the existing tenancy across it - which is exactly what happened to the literal
+    // that used to sit in this test.
+    const dayAfterExisting = shiftIsoDate(required(existing, "Maya's tenancy").end_date, 1);
+
     const { data: created, error } = await service
       .from("leases")
       .insert({
         unit_id: SEEDED_IDS.unitRothschildOne,
         landlord_id: noaProfileId,
         rent_amount_cents: 100000,
-        start_date: "2027-01-01",
-        end_date: "2027-12-31",
+        start_date: dayAfterExisting,
+        end_date: shiftIsoDate(dayAfterExisting, 364),
         rent_due_day: 1,
       })
       .select("id")
@@ -268,3 +280,15 @@ describe("invariant 5: only a landlord writes to the ledger", () => {
     expect(data?.every((row) => row.recorded_by === noaProfileId)).toBe(true);
   });
 });
+
+/**
+ * An ISO date shifted by whole days, computed here rather than imported from `src/lib/dates`.
+ *
+ * This suite's whole point is that it reaches the database without the application in the way, and
+ * a date the test derives from an application helper would be a date the application had a say in.
+ */
+function shiftIsoDate(isoDate: string, dayCount: number): string {
+  const shifted = new Date(`${isoDate}T00:00:00Z`);
+  shifted.setUTCDate(shifted.getUTCDate() + dayCount);
+  return shifted.toISOString().slice(0, 10);
+}
