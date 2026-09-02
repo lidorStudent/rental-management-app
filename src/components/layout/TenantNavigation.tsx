@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { LogoWordmark } from "@/components/layout/LogoWordmark";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { cn } from "@/lib/classNames";
 
@@ -26,7 +27,12 @@ export function TenantNavigation({ signedInAs }: { signedInAs: string }) {
   return (
     <header className="bg-card border-b print:hidden">
       <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:gap-x-4 sm:px-6">
-        <nav aria-label="Tenant" className="order-last flex w-full min-w-0 flex-wrap items-center gap-1 lg:order-none lg:w-auto">
+        <LogoWordmark href="/tenant" />
+
+        <nav
+          aria-label="Tenant"
+          className="order-last flex w-full min-w-0 flex-wrap items-center gap-1 lg:order-none lg:w-auto"
+        >
           {TENANT_LINKS.map((link) => (
             <Link
               key={link.href}

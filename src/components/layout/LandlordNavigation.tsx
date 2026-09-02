@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { LogoWordmark } from "@/components/layout/LogoWordmark";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { cn } from "@/lib/classNames";
 
@@ -26,11 +27,12 @@ export function LandlordNavigation({ signedInAs }: { signedInAs: string }) {
   return (
     <header className="bg-card border-b print:hidden">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:gap-x-6 sm:px-6">
-        <Link href="/landlord" className="text-sm font-semibold tracking-tight">
-          Rental Management
-        </Link>
+        <LogoWordmark href="/landlord" />
 
-        <nav aria-label="Landlord" className="order-last flex w-full min-w-0 flex-wrap items-center gap-1 lg:order-none lg:w-auto">
+        <nav
+          aria-label="Landlord"
+          className="order-last flex w-full min-w-0 flex-wrap items-center gap-1 lg:order-none lg:w-auto"
+        >
           {LANDLORD_LINKS.map((link) => (
             <Link
               key={link.href}
