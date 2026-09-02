@@ -96,6 +96,7 @@ describe("TenantAccessPanel", () => {
     expect(screen.queryByTestId("temporary-password")).toBeNull();
   });
 
+  // INV-50
   it("shows a refusal that does not say whether the address already has an account", async () => {
     createTenantAccountForLease.mockResolvedValue({
       status: "error",

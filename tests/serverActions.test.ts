@@ -233,6 +233,7 @@ describe("an action given another landlord's identifier", () => {
     expect(result).toEqual({ status: "error", message: "That property was not found." });
   });
 
+  // INV-33
   it("refuses a tenancy on another landlord's unit", async () => {
     await actingAs(SEEDED_USERS.landlordEitan);
 
@@ -262,6 +263,7 @@ describe("an action given another landlord's identifier", () => {
     expect(result).toEqual({ status: "error", message: "That lease was not found." });
   });
 
+  // INV-44
   it("refuses a correction to another landlord's payment", async () => {
     const { data: payment } = await serviceRoleClient()
       .from("rent_payments")

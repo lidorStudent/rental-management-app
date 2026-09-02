@@ -603,15 +603,46 @@ Each case above is cited by its identifier in the test that proves it, in the sa
 and database cases already were, so a reader can go from a row in this document to the assertion
 without searching. The counts, as they stand:
 
-| Prefix | Cited in the test code | Total | Not cited, and why |
-| --- | --- | --- | --- |
-| CORE | 29 | 29 | — |
-| INV | 43 | 52 | INV-08, 09, 33, 34, 35, 40, 44, 49 and 50 are proved by the schema tests without naming their identifier. The assertions exist; the citations do not |
-| PROC | 18 | 18 | — |
-| PERM | 42 | 42 | — |
-| DB | 25 | 25 | — |
-| EDGE | 18 | 18 | — |
-| UI | 10 | 11 | UI-08 is a manual case by designation, discharged by MAN-02 |
+| Prefix | Cited | Total | Ratio | Not cited, and why |
+| --- | --- | --- | --- | --- |
+| CORE | 29 | 29 | 29/29 | — |
+| INV | 46 | 52 | 46/52 | Six remain, and the reason is not a missing citation. See below |
+| PROC | 18 | 18 | 18/18 | — |
+| PERM | 42 | 42 | 42/42 | — |
+| DB | 25 | 25 | 25/25 | — |
+| EDGE | 18 | 18 | 18/18 | — |
+| UI | 10 | 11 | 10/11 | UI-08 is a manual case by designation, discharged by MAN-02 |
+| MAN | 0 | 5 | 0/5 | Manual by designation. A person runs these; there is no code to cite from |
+| **Total** | **188** | **200** | **188/200** | 194 of the 200 are automatable, and 188 of those are cited |
+
+**A correction to what this table used to say.** It previously recorded nine INV cases as "proved by
+the schema tests without naming their identifier - the assertions exist; the citations do not". That
+was wrong twice over. All nine are E-level cases about the message a refusal produces, and the schema
+tests prove nothing about messages. And of the nine, only three turned out to have an assertion at
+all:
+
+| Case | Now cited in | What discharges it |
+| --- | --- | --- |
+| INV-33 | `tests/serverActions.test.ts` | A landlord naming another landlord's unit is told the unit was not found |
+| INV-44 | `tests/serverActions.test.ts` | A landlord naming another landlord's payment is told the payment was not found |
+| INV-50 | `src/components/leases/TenantAccessPanel.test.tsx` | The refusal for a taken tenant address does not confirm the address exists |
+
+The remaining six have **no test that discharges them**, and are recorded here rather than cited
+against a test that does not:
+
+| Case | What is missing | What exists instead |
+| --- | --- | --- |
+| INV-08 | Nothing signs in with a wrong password and checks the message | The e2e `signIn` helper only ever uses correct credentials |
+| INV-09 | Nothing signs in with an unknown address and checks the message is identical to INV-08's | As above. The oracle property this case exists to protect is untested |
+| INV-34 | Nothing calls `endLease` with an end date later than the current one | `refuseIfNewEndDateIsNotEarlier` in `leaseActions.ts` is never reached by a test |
+| INV-35 | Nothing calls `endLease` with an end date on or before the start | The same function, the same gap. The only `endLease` call in the suite is the authorisation case, which returns not-found before any date is compared |
+| INV-40 | Nothing asks the server for a month outside the tenancy | The rule is proved at U by `isPeriodMonthWithinLease.test.ts`, and the message is *mocked* in `RentPaymentForm.test.tsx`, so no test makes the server produce it |
+| INV-49 | Nothing asks the server for a forbidden transition | The map is proved at U by `allowedStatusTransitions.test.ts`; the sentence this case quotes does not exist anywhere in the code |
+
+INV-40 and INV-49 are the near misses: the rule behind each is genuinely tested, and only the
+server's refusal is not. INV-08 and INV-09 are the ones worth closing first, because the property
+they describe - that a wrong password and an unknown address are answered identically - is a
+security property, and nothing currently checks it.
 
 Every automatable case now has an assertion behind it. Each of the thirteen listed below was
 watched failing before it was accepted: the behaviour it describes was removed, inverted or widened,
