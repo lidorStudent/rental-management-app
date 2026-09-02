@@ -526,8 +526,9 @@ rental-management-app/
 │   └── sessionCookie.spec.ts
 ├── public/
 │   ├── logo.png                       the artwork as supplied, kept as the source of the mark
-│   └── logo-mark.png                  the whole mark: 48px on the signed-out pages and the
-│                                       statement, 32px in the two headers
+│   └── logo-mark.png                  the whole mark: the CSS mask on the signed-out pages at
+│                                       48px and in the headers at 32px, and the image the
+│                                       statement prints
 └── src/                               unit and component tests live beside what they test,
     │                                   as <name>.test.ts next to <name>.ts
     ├── proxy.ts                        session refresh and the area guards
@@ -722,9 +723,9 @@ Files that do the same job have the same shape, so learning one teaches all of t
 | `TenantAccessPanel` | Shows whether the lease has a tenant account, offers the create action when it does not, and displays the one-time temporary password returned by that action. Never reads a password from anywhere |
 | `AttentionPanel` | The dashboard's reason for existing: overdue periods, leases ending within sixty days, open requests. Receives already-computed lists |
 | `OutstandingTotal` | Portfolio-wide outstanding rent, computed by `summariseOutstandingRent` on the server |
-| `RentStatement` | The statement itself, read from the ledger rather than from any aggregate: a statement that cannot be checked against its own lines is not a statement. The chrome carries `print:hidden`, and `globals.css` sets the page margins, so printing leaves the document alone. It opens with `LogoMark`, the one place the mark is meant to reach paper |
+| `RentStatement` | The statement itself, read from the ledger rather than from any aggregate: a statement that cannot be checked against its own lines is not a statement. The chrome carries `print:hidden`, and `globals.css` sets the page margins, so printing leaves the document alone. It opens with the mark as a plain `<img>` rather than with `LogoMark`, because this is the one place the mark reaches paper and a CSS mask is a paint-time effect a print pipeline can drop, leaving the background it was meant to cut a shape from |
 | `MaintenanceStatusControl` | Renders only the transitions `allowedStatusTransitions` permits from the current status, and calls the update action |
-| `LogoMark` | The logo, drawn as a CSS mask over the `--foreground` token rather than as an image, because an `<img>` paints its own pure black and nothing else in the product is pure black. Carries its own accessible name where it stands alone, and takes `decorative` where a caller already shows the name in text. Appears on the three pages that have no navigation around them and at the head of the statement, never smaller than 48 pixels |
+| `LogoMark` | The logo, drawn as a CSS mask over the `--foreground` token rather than as an image, because an `<img>` paints its own pure black and nothing else in the product is pure black. Carries its own accessible name where it stands alone, and takes `decorative` where a caller already shows the name in text. Appears on the three pages that have no navigation around them, at 48 pixels, and in both headers at 32. The statement does not use it: see `RentStatement` |
 | `LogoWordmark` | The mark and the words "Rentbook" as a single link home, used by both headers: `/landlord` for a landlord, `/tenant` for a tenant. One link, so one focus stop and one accessible name; the mark inside is `aria-hidden`, because the name it would carry is the text beside it. It draws the whole mark at 32 pixels rather than a crop of it, for the reason in the decisions log |
 | `LogoLockup` | The mark above the word "Rentbook", used by sign in, registration and the forced password change. The name is set at the header's size rather than the page-title size, so it reads as part of the mark instead of arguing with the real heading below it; the mark inside is decorative, because the name is already there in text |
 | `EmptyState` | The single empty-state component, so every list that has no rows explains what to do next instead of showing a blank area |

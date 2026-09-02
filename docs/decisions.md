@@ -1162,3 +1162,33 @@ set at the size the headers use for the same word, not at the page-title size, s
 the lockup rather than as a second heading competing with "Sign in" underneath it. The mark inside
 the lockup became decorative when the text arrived, for the same reason it is decorative in the
 header: the name is now sitting there in words, and announcing it twice helps nobody.
+
+### 2026-09-02 - The statement prints the mark as an image, not as a mask
+
+Everywhere else the logo is a CSS mask over the `--foreground` token, because the artwork is pure
+black and nothing else in the product is. The rent statement is the exception: it uses a plain
+`<img>`.
+
+The reason is a failure that reached paper. Printed from production, the mark on the statement came
+out as a solid black rectangle the size of the element. A mask is a paint-time effect: the browser
+paints the background colour and then cuts a shape from it. A print pipeline that flattens the page
+without applying the mask paints the background across the whole box instead, and
+`print-color-adjust: exact` - which this mark needs, because a background colour is a background
+graphic and browsers drop those from print by default - then guarantees that unmasked box reaches
+the paper. The two together turn a dropped mask into a black rectangle rather than into nothing.
+
+It could not be reproduced in the engines that can be driven headlessly. Chromium's PDF path renders
+the mark correctly, and WebKit honours the mask under print media as well. The failure is in the
+real print-to-PDF pipeline, which is the one that matters and the one that cannot be scripted here.
+That asymmetry decided it: a black box on the single document a landlord hands a tenant is the worst
+place in the product for a rendering fault, and it is not worth defending a technique that cannot be
+verified where it failed.
+
+An image has no paint-time dependency. The raster is the content, so there is no background to
+survive without its mask, and the PDF now carries the artwork itself as a 150 by 256 image with its
+alpha channel rather than a filled rectangle. Nothing is lost by the change: the only thing the mask
+bought was recolouring to the ink token, and the artwork is already black on transparency while
+print wants black on white.
+
+The screen and print paths therefore differ for this one component, deliberately. `LogoMark` stays
+as it is everywhere else, where the recolouring is worth having and nothing is being printed.
