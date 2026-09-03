@@ -637,6 +637,12 @@ and `readable` is `status.replace("_", " ")`, so a request in progress produces 
 that is in progress can only become resolved." The case was right and the search that looked for it
 was wrong.
 
+**The last row is a control, not a demonstration.** It is recorded here because it answers the same
+question the rest of this table answers - would this test notice if the thing it claims to check were
+broken - and because until now it existed only as a comment in the test file, where a reader checking
+the suite's honesty would never find it. A suite of absence assertions is the easiest kind to write
+vacuously, and this is the thing that stops it.
+
 **Why these six were missed for so long.** Each sits behind an ownership check. `endLease`,
 `recordRentPayment` and `updateMaintenanceRequestStatus` all resolve the row first and answer "not
 found" to anybody who does not own it, so a test acting as the wrong landlord exercises the
@@ -663,6 +669,7 @@ None of them is a test shaped around code that already passed.
 | PERM-14 | D | `tests/tenantIsolation.test.ts` | `maintenance_requests_select_as_tenant` widened to `using (true)`: `expected [ …(9) ] to have a length of 2 but got 9` |
 | PERM-20 | D | `tests/tenantIsolation.test.ts` | `rent_payments_insert_own` widened to `with check (true)`: the insert succeeded, and the test read `expected undefined to be '42501'` where 42501 is Postgres refusing for insufficient privilege |
 | PERM-30 | D | `tests/anonymousAccess.test.ts` | A permissive policy **added**, not widened: `create policy ... on public.properties for select to anon using (true)`, then dropped. `expected [ Array(1) ] to deeply equal []` |
+| PERM-30 control | D | `tests/anonymousAccess.test.ts` | Not a demonstration but the guard that makes the demonstration mean anything: `refuseIfEmpty` runs in `beforeAll` and throws unless the service role can see rows in all six tables and all three aggregate views first. Every assertion in that file is that an anonymous client reads nothing, and an empty database satisfies every one of them without a single policy being correct. Pointed at an unseeded project it stops with `"<relation> is empty, so \"reads nothing\" would prove nothing"` rather than passing |
 
 **The seven permission demonstrations were run against the test project on 2026-09-02**, one policy
 at a time, each restored from its own `create policy` statement in the migration file before the next

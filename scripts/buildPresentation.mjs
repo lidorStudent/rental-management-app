@@ -104,15 +104,13 @@ const slides = [
   diagramSlide({
     title: "The architecture",
     diagram: architectureDiagram,
-    caption:
-      "The routing is a convenience. The database is the boundary that refuses.",
+    caption: "The routing is a convenience. The database is the boundary that refuses.",
   }),
 
   diagramSlide({
     title: "The database",
     diagram: entityRelationshipDiagram,
-    caption:
-      "No lease status column, no occupancy flag, no rent periods table. All derived.",
+    caption: "No lease status column, no occupancy flag, no rent periods table. All derived.",
   }),
 
   bulletSlide({
@@ -140,8 +138,8 @@ const slides = [
     title: "The tests",
     bullets: [
       "354 unit and component tests — the rules at their boundaries",
-      "135 permission and database tests — against a real Postgres",
-      "26 end-to-end tests — whole processes in a browser",
+      "139 permission and database tests — against a real Postgres",
+      "27 end-to-end tests — whole processes in a browser",
       "5 documented manual checks — print, layout, screen reader",
     ],
     closing: "The permission tests attack the database, not the interface.",
@@ -162,7 +160,7 @@ const slides = [
     title: "Security",
     bullets: [
       "Session in one HTTP-only cookie, against the library default",
-      "29 Row Level Security policies, proved by 135 tests",
+      "29 Row Level Security policies, proved by 139 tests",
       "Validation always runs on the server",
       "Service role key: one caller, unreachable from the browser",
     ],
@@ -311,9 +309,12 @@ await page.pdf({
 });
 
 for (const slideNumber of [1, 7, 8, 9]) {
-  await page.locator(".slide").nth(slideNumber - 1).screenshot({
-    path: `${process.env.SLIDE_SHOT_DIRECTORY ?? projectRoot}slide-${slideNumber}.png`,
-  });
+  await page
+    .locator(".slide")
+    .nth(slideNumber - 1)
+    .screenshot({
+      path: `${process.env.SLIDE_SHOT_DIRECTORY ?? projectRoot}slide-${slideNumber}.png`,
+    });
 }
 
 await browser.close();

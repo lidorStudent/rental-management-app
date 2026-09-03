@@ -208,7 +208,7 @@ a submit button disables itself while a submission is in flight.
 
 ### `npm run test:db` - permission and database tests
 
-135 tests in 7 files, about 35 seconds, against the **test** Supabase project with real credentials
+139 tests in 7 files, about 35 seconds, against the **test** Supabase project with real credentials
 and real policies. Refuses to run if `.env.test` points at the deployed project.
 
 | File | Covers |
@@ -223,7 +223,7 @@ and real policies. Refuses to run if `.env.test` points at the deployed project.
 
 ### `npm run test:e2e` - browser tests
 
-26 tests in a real Chromium against the test project, about three minutes. Playwright starts the dev
+27 tests in a real Chromium against the test project, about three minutes. Playwright starts the dev
 server itself. Each test builds its own landlord, building and tenant through the admin API and
 removes them afterwards, so the suite can be run twice in a row in any order.
 

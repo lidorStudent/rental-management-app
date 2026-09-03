@@ -175,13 +175,13 @@ Follow the click list below exactly. Speaking notes are inside it.
 
 ## Slide 11 - The tests (1:00)
 
-**On screen:** 354 unit and component. 135 permission and database. 26 end to end. Plus five
+**On screen:** 354 unit and component. 139 permission and database. 27 end to end. Plus five
 documented manual checks.
 
 **Say:** "Three suites. Three hundred and fifty-four unit and component tests cover the rules at
 their boundaries - the day a tenancy ends is still occupied, a part payment is partial and not
-overdue until its due day passes. Twenty-six Playwright tests drive the whole processes in a real
-browser. The interesting one is the middle: a hundred and thirty-five tests that attack the database
+overdue until its due day passes. Twenty-seven Playwright tests drive the whole processes in a real
+browser. The interesting one is the middle: a hundred and thirty-nine tests that attack the database
 directly. They
 do not use the interface, and that is the point - a test that drives the interface only proves the
 interface offered no way in, and an attacker will not use the interface. They sign in as one landlord

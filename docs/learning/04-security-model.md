@@ -1,7 +1,7 @@
 # What the permission tests prove
 
 A study note for the questions that follow "how do you know one landlord cannot see another's
-data?" The honest answer is not "I checked in the browser". It is a suite of a hundred and thirty-five tests that
+data?" The honest answer is not "I checked in the browser". It is a suite of a hundred and thirty-nine tests that
 attack the database directly, with real credentials, and are refused.
 
 Run them with `npm run test:db`.
@@ -59,7 +59,7 @@ database were left exposed to the internet with the public key, these tests woul
 
 ## What is in the suite
 
-A hundred and thirty-five tests in seven files, all against the **test** project, never production.
+A hundred and thirty-nine tests in seven files, all against the **test** project, never production.
 
 | File | Proves |
 | --- | --- |

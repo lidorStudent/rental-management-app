@@ -49,5 +49,5 @@
 
   <rect x="710" y="478" width="600" height="64" rx="6" fill="#f4f4f5" stroke="#333333" stroke-width="1.5"/>
   <text x="1010" y="504" text-anchor="middle" font-size="22" font-weight="600" fill="#111111">Postgres</text>
-  <text x="1010" y="529" text-anchor="middle" font-size="17" fill="#444444">6 tables, 3 views, and 29 Row Level Security policies</text>
+  <text x="1010" y="529" text-anchor="middle" font-size="17" fill="#444444">6 tables, 3 aggregate views, and 29 Row Level Security policies</text>
 </svg>

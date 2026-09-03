@@ -83,7 +83,7 @@ Password for all of them: `Demo-Rental-2026!`
 | 3 | Product specification | [docs/01-product-specification.md](docs/01-product-specification.md) |
 | 4 | Technical planning document | [docs/02-technical-plan.md](docs/02-technical-plan.md) |
 | 5 | Test specification | [docs/03-test-specification.md](docs/03-test-specification.md) |
-| 6 | Test code | [src/](src/) 354 unit and component tests in 32 files, beside the code they test; [tests/](tests/) 135 database and permission tests in 7 files; [e2e/](e2e/) 26 browser tests, plus 7 read-only checks against the deployed address |
+| 6 | Test code | [src/](src/) 354 unit and component tests in 32 files, beside the code they test; [tests/](tests/) 135 database and permission tests in 7 files; [e2e/](e2e/) 27 browser tests, plus 7 read-only checks against the deployed address |
 | 7 | Scale document | [docs/06-scale.md](docs/06-scale.md) |
 | 8 | Security document | [docs/05-security.md](docs/05-security.md) |
 | 9 | Local run instructions, with every environment variable explained | [README.md](README.md), sections "Local setup, from a clean clone" and "Environment variables" |

@@ -525,7 +525,6 @@ rental-management-app/
 │   ├── interfaceStates.spec.ts        pagination, filters, print hiding, the vacant unit link
 │   └── sessionCookie.spec.ts
 ├── public/
-│   ├── logo.png                       the artwork as supplied, kept as the source of the mark
 │   └── logo-mark.png                  the whole mark: the CSS mask on the signed-out pages at
 │                                       48px and in the headers at 32px, and the image the
 │                                       statement prints
@@ -704,7 +703,7 @@ which is what stops the usual `lib/utils.ts` dumping ground from forming.
 
 Files that do the same job have the same shape, so learning one teaches all of them.
 
-### 10.1 The four repeating shapes
+### 10.1 The five repeating shapes
 
 | Shape | Structure | Files that follow it |
 | --- | --- | --- |
@@ -714,7 +713,29 @@ Files that do the same job have the same shape, so learning one teaches all of t
 | **Detail page** | Server component. Loads one row by id, calls `notFound()` if the query returns nothing, renders panels and the forms that act on it | Property, unit, lease, request |
 | **Section** | Async server component behind its own `<Suspense>` boundary with a skeleton fallback, reading its own data. A slow query draws one skeleton instead of holding up the page | Dashboard panels, tenancy summary |
 
-### 10.2 What the non-obvious components do
+### 10.2 What is shared, and one thing that is not
+
+The shapes above are followed. Below them, four pieces of markup and arithmetic had been copied
+between files instead, and three were extracted:
+
+| Now shared | Was | Where it lives |
+| --- | --- | --- |
+| `DetailRow` | Four copies of the same label-and-value row, in the lease terms panel, both maintenance detail pages and the tenant lease page. They differed only on whether the value was a link and whether it carried `tabular-nums`, so both became arguments | `src/components/shared/DetailRow.tsx`, 26 call sites |
+| `describeOutstandingAmount` | Three copies of the rule that a negative balance is a credit rather than a minus sign, two of them identical | `src/lib/money/`. Whether a zero shows as an amount or is left blank stayed at the call site, because that differs by screen: the rent schedule leaves it blank to keep a dense table quiet |
+| `countOrZero` | The same function under two names, `countOrZero` in the lease actions and `orZero` on the dashboard | `src/lib/supabase/`, beside the clients, because it exists for the `number \| null` those clients return for a count |
+
+**`Figure` is deliberately still three components**, on the dashboard, the rent overview and the
+tenant portal. They look alike and are not: the dashboard's is a `<Link>` wrapping the whole tile,
+with the padding on the anchor so the hover target fills it and a size switch for the one figure the
+page exists to answer; the tenant's `<dd>` is a flex row that seats a badge beside the value, and
+carries those classes whether or not a badge is passed; the rent overview's has no detail paragraph
+at all. Only one of the three tenant tiles passes a badge, so tying the flex classes to a badge would
+change two of them and applying them always would change all three on the rent page. Every way of
+merging them alters rendered markup, and a shared component whose body is four conditionals producing
+three different shapes is worth less than three short ones. The `isAlarming` colour rule is the one
+thing genuinely repeated, and it is a single expression pointing at a design token.
+
+### 10.3 What the non-obvious components do
 
 | Component | Responsibility |
 | --- | --- |
@@ -862,17 +883,32 @@ Primary keys and unique constraints already create indexes; only the additions a
 
 No index is added speculatively. Each one above has a query in this document that uses it.
 
-### 11.9 Aggregate views
+### 11.9 Views
 
-Three views exist so that no screen has to read a ledger row by row to add it up. All three are
-declared `security_invoker`, so they run with the Row Level Security of whoever selects from them;
-without that a view would be a hole straight through the policies underneath it.
+The database has four views: three aggregates the application reads, and one the application never
+touches. All four are declared `security_invoker`, so they run with the Row Level Security of
+whoever selects from them; without that a view would be a hole straight through the policies
+underneath it.
+
+The three aggregates exist so that no screen has to read a ledger row by row to add it up.
 
 | View | One row per | Why it exists |
 | --- | --- | --- |
 | `lease_rent_summary` | Tenancy | The rent overview lists every tenancy with what has been received against it. Reading the payments to total them would pull three years of rows to show one number per tenancy, and would get slower every month the product is used |
 | `rent_collected_by_month` | Landlord and month | The dashboard opens with what arrived this month. Grouping by month in the database makes that figure cost one row instead of one row per payment |
 | `lease_period_totals` | Tenancy and month | The lease page shows a status for every month. The status needs how much arrived for that month, not the payments that made it up, and a three-year tenancy has thirty-six months however many payments went into them |
+
+**The fourth view, `anon_write_privileges`, is not an aggregate and is not read by the application.**
+It reports what the `anon` role is granted on each table - insert, update, delete, truncate - by
+asking `has_table_privilege`, and exists so `tests/anonymousAccess.test.ts` can assert that the key
+shipped in every browser holds no write privilege at all. That claim is about a grant rather than a
+policy, and a grant cannot be observed by trying to write and being refused: a policy refusal and a
+missing grant look the same from the client. The view makes the grant itself readable.
+
+It is in the schema rather than in the test because a test cannot create one: the anonymous client
+has no rights to introspect `pg_class`, and giving it those rights to satisfy a test would be a
+worse trade than a read-only view. It is worth knowing it is there, since it is the one object in
+this schema that exists for the test suite rather than for the product.
 
 The rule that turns a total into arrears stays in TypeScript, in `summariseOutstandingRent.ts`,
 because it depends on the rent schedule and the schedule is a function of the lease rather than of

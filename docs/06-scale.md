@@ -241,7 +241,33 @@ page is bounded to twenty properties, but each property's unit and lease sets ar
 this grows with the largest building rather than with the portfolio. It is fine for buildings with
 tens of units and would need attention for hundreds.
 
-**5. Everything else is flat.** The lease page's three queries (93, 82, 86 ms small; 84, 80, 80 ms
+**5. `refuseIfDatesAreTaken`, in `leaseActions`
+([src/actions/leaseActions.ts:245](../src/actions/leaseActions.ts#L245)), is a knowing exception to
+everything above.** It selects *every* lease on a unit and filters them in JavaScript, in
+`findConflictingLease`, rather than asking Postgres for the overlapping one. That is the opposite of
+the discipline the rest of this document argues for, and it is deliberate.
+
+It is correct at this size because the set it reads is bounded by something that does not grow with
+use: the number of tenancies one flat has ever had. A unit let annually for a decade has ten rows.
+The query starts from `leases.unit_id`, which is indexed, so it is an index lookup returning single
+figures, and it is not among the queries that moved between the small and large portfolios.
+
+It is in JavaScript rather than in the query because the refusal has to name the tenancy in the way
+and the first free day after it - "already let from X to Y, so a new one can start on Z at the
+earliest" - and that needs the conflicting row itself, not a count or a boolean. A query that
+returned just the overlapping row would work equally well; the reason it was written this way is
+that `findConflictingLease` is also the pure function the unit tests exercise, and it has to agree
+with the exclusion constraint exactly. Having one implementation that both the tests and the action
+use is worth more here than saving a lookup that costs nothing.
+
+**What would change it.** A unit with hundreds of tenancies - a short-let or a room re-let monthly
+for years - would make the read unbounded in the one dimension it currently trusts. At that point
+the check becomes a query with `&&` against a `daterange`, returning the single conflicting row, and
+`findConflictingLease` stays as the pure function the tests use. Nothing else about the rule changes,
+because the guarantee was never in this code: it is the `leases_no_overlap` exclusion constraint, and
+this function only exists to produce a better sentence than a constraint violation would.
+
+**6. Everything else is flat.** The lease page's three queries (93, 82, 86 ms small; 84, 80, 80 ms
 large), the leases list (86 ms and 84 ms), the tenant portal's two reads (85 and 81 ms) did not move
 between the two portfolio sizes, because each of them hands Postgres an indexed column to start
 from: `leases.id`, `rent_payments.lease_id`, `leases.tenant_profile_id`.
@@ -367,7 +393,7 @@ deleted, so importing it is impossible rather than merely discouraged.
 each starting with a role guard and a Zod parse. A form posts to one; nothing in the browser
 constructs a database query, because nothing in the browser can.
 
-**What is a client component, and why.** Twenty-five of the fifty-four files in `src/components`, and every one of them
+**What is a client component, and why.** Twenty-five of the fifty-five files in `src/components`, and every one of them
 is there for interaction rather than for data: the forms, which use react-hook-form for field-level
 feedback; the navigation, which highlights the current link; the delete buttons, which confirm; the
 print button, which calls `window.print()`. The parent server component reads the data and hands it
