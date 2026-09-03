@@ -388,3 +388,49 @@ test("a registration form with a mismatched password shows the error and creates
   const { data } = await adminClient().from("profiles").select("id").eq("email", email);
   expect(data).toEqual([]);
 });
+
+/**
+ * INV-08 and INV-09. The sign-in form must not be an account-existence oracle.
+ *
+ * A wrong password against a real account and any password against an address that has never been
+ * registered have to be answered identically, or the form tells an attacker which addresses are
+ * worth attacking. `docs/05-security.md` argues this at length; until now nothing held it.
+ *
+ * Asserted on what a person actually sees - the text on the page and the address bar - rather than
+ * on the action's return value, because the property is about what the browser is told. A future
+ * change that leaked the difference through a redirect, a status, or a second message would pass a
+ * test that only compared the action's `message` field.
+ */
+test("a wrong password and an unknown address are refused in exactly the same words", async ({
+  page,
+}) => {
+  async function refusalFor(email: string, password: string) {
+    await page.goto("/login");
+    await page.getByLabel("Email address").fill(email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Sign in" }).click();
+
+    // Scoped inside main: Next renders its own empty role="alert" route announcer on every page,
+    // and an empty alert would make two refusals look identical for the wrong reason.
+    const alert = page.locator("main").getByRole("alert");
+    await expect(alert).toHaveText(/\S/);
+    return {
+      text: ((await alert.textContent()) ?? "").trim(),
+      path: new URL(page.url()).pathname,
+      // Everything the page says, so a difference anywhere in the response is caught, not just in
+      // the sentence the form chose to show.
+      body: ((await page.locator("main").textContent()) ?? "").replace(/\s+/g, " ").trim(),
+    };
+  }
+
+  const wrongPassword = await refusalFor(portfolio.landlord.email, "not-the-right-password");
+  const unknownAddress = await refusalFor(
+    `${uniqueName("never-registered")}@example.co.il`,
+    TEST_PASSWORD,
+  );
+
+  expect(wrongPassword.text).toBe("That email address and password do not match an account.");
+  expect(unknownAddress.text).toBe(wrongPassword.text);
+  expect(unknownAddress.path).toBe(wrongPassword.path);
+  expect(unknownAddress.body).toBe(wrongPassword.body);
+});

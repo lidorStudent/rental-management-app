@@ -365,3 +365,128 @@ describe("where ownership comes from", () => {
     await service.from("rent_payments").delete().eq("id", paymentId);
   });
 });
+
+/**
+ * The rules a landlord meets on their own rows.
+ *
+ * Every case here acts as the landlord who owns the lease, because that is the only way the rule is
+ * reached: the action resolves the row first and answers "not found" to anybody else, so a test
+ * acting as the wrong landlord exercises the ownership check and never the rule behind it. That is
+ * why these four rules went untested while an authorisation test that looked like them passed.
+ *
+ * Nothing here writes. Each call is refused, so each leaves the database as it found it.
+ */
+describe("the rules a landlord meets on a row they own", () => {
+  // INV-34
+  it("refuses an end date later than the one the lease already has", async () => {
+    await actingAs(SEEDED_USERS.landlordNoa);
+
+    const { data: lease } = await serviceRoleClient()
+      .from("leases")
+      .select("start_date, end_date")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    const existing = required(lease, "Maya's tenancy");
+
+    const result = await endLease({
+      leaseId: SEEDED_IDS.leaseMayaActive,
+      endDate: shiftIsoDate(existing.end_date, 1),
+    });
+
+    expect(result).toEqual({
+      status: "error",
+      message: "Ending a lease brings its end date forward.",
+      fieldErrors: {
+        endDate: `This lease already ends on ${existing.end_date}. To extend it, renew it instead.`,
+      },
+    });
+  });
+
+  // INV-35
+  it("refuses an end date on the day the lease started", async () => {
+    await actingAs(SEEDED_USERS.landlordNoa);
+
+    const { data: lease } = await serviceRoleClient()
+      .from("leases")
+      .select("start_date")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    const existing = required(lease, "Maya's tenancy");
+
+    const result = await endLease({
+      leaseId: SEEDED_IDS.leaseMayaActive,
+      endDate: existing.start_date,
+    });
+
+    expect(result).toEqual({
+      status: "error",
+      message: "A tenancy must end after it started.",
+      fieldErrors: { endDate: `This lease began on ${existing.start_date}.` },
+    });
+  });
+
+  // INV-40
+  it("refuses rent recorded against a month the tenancy does not cover", async () => {
+    await actingAs(SEEDED_USERS.landlordNoa);
+
+    const { data: lease } = await serviceRoleClient()
+      .from("leases")
+      .select("start_date, end_date")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    const existing = required(lease, "Maya's tenancy");
+
+    // The month before the tenancy began, derived from it rather than named, so this stays outside
+    // the lease however far the seed slides it.
+    const monthBefore = `${shiftIsoDate(existing.start_date, -1).slice(0, 7)}-01`;
+
+    const result = await recordRentPayment({
+      leaseId: SEEDED_IDS.leaseMayaActive,
+      periodMonth: monthBefore,
+      amount: "6500",
+      receivedOn: existing.start_date,
+      method: "cash",
+    });
+
+    expect(result).toEqual({
+      status: "error",
+      message: "That month is outside this tenancy.",
+      fieldErrors: {
+        periodMonth: `This lease runs from ${existing.start_date} to ${existing.end_date}.`,
+      },
+    });
+  });
+
+  // INV-49
+  it("refuses a status the transition map does not allow from the one the request has", async () => {
+    await actingAs(SEEDED_USERS.landlordNoa);
+
+    const { data: request } = await serviceRoleClient()
+      .from("maintenance_requests")
+      .select("id, status")
+      .eq("landlord_id", noaProfileId)
+      .eq("status", "in_progress")
+      .limit(1)
+      .single();
+
+    const result = await updateMaintenanceRequestStatus({
+      requestId: required(request, "a request of Noa's that is in progress").id,
+      nextStatus: "submitted",
+    });
+
+    expect(result).toEqual({
+      status: "error",
+      message: "A request that is in progress can only become resolved.",
+    });
+  });
+});
+
+/**
+ * An ISO date shifted by whole days. Local rather than imported from `src/lib/dates`, because this
+ * suite reaches the database and the actions without the rest of the application in between.
+ */
+function shiftIsoDate(isoDate: string, dayCount: number): string {
+  const shifted = new Date(`${isoDate}T00:00:00Z`);
+  shifted.setUTCDate(shifted.getUTCDate() + dayCount);
+  return shifted.toISOString().slice(0, 10);
+}
