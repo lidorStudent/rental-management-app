@@ -1,5 +1,5 @@
 /**
- * The three ways establishing the acting user can fail. They are classes rather than strings so
+ * The four ways establishing the acting user can fail. They are classes rather than strings so
  * that a caller can tell them apart with `instanceof` and react differently to each.
  */
 
@@ -26,5 +26,16 @@ export class RoleMismatchError extends Error {
   constructor(requiredRole: string, actualRole: string) {
     super(`This action is for a ${requiredRole}, and the signed-in user is a ${actualRole}.`);
     this.name = "RoleMismatchError";
+  }
+}
+
+/**
+ * The account still holds the temporary password its landlord issued. Until it is replaced, the
+ * account may reach the change-password page and nothing else.
+ */
+export class PasswordChangeRequiredError extends Error {
+  constructor() {
+    super("This account must replace its temporary password before it can be used.");
+    this.name = "PasswordChangeRequiredError";
   }
 }
