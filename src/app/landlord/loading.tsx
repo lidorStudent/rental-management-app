@@ -6,31 +6,20 @@ import { Skeleton } from "@/components/ui/skeleton";
  * put and only the part that is still loading is drawn as a shape. A page that has several
  * independent sections wraps each one in its own Suspense boundary, so a slow list does not hold up
  * the figures beside it.
+ *
+ * One card, the same shape the tenant area uses. This file stands in for all eighteen landlord
+ * routes and cannot match every one of them, so it draws the shape most of them load: a heading, a
+ * subtitle, and a bordered card of full-width bars that reads as a table on its way. A fallback that
+ * matched one page exactly would be further from the rest of them than this is.
  */
 export default function LandlordLoading() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Skeleton className="h-7 w-48" />
-        <Skeleton className="h-4 w-80" />
+        <Skeleton className="h-7 w-40" />
+        <Skeleton className="h-4 w-64" />
       </div>
-      {/*
-        One strip of three tiles, because that is what the rent overview puts under its heading: a
-        `dl` of three figures in a single bordered grid. Two panels side by side stood for nothing
-        on that page, and a fallback shaped differently from what replaces it makes the reader watch
-        the layout rearrange itself.
-
-        The overrides turn this component from a card into a strip of tiles, the same trick the
-        dashboard and the tenant overview use. Those two also pass `border-0`; this one does not,
-        because the strip it stands in for has a border, and keeping it is what makes the two agree
-        to the pixel: 1104 wide, 70 tall, three 68-pixel tiles on identical column tracks. Measured
-        rather than guessed.
-      */}
-      <PanelSkeleton
-        lineCount={2}
-        className="grid gap-px space-y-0 overflow-hidden bg-border p-0 sm:grid-cols-3"
-        lineClassName="h-[68px] w-full rounded-none"
-      />
+      <PanelSkeleton lineCount={4} />
     </div>
   );
 }
