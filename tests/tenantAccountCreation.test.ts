@@ -223,6 +223,13 @@ describe("two submissions for one lease", () => {
       }),
     ]);
 
+    // Recorded before the assertions: an assertion that fails must not leave accounts behind, which
+    // is exactly what happened while this test was being driven against the old code.
+    const firstId = await accountIdFor(firstEmail);
+    const secondId = await accountIdFor(secondEmail);
+    const survivors = [firstId, secondId].filter((id) => id !== null);
+    accountsToRemove.push(...survivors);
+
     const outcomes = [first.status, second.status].sort();
     expect(outcomes).toEqual(["error", "success"]);
 
@@ -239,13 +246,6 @@ describe("two submissions for one lease", () => {
       .single();
     const attachedTenantId = required(leaseRow, "the lease after the race").tenant_profile_id;
     expect(attachedTenantId).not.toBeNull();
-
-    const firstId = await accountIdFor(firstEmail);
-    const secondId = await accountIdFor(secondEmail);
-    const survivors = [firstId, secondId].filter((id) => id !== null);
-    for (const id of survivors) {
-      accountsToRemove.push(id);
-    }
 
     expect(survivors).toHaveLength(1);
     expect(survivors[0]).toBe(attachedTenantId);
@@ -271,20 +271,22 @@ describe("when the account cannot be linked and cannot be removed again", () => 
         tenantEmail: email,
       });
 
+      // This test deliberately strands an account, so record it before anything can fail.
+      const strandedId = await accountIdFor(email);
+      if (strandedId !== null) {
+        accountsToRemove.push(strandedId);
+      }
+
       expect(result.status).toBe("error");
       const message = result.status === "error" ? result.message : "";
       expect(message).not.toContain("Nothing was created");
       expect(message).toContain("An account may now exist for that email address");
+
+      // The account really is still there, which is what the message now admits.
+      expect(strandedId).not.toBeNull();
     } finally {
       forcedAttachError.value = null;
       forcedDeleteError.value = null;
-    }
-
-    // The account really is still there, which is what the message now admits.
-    const strandedId = await accountIdFor(email);
-    expect(strandedId).not.toBeNull();
-    if (strandedId !== null) {
-      accountsToRemove.push(strandedId);
     }
   });
 
