@@ -340,11 +340,22 @@ describe("where ownership comes from", () => {
   it("stamps a payment with the landlord who recorded it", async () => {
     await actingAs(SEEDED_USERS.landlordNoa);
 
+    // Derived from the tenancy rather than written down. The seed places its leases relative to the
+    // day it runs, so a fixed month is only inside the lease while the project was seeded within a
+    // particular window; outside it the action refuses the month and this test fails complaining
+    // about ownership stamping, which is not what it is about.
+    const { data: lease } = await serviceRoleClient()
+      .from("leases")
+      .select("start_date")
+      .eq("id", SEEDED_IDS.leaseMayaActive)
+      .single();
+    const firstMonthOfTheTenancy = `${required(lease, "Maya's tenancy").start_date.slice(0, 7)}-01`;
+
     const result = await recordRentPayment({
       leaseId: SEEDED_IDS.leaseMayaActive,
-      periodMonth: "2026-08-01",
+      periodMonth: firstMonthOfTheTenancy,
       amount: "1",
-      receivedOn: "2026-08-01",
+      receivedOn: required(lease, "Maya's tenancy").start_date,
       method: "cash",
       reference: "Written by the action tests",
     });
