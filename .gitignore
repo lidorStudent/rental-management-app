@@ -9,9 +9,15 @@ out
 next-env.d.ts
 
 # Environment variables. Real values never belong in the repository.
+# Every .env is ignored by name rather than by prefix, so a file named for an environment this
+# project does not use today cannot be committed by accident. .env.example is the deliberate
+# exception: it is committed, and it holds no values.
 .env
 .env.local
 .env.test
+.env.production
+.env.development
+.env.staging
 .env*.local
 
 # Test output
