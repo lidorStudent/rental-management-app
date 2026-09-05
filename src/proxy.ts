@@ -31,14 +31,29 @@ export async function proxy(request: NextRequest) {
 
   // The role is read from the database, never from the token: a signed-in user can edit their own
   // token metadata through the Auth API, and cannot edit their profile row.
-  const { data: profile } = await supabaseClient
+  const { data: profile, error: profileError } = await supabaseClient
     .from("profiles")
     .select("role, must_change_password")
     .eq("id", userData.user.id)
     .maybeSingle();
 
-  // An account with no profile row has no role, so there is no area it belongs in. Sign it out
-  // rather than letting it wander into one.
+  // A read that did not answer says nothing about the account, so it must not be answered with a
+  // sign-out: that call is global, and it would revoke every refresh token this person holds, on
+  // every device, because the database was busy for a moment. This project runs on a free tier where
+  // a cold start is expected, which is why there is a workflow whose only job is keeping it awake.
+  //
+  // Letting the request through is not letting it in. Whatever is wrong is still wrong when the
+  // layout reads the same row, and requireLandlordProfile / requireTenantProfile throw there, which
+  // is how every other database failure in this application already surfaces.
+  if (profileError !== null) {
+    console.error("proxy could not read the profile of the signed-in user", {
+      code: profileError.code,
+    });
+    return getResponse();
+  }
+
+  // An account with no profile row is a different thing: it has no role, so there is no area it
+  // belongs in. Sign it out rather than letting it wander into one.
   if (profile === null) {
     await supabaseClient.auth.signOut();
     return redirectTo(request, "/login?problem=profile-missing", getResponse());
