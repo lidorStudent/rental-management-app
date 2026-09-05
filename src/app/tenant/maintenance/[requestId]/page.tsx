@@ -9,6 +9,7 @@ import {
 } from "@/components/maintenance/MaintenanceStatusBadge";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
+import type { MaintenanceStatus } from "@/lib/maintenance/allowedStatusTransitions";
 
 /**
  * One problem this tenant reported.
@@ -76,7 +77,11 @@ export default async function TenantMaintenanceRequestPage({
   );
 }
 
-const STATUS_EXPLANATIONS: Record<string, string> = {
+/**
+ * Keyed by the enum rather than by string, so a fifth status fails the build here the way it already
+ * does in the three badge components. Typed loosely this compiled and rendered an empty cell.
+ */
+const STATUS_EXPLANATIONS: Record<MaintenanceStatus, string> = {
   submitted: "Reported. Your landlord has not marked it seen yet",
   acknowledged: "Your landlord has seen it",
   in_progress: "Being worked on",
