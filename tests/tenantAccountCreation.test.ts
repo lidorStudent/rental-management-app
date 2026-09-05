@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { required, serviceRoleClient, signInAs } from "./support/testDatabase";
+import { anonymousClient, required, serviceRoleClient, signInAs } from "./support/testDatabase";
 import type { Database } from "@/types/database";
 
 /**
@@ -30,6 +30,11 @@ const { forcedDeleteError } = vi.hoisted(() => ({
 /** When set, the attach reports this failure instead of running. */
 const { forcedAttachError } = vi.hoisted(() => ({
   forcedAttachError: { value: null as { code: string; message: string } | null },
+}));
+
+/** When set, writing must_change_password on a profile reports this failure instead of running. */
+const { forcedFlagError } = vi.hoisted(() => ({
+  forcedFlagError: { value: null as { code: string; message: string } | null },
 }));
 
 vi.mock("@/lib/supabase/serverClient", () => ({
@@ -76,22 +81,43 @@ vi.mock("@/lib/supabase/adminClient", async (importOriginal) => {
   return {
     createSupabaseAdminClient: () => {
       const client = actual.createSupabaseAdminClient();
-      if (forcedDeleteError.value === null) {
+      if (forcedDeleteError.value === null && forcedFlagError.value === null) {
         return client;
       }
       return new Proxy(client, {
         get(target, property) {
-          if (property !== "auth") {
-            return Reflect.get(target, property);
+          if (property === "auth" && forcedDeleteError.value !== null) {
+            return {
+              ...target.auth,
+              admin: {
+                ...target.auth.admin,
+                createUser: target.auth.admin.createUser.bind(target.auth.admin),
+                deleteUser: async () => ({ data: null, error: forcedDeleteError.value }),
+              },
+            };
           }
-          return {
-            ...target.auth,
-            admin: {
-              ...target.auth.admin,
-              createUser: target.auth.admin.createUser.bind(target.auth.admin),
-              deleteUser: async () => ({ data: null, error: forcedDeleteError.value }),
-            },
-          };
+          if (property === "from" && forcedFlagError.value !== null) {
+            return (table: string) => {
+              const builder = target.from(table as "profiles");
+              if (table !== "profiles") {
+                return builder;
+              }
+              return new Proxy(builder, {
+                get(builderTarget, builderProperty) {
+                  if (builderProperty !== "update") {
+                    return Reflect.get(builderTarget, builderProperty);
+                  }
+                  const failure = { data: null, error: forcedFlagError.value };
+                  return () => ({
+                    eq: () => ({
+                      then: (resolve: (value: typeof failure) => unknown) => resolve(failure),
+                    }),
+                  });
+                },
+              });
+            };
+          }
+          return Reflect.get(target, property);
         },
       });
     },
@@ -100,7 +126,9 @@ vi.mock("@/lib/supabase/adminClient", async (importOriginal) => {
 
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
 
-const { createTenantAccountForLease } = await import("@/actions/tenantAccountActions");
+const { createTenantAccountForLease, regenerateTenantPassword } = await import(
+  "@/actions/tenantAccountActions",
+);
 
 const LANDLORD_PASSWORD = "TenantAccountTest1";
 const accountsToRemove: string[] = [];
@@ -171,6 +199,32 @@ async function createLandlordWithAVacantLease(): Promise<{ leaseId: string }> {
   return { leaseId: required(lease.data, "the lease").id };
 }
 
+/** The same portfolio, but with a tenant account already attached, ready to have one reissued. */
+async function createLandlordWithATenantAccount(): Promise<{
+  leaseId: string;
+  tenantId: string;
+  tenantEmail: string;
+  tenantPassword: string;
+}> {
+  const { leaseId } = await createLandlordWithAVacantLease();
+  const service = serviceRoleClient();
+  const tenantEmail = `reissue-tenant-${Date.now()}-${Math.floor(Math.random() * 100000)}@example.com`;
+  const tenantPassword = "TheirCurrentPassword1";
+
+  const tenant = await service.auth.admin.createUser({
+    email: tenantEmail,
+    password: tenantPassword,
+    email_confirm: true,
+    user_metadata: { role: "tenant", full_name: "Reissue Tenant", must_change_password: false },
+  });
+  const tenantId = required(tenant.data.user, "the tenant just created").id;
+  accountsToRemove.push(tenantId);
+
+  await service.from("leases").update({ tenant_profile_id: tenantId }).eq("id", leaseId);
+
+  return { leaseId, tenantId, tenantEmail, tenantPassword };
+}
+
 /** Whatever account ended up under an address, if any, so the test can assert and clean up. */
 async function accountIdFor(email: string): Promise<string | null> {
   const { data } = await serviceRoleClient().from("profiles").select("id").eq("email", email);
@@ -180,11 +234,13 @@ async function accountIdFor(email: string): Promise<string | null> {
 beforeAll(() => {
   forcedDeleteError.value = null;
   forcedAttachError.value = null;
+  forcedFlagError.value = null;
 });
 
 afterAll(async () => {
   forcedDeleteError.value = null;
   forcedAttachError.value = null;
+  forcedFlagError.value = null;
   activeClient.value = null;
 
   const service = serviceRoleClient();
@@ -314,5 +370,59 @@ describe("when the account cannot be linked and cannot be removed again", () => 
     }
 
     expect(await accountIdFor(email)).toBeNull();
+  });
+});
+
+describe("reissuing a temporary password when the forced-change flag cannot be written", () => {
+  /**
+   * The flag is what holds the tenant on the change-password page. Reporting success with it unset
+   * hands the landlord a working password the tenant will never be asked to replace, which is the
+   * one state the flag exists to prevent, and nobody is told.
+   *
+   * Writing the flag first is what makes this survivable: the failure now happens before the
+   * password is touched, so the refusal is also the truth about the account.
+   */
+  it("reports the failure instead of a success, and leaves the tenant's password alone", async () => {
+    const { leaseId, tenantEmail, tenantPassword } = await createLandlordWithATenantAccount();
+
+    forcedFlagError.value = { code: "57014", message: "statement timeout" };
+
+    try {
+      const result = await regenerateTenantPassword({ leaseId });
+
+      expect(result.status).toBe("error");
+      const message = result.status === "error" ? result.message : "";
+      expect(message).toContain("The password was not reset");
+    } finally {
+      forcedFlagError.value = null;
+    }
+
+    // The tenant can still sign in with what they had, so nothing was half-done behind the refusal.
+    const stillWorks = await anonymousClient().auth.signInWithPassword({
+      email: tenantEmail,
+      password: tenantPassword,
+    });
+    expect(stillWorks.error).toBeNull();
+  });
+
+  /**
+   * The control. With the flag write working, the action still issues a password and still reports
+   * success, so the test above is not passing because every reissue now fails.
+   */
+  it("still issues a password and reports success when the flag can be written", async () => {
+    const { leaseId, tenantId } = await createLandlordWithATenantAccount();
+
+    const result = await regenerateTenantPassword({ leaseId });
+
+    expect(result.status).toBe("success");
+    const issued = result.status === "success" ? result.value.temporaryPassword : "";
+    expect(issued).toHaveLength(14);
+
+    const { data: profile } = await serviceRoleClient()
+      .from("profiles")
+      .select("must_change_password")
+      .eq("id", tenantId)
+      .single();
+    expect(required(profile, "the tenant's profile").must_change_password).toBe(true);
   });
 });

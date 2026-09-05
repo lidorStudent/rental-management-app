@@ -228,6 +228,34 @@ export async function regenerateTenantPassword(
   const temporaryPassword = generateTemporaryPassword();
   const adminClient = createSupabaseAdminClient();
 
+  // The flag is written before the password, and the order is the whole point.
+  //
+  // These are two writes against two different services, so there is no transaction across them and
+  // one of them can fail with the other already done. What can be chosen is which half-finished
+  // state is left behind:
+  //
+  //   flag first    a flag set with no new password asks the tenant to replace a password they
+  //                 still know. Mildly annoying, harmless, and it clears itself the moment they do.
+  //   password first  a new password with no flag hands the landlord a working password the tenant
+  //                 will never be forced to replace, which is the one state this flag exists to
+  //                 prevent.
+  //
+  // Undoing is not available in either order: a password is stored as a hash, so the previous one
+  // cannot be put back. Since one of the two states has to be survivable, it is the cheap one.
+  const { error: flagError } = await adminClient
+    .from("profiles")
+    .update({ must_change_password: true })
+    .eq("id", lease.tenant_profile_id);
+
+  if (flagError !== null) {
+    console.error("regenerateTenantPassword could not require a password change", {
+      code: flagError.code,
+    });
+    return errorResult(
+      "The password was not reset. The account could not be marked as needing a new one first, so nothing was changed. Try again.",
+    );
+  }
+
   const { data: updated, error: updateError } = await adminClient.auth.admin.updateUserById(
     lease.tenant_profile_id,
     { password: temporaryPassword },
@@ -237,18 +265,9 @@ export async function regenerateTenantPassword(
     console.error("regenerateTenantPassword could not set the password", {
       code: updateError?.code,
     });
-    return errorResult("The password could not be reset. Try again.");
-  }
-
-  const { error: flagError } = await adminClient
-    .from("profiles")
-    .update({ must_change_password: true })
-    .eq("id", lease.tenant_profile_id);
-
-  if (flagError !== null) {
-    console.error("regenerateTenantPassword could not set must_change_password", {
-      code: flagError.code,
-    });
+    return errorResult(
+      "The new password could not be set. Your tenant's current password still works, but they will now be asked to replace it when they next sign in. Try again to issue a new one.",
+    );
   }
 
   revalidatePath(`/landlord/leases/${parsed.data.leaseId}`);
