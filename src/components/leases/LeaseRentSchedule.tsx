@@ -28,15 +28,20 @@ export async function LeaseRentSchedule({
     (periodTotals ?? []).map((row) => [row.period_month ?? "", Number(row.paid_cents ?? 0)]),
   );
 
+  // Read once. It was read again inside the filter below, which asked the clock once per rent
+  // period and let the schedule and the outstanding total be computed against two different days if
+  // the two calls straddled midnight.
+  const today = currentIsoDateInUtc();
+
   const periods = buildRentScheduleWithStatus({
     lease,
     paidByPeriodMonth,
-    currentDate: currentIsoDateInUtc(),
+    currentDate: today,
   });
 
   const overduePeriods = periods.filter((period) => period.status === "overdue");
   const outstandingNow = periods
-    .filter((period) => period.dueDate <= currentIsoDateInUtc())
+    .filter((period) => period.dueDate <= today)
     .reduce((total, period) => total + period.outstandingInAgorot, 0);
 
   return (
