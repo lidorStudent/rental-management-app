@@ -19,6 +19,8 @@ import {
   type CreateTenantAccountInput,
   type RegenerateTenantPasswordInput,
 } from "@/lib/validation/authenticationSchemas";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database";
 
 /**
  * Vague on purpose. A landlord has a legitimate reason to know that an address will not work, but
@@ -26,6 +28,16 @@ import {
  */
 const EMAIL_UNAVAILABLE_MESSAGE =
   "That email address cannot be used for a tenant account. Use a different one, or ask the tenant which address they already sign in with.";
+
+const LEASE_ALREADY_HAS_A_TENANT_MESSAGE = "This lease already has a tenant account.";
+
+/**
+ * Said only when the account was created and then could not be removed again. The landlord has to
+ * know an account exists under that address, because the alternative is that they try the same
+ * address again and are told it is unavailable, with nothing explaining why.
+ */
+const ACCOUNT_MAY_REMAIN_MESSAGE =
+  "An account may now exist for that email address. Check with your tenant before creating another one.";
 
 export type TemporaryPasswordIssued = {
   temporaryPassword: string;
@@ -67,7 +79,7 @@ export async function createTenantAccountForLease(
     return errorResult("That lease was not found.");
   }
   if (lease.tenant_profile_id !== null) {
-    return errorResult("This lease already has a tenant account.");
+    return errorResult(LEASE_ALREADY_HAS_A_TENANT_MESSAGE);
   }
 
   const temporaryPassword = generateTemporaryPassword();
@@ -91,24 +103,93 @@ export async function createTenantAccountForLease(
     return errorResult(EMAIL_UNAVAILABLE_MESSAGE, { tenantEmail: EMAIL_UNAVAILABLE_MESSAGE });
   }
 
-  const { error: attachError } = await supabaseClient
-    .from("leases")
-    .update({ tenant_profile_id: created.user.id })
-    .eq("id", parsed.data.leaseId);
-
-  if (attachError !== null) {
-    // The account exists but is attached to nothing, which would leave an orphan that can sign in
-    // and see an empty portal. Undo it rather than leaving that behind.
-    await adminClient.auth.admin.deleteUser(created.user.id);
-    console.error("createTenantAccountForLease could not attach the tenant", {
-      code: attachError.code,
-    });
-    return errorResult("The account could not be linked to the lease. Nothing was created.");
+  const attachFailure = await attachTenantOrUndoTheAccount(
+    supabaseClient,
+    parsed.data.leaseId,
+    created.user.id,
+  );
+  if (attachFailure !== null) {
+    return attachFailure;
   }
 
   revalidatePath(`/landlord/leases/${parsed.data.leaseId}`);
 
   return successResult({ temporaryPassword, tenantEmail: parsed.data.tenantEmail });
+}
+
+/**
+ * Attaches the new account to its lease, or removes the account again and says why.
+ *
+ * Compare and set, not a plain write. The caller's "this lease has no tenant" check was a read, and
+ * between it and this update another submission for the same lease can attach its own tenant.
+ * Filtering on the column still being null means the second write matches no rows rather than
+ * overwriting the first, which would leave the first account attached to nothing and able to sign in
+ * to an empty portal.
+ */
+async function attachTenantOrUndoTheAccount(
+  supabaseClient: SupabaseClient<Database>,
+  leaseId: string,
+  userId: string,
+): Promise<ActionResult<never> | null> {
+  const { data: attached, error: attachError } = await supabaseClient
+    .from("leases")
+    .update({ tenant_profile_id: userId })
+    .eq("id", leaseId)
+    .is("tenant_profile_id", null)
+    .select("id");
+
+  if (attachError !== null) {
+    console.error("createTenantAccountForLease could not attach the tenant", {
+      code: attachError.code,
+    });
+    return undoTheAccountAndExplain({
+      userId,
+      reason: "the link failed",
+      whenRemoved: "The account could not be linked to the lease. Nothing was created.",
+      whenLeftBehind: `The account could not be linked to the lease, and could not be removed again either. ${ACCOUNT_MAY_REMAIN_MESSAGE}`,
+    });
+  }
+
+  if (!attached?.length) {
+    return undoTheAccountAndExplain({
+      userId,
+      reason: "another submission attached a tenant first",
+      whenRemoved: LEASE_ALREADY_HAS_A_TENANT_MESSAGE,
+      whenLeftBehind: `${LEASE_ALREADY_HAS_A_TENANT_MESSAGE} ${ACCOUNT_MAY_REMAIN_MESSAGE}`,
+    });
+  }
+
+  return null;
+}
+
+/**
+ * Undoes the account when it could not be attached to its lease, and says which of the two things
+ * happened.
+ *
+ * The distinction is the point. Telling a landlord nothing was created when the account is still
+ * there sends them away from the problem rather than towards it, and the account they were not told
+ * about is one that can sign in.
+ */
+async function undoTheAccountAndExplain({
+  userId,
+  reason,
+  whenRemoved,
+  whenLeftBehind,
+}: {
+  userId: string;
+  reason: string;
+  whenRemoved: string;
+  whenLeftBehind: string;
+}): Promise<ActionResult<never>> {
+  const { error } = await createSupabaseAdminClient().auth.admin.deleteUser(userId);
+
+  if (error !== null) {
+    console.error(`createTenantAccountForLease could not undo the account after ${reason}`, {
+      code: error.code,
+    });
+    return errorResult(whenLeftBehind);
+  }
+  return errorResult(whenRemoved);
 }
 
 /**
