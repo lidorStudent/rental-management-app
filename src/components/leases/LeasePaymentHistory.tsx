@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PaginatedTable, type TableColumn } from "@/components/shared/PaginatedTable";
 import { formatCentsAsCurrency } from "@/lib/money/formatCentsAsCurrency";
 import { pageRange } from "@/lib/pagination/describePage";
+import { isPageBeyondTheEnd } from "@/lib/pagination/isPageBeyondTheEnd";
 import { parsePageNumber } from "@/lib/pagination/parsePageNumber";
 import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
 
@@ -41,13 +43,22 @@ export async function LeasePaymentHistory({
   const { startIndex, endIndex } = pageRange({ page, pageSize: PAGE_SIZE });
 
   const supabaseClient = await createSupabaseServerClient();
-  const { data: payments, count } = await supabaseClient
+  const {
+    data: payments,
+    count,
+    error,
+  } = await supabaseClient
     .from("rent_payments")
     .select("id, period_month, amount_cents, received_on, method, reference", { count: "exact" })
     .eq("lease_id", leaseId)
     .order("received_on", { ascending: false })
     .order("created_at", { ascending: false })
     .range(startIndex, endIndex);
+
+  // A page number past the end of the list is a bookmark that has gone stale, not an error.
+  if (isPageBeyondTheEnd(error)) {
+    redirect(`/landlord/leases/${leaseId}`);
+  }
 
   return (
     <PaginatedTable

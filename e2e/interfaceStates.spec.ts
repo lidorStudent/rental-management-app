@@ -211,6 +211,55 @@ test("a tenancy's payment history is newest first, ten to a page, with the page 
   }
 });
 
+/**
+ * A page number past the end of a tenancy's ledger. PostgREST refuses the range rather than
+ * returning nothing, and that refusal carries no count, so a list that does not recognise it tells
+ * the reader the ledger is empty when it is not. The other five paged lists send the reader back to
+ * the first page; this one is the panel most likely to be bookmarked, because it sits on the page a
+ * landlord opens to chase rent.
+ */
+// EDGE-15
+test("a bookmark past the end of a tenancy's ledger goes back to the first page, not to an empty state", async ({
+  page,
+}) => {
+  const tenant = await createTenantAccount(false);
+  const lease = await createLease({
+    portfolio,
+    tenantId: tenant.id,
+    startDate: monthsFromNow(-12),
+    endDate: endOfMonth(6),
+  });
+
+  // Twelve payments, so the list has two pages and page three is beyond the end.
+  for (let monthsBack = 12; monthsBack >= 1; monthsBack -= 1) {
+    const periodMonth = monthsFromNow(-monthsBack);
+    await recordPayment({
+      leaseId: lease.id,
+      landlordId: portfolio.landlord.id,
+      periodMonth,
+      amountInAgorot: 650000,
+      receivedOn: `${periodMonth.slice(0, 7)}-15`,
+    });
+  }
+
+  try {
+    await signIn(page, portfolio.landlord.email);
+    await page.goto(`/landlord/leases/${lease.id}?page=99`);
+
+    // Back on the first page, with the ledger and its real count, and no page number in the address.
+    await expect(page).toHaveURL(new RegExp(`/landlord/leases/${lease.id}$`));
+    await expect(page.getByText("Showing 1 to 10 of 12")).toBeVisible();
+    await expect(
+      page.getByRole("table", { name: "Payments recorded against this tenancy" }),
+    ).toBeVisible();
+
+    // The failure this guards against: the empty state, claiming nothing has ever been recorded.
+    await expect(page.getByText("Nothing recorded yet")).toHaveCount(0);
+  } finally {
+    await removeEverything(portfolio.landlord.id, [tenant.id]);
+  }
+});
+
 // CORE-27
 test("the maintenance list filters by state and by urgency, both of them in the address", async ({
   page,
