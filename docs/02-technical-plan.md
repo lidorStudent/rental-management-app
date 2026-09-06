@@ -309,10 +309,11 @@ The same landlord records a payment.
    the landlord types, so a bad amount is caught before anything is sent.
 2. On submit, the component calls the `recordRentPayment` server action with typed values. Next.js
    posts to the action endpoint with the session cookie attached.
-3. The action parses its input with **the same Zod schema**. This run is the one that matters; the
+3. The action resolves the acting user from the session, on the server, and refuses the wrong role
+   before it looks at the input at all. It never reads a landlord identifier from the submitted
+   form; rule 4 of the product specification depends on this.
+4. The action parses its input with **the same Zod schema**. This run is the one that matters; the
    client run was a convenience.
-4. The action resolves the acting user from the session, on the server. It never reads a landlord
-   identifier from the submitted form; rule 4 of the product specification depends on this.
 5. The action re-checks authorisation in application code: it loads the lease and confirms the
    acting user owns it. This is a defence-in-depth check, not the boundary.
 6. The action inserts the payment. Postgres applies the RLS insert policy, the foreign keys, and the
