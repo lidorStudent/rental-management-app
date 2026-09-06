@@ -220,7 +220,7 @@ on the server, always. What remains: no rate limiting, no MFA, no audit log.
 helper leaves the cookie readable so its browser client can hydrate from it, and this project has no
 browser client, so it was paying a cost for a feature it never used. Authorisation is twenty-nine
 policies in the database. Validation runs on the server every time, whatever the form did. The
-service role key, which bypasses everything, has one caller in the whole codebase and cannot be
+service role key, which bypasses everything, has two callers in the whole codebase and cannot be
 imported into client code. And the honest part: there is no rate limiting on my own endpoints, no
 multi-factor authentication, no audit log, and the session is still a bearer token, so an injected
 script could act as the user even though it cannot read the cookie. Those are in the security
