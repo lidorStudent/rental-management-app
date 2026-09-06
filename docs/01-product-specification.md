@@ -169,22 +169,25 @@ state, and what can go wrong.
 
 | | |
 | --- | --- |
-| Actor | Landlord (self-service) or tenant (by invitation) |
-| Trigger | A landlord decides to start using the product. A tenant receives an invitation for their lease |
-| Precondition | None for the landlord. For the tenant, an invitation issued against an existing lease |
+| Actor | Landlord (self-service) or tenant (account created by their landlord) |
+| Trigger | A landlord decides to start using the product. A tenant is given the account their landlord created for their lease |
+| Precondition | None for the landlord. For the tenant, an account created against an existing lease |
 
 **Path.** A landlord registers with an email address and a password and lands on an empty dashboard
 that tells them the first thing to do is add a property. A tenant does not register on their own.
-They follow the invitation from their landlord, set a password, and land directly on their own
-lease. On any later visit, either user signs in and arrives at the view for their role.
+Their landlord creates the account and hands over the temporary password it produced, however the two
+of them already talk. The tenant signs in with it, is required to replace it before anything else,
+and lands directly on their own lease. On any later visit, either user signs in and arrives at the view for their role.
 
 **End state.** The person is signed in and the system knows which role they hold and which data
 belongs to them.
 
-**What can go wrong.** Email already registered. Wrong password. An invitation that has already been
-used, or has expired, or was issued for a lease that has since ended. A tenant who tries to register
-directly rather than through an invitation. Each of these has to produce a clear message that does
-not reveal whether a given email address exists in the system.
+**What can go wrong.** Email already registered. Wrong password. A temporary password that the
+tenant has already replaced, or that their landlord has since reissued, so the one they were given no
+longer works. A lease that already has an account, so a second cannot be created for it. A tenant who
+tries to register directly instead: they get an empty landlord account rather than their tenancy,
+because the registration form is the landlord's. Each of these has to produce a clear message that
+does not reveal whether a given email address exists in the system.
 
 ### P2. Adding a property and its units
 
@@ -217,8 +220,9 @@ and maintenance history hang off it.
 **Path.** The landlord selects the unit and records the lease: tenant name and email, start date, end
 date, monthly rent, rent due day, and deposit if any. The system refuses the lease if the unit
 already has an active lease overlapping those dates, and says which existing lease conflicts. On
-acceptance, the rent schedule for the lease is generated. The landlord then invites the tenant, who
-receives access to that lease and only that lease.
+acceptance, the rent schedule for the lease is generated. The landlord then creates the tenant's
+account from the lease, is shown its temporary password once, and passes it on; that account reaches
+that lease and only that lease.
 
 **End state.** An active lease exists, its rent periods exist, and the tenant can reach their own
 portal.
@@ -226,7 +230,8 @@ portal.
 **What can go wrong.** An end date before the start date. A rent due day that does not exist in every
 month. An overlapping lease on the same unit, which must be rejected rather than merged or silently
 allowed. A back-dated lease start, which is legitimate and must generate the periods that have
-already passed. An invitation sent to an email address that already belongs to another account.
+already passed. An account asked for against an email address that already belongs to another
+account, which must be refused without confirming that the address is taken.
 
 ### P4. Recording rent received
 
