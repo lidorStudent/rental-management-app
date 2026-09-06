@@ -897,7 +897,7 @@ so revoking them would not add a layer, it would remove the only path the applic
 
 Before writing any of it, the claim that nothing writes as anon was re-proved rather than assumed:
 all seventeen writes in the codebase live in `src/actions`, every one resolves the acting user first,
-fifteen go through the session-carrying client and two through the service role. Registration is the
+fourteen go through the session-carrying client and three through the service role. Registration is the
 one flow with no session that still makes a row appear, and that row is inserted by a security
 definer trigger on `auth.users` running as its owner, which was tested against the revoked project
 before production was touched.
