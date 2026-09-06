@@ -307,7 +307,8 @@ life. If deletions ever became common, these are the first two indexes to add.
 
 **Columns are named, never `select("*")`.** Every read lists what the screen uses. The lease list
 asks for seven columns and two joined names; the dashboard's tenancy read asks for nine. It keeps
-the JSON small over a link that, on the deployed site, crosses the Atlantic.
+the JSON small, which mattered most when the functions were still a continent from the database and
+is worth keeping now that they are not.
 
 **Counts come back without rows.** `count: "exact", head: true` asks Postgres for a number and
 returns no rows at all: the dashboard's unit count and open-problem count, and the health check's
