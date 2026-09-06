@@ -1,7 +1,7 @@
 # What the permission tests prove
 
 A study note for the questions that follow "how do you know one landlord cannot see another's
-data?" The honest answer is not "I checked in the browser". It is a suite of a hundred and thirty-nine tests that
+data?" The honest answer is not "I checked in the browser". It is a suite of a hundred and forty-six tests that
 attack the database directly, with real credentials, and are refused.
 
 Run them with `npm run test:db`.
@@ -59,7 +59,7 @@ database were left exposed to the internet with the public key, these tests woul
 
 ## What is in the suite
 
-A hundred and thirty-nine tests in seven files, all against the **test** project, never production.
+A hundred and forty-six tests in nine files, all against the **test** project, never production.
 
 | File | Proves |
 | --- | --- |
@@ -70,6 +70,8 @@ A hundred and thirty-nine tests in seven files, all against the **test** project
 | `tests/domainInvariants.test.ts` | One test per invariant from CLAUDE.md, so each can be pointed at directly |
 | `tests/schemaGuarantees.test.ts` | What the schema refuses without any application code running: rent of nothing, a negative deposit, a tenancy ending before it starts, a rent day that does not exist in every month |
 | `tests/passwordChange.test.ts` | Changing a password proves the old one, a tenant can replace the temporary password they were given, and a throttled attempt is told to wait rather than told the password is wrong |
+| `tests/passwordChangeGuard.test.ts` | The forced password change is the application's own rule: an account still carrying a landlord-issued password is refused by the role guards, not only redirected by the proxy |
+| `tests/tenantAccountCreation.test.ts` | Creating a tenant account either attaches it to its lease or removes it again, a second submission for the same lease cannot take it over, and a reissued password is never reported as set when the flag was not written |
 
 ### The positive control
 

@@ -569,7 +569,7 @@ confirming the real thing works at its real address.
 performs steps 1 to 4 of this case in a browser, and also carries SEC-01 and SEC-02, the two checks
 on the response headers, which can only be made where the platform actually serves them: seven tests
 in all. The file begins with a `test.skip` that skips all seven unless `PLAYWRIGHT_BASE_URL` is set,
-which is why an ordinary `npm run test:e2e` reports twenty-six passed and seven skipped. That is a deliberate decision, for three reasons: the file
+which is why an ordinary `npm run test:e2e` reports twenty-eight passed and seven skipped. That is a deliberate decision, for three reasons: the file
 reads the deployed project, which serves the demo data people are shown, while every other E test
 creates and deletes rows in the test project, so one run must not point at both; the session
 cookie's `secure` flag is only set when `NODE_ENV` is `production`, so asserting it against a

@@ -47,9 +47,9 @@ If you read three documents, read these sections:
 The [architecture explainer](docs/07-architecture-explainer.md) traces five flows from click to
 rendered page if you want the code.
 
-Tests sit at three levels. `src/` holds 354 unit and component tests of the rules at their
-boundaries. `tests/` holds 135 against a real Postgres as real signed-in users, attacking the
-database rather than the interface, which is the only way a policy is proved. `e2e/` holds 26 browser
+Tests sit at three levels. `src/` holds 361 unit and component tests of the rules at their
+boundaries. `tests/` holds 146 against a real Postgres as real signed-in users, attacking the
+database rather than the interface, which is the only way a policy is proved. `e2e/` holds 28 browser
 tests of whole processes. Section 8 of the [test specification](docs/03-test-specification.md)
 records five checks a machine cannot judge, with dated results.
 
@@ -83,7 +83,7 @@ Password for all of them: `Demo-Rental-2026!`
 | 3 | Product specification | [docs/01-product-specification.md](docs/01-product-specification.md) |
 | 4 | Technical planning document | [docs/02-technical-plan.md](docs/02-technical-plan.md) |
 | 5 | Test specification | [docs/03-test-specification.md](docs/03-test-specification.md) |
-| 6 | Test code | [src/](src/) 354 unit and component tests in 32 files, beside the code they test; [tests/](tests/) 135 database and permission tests in 7 files; [e2e/](e2e/) 27 browser tests, plus 7 read-only checks against the deployed address |
+| 6 | Test code | [src/](src/) 361 unit and component tests in 34 files, beside the code they test; [tests/](tests/) 146 database and permission tests in 9 files; [e2e/](e2e/) 28 browser tests, plus 7 read-only checks against the deployed address |
 | 7 | Scale document | [docs/06-scale.md](docs/06-scale.md) |
 | 8 | Security document | [docs/05-security.md](docs/05-security.md) |
 | 9 | Local run instructions, with every environment variable explained | [README.md](README.md), sections "Local setup, from a clean clone" and "Environment variables" |

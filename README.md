@@ -197,7 +197,7 @@ between them, or run them one at a time.
 
 ### `npm test` - unit and component tests
 
-354 tests in 32 files, no network, about three seconds. Vitest, with React Testing Library for the
+361 tests in 34 files, no network, about three seconds. Vitest, with React Testing Library for the
 components. They live beside what they test, as `<name>.test.ts` next to `<name>.ts`.
 
 Covers the derived rules, which is where the product's thinking lives: the rent schedule and the
@@ -208,7 +208,7 @@ a submit button disables itself while a submission is in flight.
 
 ### `npm run test:db` - permission and database tests
 
-139 tests in 7 files, about 35 seconds, against the **test** Supabase project with real credentials
+146 tests in 9 files, about 35 seconds, against the **test** Supabase project with real credentials
 and real policies. Refuses to run if `.env.test` points at the deployed project.
 
 | File | Covers |
@@ -220,10 +220,13 @@ and real policies. Refuses to run if `.env.test` points at the deployed project.
 | `tests/domainInvariants.test.ts` | The five domain invariants at the database level, including the exclusion constraint that refuses overlapping tenancies |
 | `tests/schemaGuarantees.test.ts` | What the schema refuses on its own: the check constraints, the per-building uniqueness of a flat label, every cascade and restrict, and the three triggers: the one that stamps `updated_at`, the one that gives every new account a profile, and the one that pins the two profile columns its owner may not write |
 | `tests/passwordChange.test.ts` | Changing a password requires the current one: a session alone cannot take an account over, the tenant's temporary-password path still completes, and a throttled attempt is told to wait rather than told it was wrong |
+| `tests/passwordChangeGuard.test.ts` | An account still carrying a landlord-issued temporary password is refused by the role guards, so the forced change is the application's own rule and not only the proxy's |
+| `tests/tenantAccountCreation.test.ts` | Creating a tenant account attaches it to its lease or removes the account again, a second submission for the same lease cannot take it over, and a reissued password is never reported as set when the forced-change flag was not written |
 
 ### `npm run test:e2e` - browser tests
 
-27 tests in a real Chromium against the test project, about three minutes. Playwright starts the dev
+35 tests defined, of which 28 run in a real Chromium against the test project in about three
+minutes; the remaining 7 are the deployment smoke checks, skipped without `PLAYWRIGHT_BASE_URL`. Playwright starts the dev
 server itself. Each test builds its own landlord, building and tenant through the admin API and
 removes them afterwards, so the suite can be run twice in a row in any order.
 
