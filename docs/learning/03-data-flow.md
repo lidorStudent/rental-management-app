@@ -41,18 +41,22 @@ expired session is redirected to `/login` before the action executes at all.
 
 **`src/actions/rentPaymentActions.ts`**, in the seven steps every action in this project follows:
 
-1. `requireLandlordProfile()` from **`src/lib/authentication/requireLandlordProfile.ts`**, which
-   calls **`src/lib/authentication/getSignedInProfile.ts`**. That file verifies the token with the
-   Auth service and reads the role from `profiles`. It is the only place the acting user is decided.
-2. The same Zod schema parses the input again, built this time with the server's own date from
+1. `requireLandlordProfile()` from **`src/lib/authentication/requireLandlordProfile.ts`** resolves
+   the acting user, by calling **`src/lib/authentication/getSignedInProfile.ts`**. That file verifies
+   the token with the Auth service and reads the role from `profiles`. It is the only place the
+   acting user is decided.
+2. The same call refuses anyone who is not a landlord, and anyone still carrying a landlord-issued
+   password they have not replaced. Both throw rather than returning, so a caller cannot forget the
+   empty case. Nothing has looked at the input yet.
+3. The same Zod schema parses the input again, built this time with the server's own date from
    **`src/lib/dates/currentDate.ts`**. This run is the trust boundary. The client's run could have
    been skipped entirely by anyone who wanted to.
-3. The lease is read **as the landlord**. A lease belonging to someone else comes back as no rows,
+4. The lease is read **as the landlord**. A lease belonging to someone else comes back as no rows,
    so it is refused with the same words as a lease that does not exist. Then
    **`src/lib/rent/isPeriodMonthWithinLease.ts`** checks the month falls inside the tenancy.
-4. The insert. `landlord_id` and `recorded_by` come from the session, never from the form.
-5. `revalidatePath` for the lease page, the dashboard, and the tenant's own pages.
-6. An `ActionResult` goes back: success with the new payment's id.
+5. The insert. `landlord_id` and `recorded_by` come from the session, never from the form.
+6. `revalidatePath` for the lease page, the dashboard, and the tenant's own pages.
+7. An `ActionResult` goes back: success with the new payment's id.
 
 ### 5. The database has the last word
 
