@@ -20,10 +20,11 @@ const entityRelationshipDiagram = readFileSync(
 
 const DEPLOYED_ADDRESS = "rental-management-app-wine.vercel.app";
 
-function bulletSlide({ title, lead, bullets, closing, numbered = false }) {
+function bulletSlide({ title, lead, bullets, closing, numbered = false, dense = false }) {
   // Seven lines only fit above the closing rule at a smaller size, and a numbered list does not
-  // want a dash in front of its numbers as well.
-  const density = bullets.length >= 6 ? " dense" : "";
+  // want a dash in front of its numbers as well. Bullets that wrap need the same treatment before
+  // they reach six, so a slide can ask for it rather than wait to be counted.
+  const density = dense || bullets.length >= 6 ? " dense" : "";
   const listStyle = numbered ? " numbered" : "";
   return `
     <section class="slide${density}${listStyle}" data-number="NUMBER">
@@ -83,11 +84,16 @@ const slides = [
 
   bulletSlide({
     title: "The business value",
+    lead: "Seven goals in the product specification, each against the baseline it replaces.",
     bullets: [
-      "Arrears visible at a glance, always current",
-      "Fewer phone calls: the tenant sees their own position",
-      "Every repair has a timestamped route and a confirmation",
+      "What is owed, portfolio-wide: 20 to 30 minutes by hand → under 10 seconds",
+      "A rent statement for one tenancy: half an hour of assembly → under a minute",
+      "Overdue rent noticed: weeks, at the bank statement → the same day",
+      "Tenancies ending within sixty days: on the first screen, every time",
+      "Status questions from tenants: every cycle → the portal answers them",
     ],
+    dense: true,
+    closing: "The saving is the same one every time: the arithmetic stops being somebody's job.",
   }),
 
   bulletSlide({
@@ -140,6 +146,7 @@ const slides = [
       "361 unit and component tests — the rules at their boundaries",
       "146 permission and database tests — against a real Postgres",
       "28 end-to-end tests — whole processes in a browser",
+      "7 deployment checks — against the live address, response headers included",
       "5 documented manual checks — print, layout, screen reader",
     ],
     closing: "The permission tests attack the database, not the interface.",
@@ -150,10 +157,12 @@ const slides = [
     lead: "Measured against synthetic portfolios, not assumed.",
     bullets: [
       "Tens of landlords: every page under about 120 ms of database time",
-      "Hundreds: two problems, both measured and priced",
-      "Functions ran in Washington, database in Frankfurt: moved, 647 → 338 ms",
-      "98 ms → 314 ms purely because another landlord's rows exist",
+      "Hundreds, one: a count naming <code>landlord_id</code>, 100 ms; left to the policy, 566 ms",
+      "Hundreds, two: <code>lease_rent_summary</code> groups before any filter reaches it, so that read goes 98 ms → 314 ms when another landlord's rows exist",
+      "Already fixed: functions in Washington, database in Frankfurt. Moved, 647 → 338 ms",
     ],
+    dense: true,
+    closing: "What grows is the shared tables, not one landlord's own data.",
   }),
 
   bulletSlide({
@@ -170,7 +179,7 @@ const slides = [
   bulletSlide({
     title: "With more time",
     bullets: [
-      "Done &nbsp; Functions moved beside the database: 66% off the median page",
+      '<span class="done-tag">Done</span><span class="done-text">Functions moved beside the database: 66% off the median page</span>',
       "1 &nbsp; Give two aggregate queries an indexable filter",
       "2 &nbsp; More than one person on a portfolio",
       "3 &nbsp; An audit log, and rate limiting on my own endpoints",
@@ -273,6 +282,20 @@ const html = `<!doctype html>
   .dense li::before { top: 18px; }
   .numbered li { padding-left: 0; }
   .numbered li::before { display: none; }
+  .done-tag {
+    display: inline-block;
+    border: 2px solid #111111;
+    border-radius: 4px;
+    padding: 0 11px;
+    margin-right: 16px;
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    vertical-align: 3px;
+  }
+  .done-text { color: #555555; }
+  li code { font-size: 0.92em; font-family: inherit; font-weight: 600; }
   .title { display: flex; flex-direction: column; justify-content: center; }
   .title::before { content: ""; }
   .title .subtitle { font-size: 34px; color: #333333; margin: 0 0 40px; }
