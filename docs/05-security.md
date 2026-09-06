@@ -608,3 +608,62 @@ it, and it is worth saying rather than leaving implied.
 **Not part of this project's threat model at all:** denial of service, hostile Vercel or Supabase
 infrastructure, a compromised developer machine, and the landlord themselves as an attacker against
 their own tenants' data, which they can legitimately see all of.
+
+### What I would do about them, in order
+
+Nine risks do not want one answer between them. Three are deferred work whose shape is already
+decided, three are accepted and would stay accepted, two close on a decision rather than on effort,
+and one is a product feature rather than a patch. Which category a risk falls into is more useful
+than a roadmap that pretends all nine are scheduled.
+
+**Deferred, in this order.** Ordered by what somebody already signed in can reach today, over what it
+costs to close.
+
+**1. Rate limiting on this application's own endpoints.** First because it is the only item on the
+whole list that an authenticated user can exercise right now: a signed-in landlord can call
+`createProperty` in a loop and nothing here slows them down. Supabase already throttles the Auth
+service, so sign-in guessing is covered and the gap is the server actions alone. It is also the
+cheapest — a counter keyed on the acting profile id, checked in the same place the role guard already
+runs, so every action inherits it without being edited.
+
+**2. An audit log.** Second because it costs a migration and a trigger rather than a line, and
+because what it protects against is disputes rather than intrusions. `recorded_by`, `submitted_by`
+and `updated_at` say who touched a row last; an audit trail has to say what the row said before. The
+shape that fits this schema is a history table written by an `AFTER UPDATE` trigger on
+`rent_payments` and `maintenance_requests`, so a corrected payment keeps the amount it replaced. Read
+logging is a separate and larger question, and I would not start there.
+
+**3. Multi-factor authentication.** Third because the case for it arrives with the second landlord's
+portfolio rather than with the first. TOTP enrolment and verification are off in
+`supabase/config.toml`, so switching it on is configuration plus an enrolment screen and a
+verification step in the sign-in flow — real work, but work Supabase has already done the hard half
+of.
+
+These are the three the presentation names on its closing slides. It names them in a different
+order, because a slide lists what is missing and this list ranks what to do first.
+
+**Accepted, and would stay accepted.** Not deferred: I would make the same decision again.
+
+- **The session is a bearer token.** The cookie flags reduce what an injection is worth; they cannot
+  stop a script acting inside the tab it was injected into. Closing that means not holding a bearer
+  token in the browser at all, which is a different architecture rather than an improvement to this
+  one. React's escaping and the absence of `dangerouslySetInnerHTML` are the mitigation, and they are
+  the right one at this size.
+- **The role of a new account is chosen at sign-up.** The entry above records three fixes that were
+  designed, tested and abandoned, each of them worse than the finding. What would change my mind is
+  written down and is a single condition: any policy that ever grants something on role alone.
+- **One trusted administrator.** True of every application with a database behind it. Splitting it
+  needs an organisation model this product does not have and does not want.
+
+**Closed by a decision, not by work.** Two of the nine exist only because there is no email service:
+addresses are never confirmed, and temporary passwords travel out of band through whatever channel
+the landlord already uses. Neither can be improved while that decision stands, and both close
+together the day a mail provider is added — confirmation on registration, and a single-use invitation
+link replacing the spoken password. That is one change closing two risks, which is why it would come
+before anything on the deferred list if this were ever used for real.
+
+**A product feature rather than a patch.** Personal data is held with no export, no deletion path and
+no retention policy. That is not something to bolt on: it is a decision about what the product owes a
+tenant who leaves, and it needs the product specification to answer it before the schema does. It is
+the one item here that would have to be settled before a real tenant's data went in, and the only
+reason it sits below rate limiting is that rate limiting takes an afternoon and this does not.
