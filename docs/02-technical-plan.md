@@ -454,23 +454,23 @@ fully tested by `src/lib/dates/isoDate.test.ts` and readable in one sitting.
 
 ### 8.3 The rest of `package.json`
 
-The table above lists the choices. `package.json` holds thirty-two entries, and the remaining
-seventeen are not decisions so much as the cost of the five that are. They are recorded here so that
+The table above lists the choices. `package.json` holds thirty-one entries, and the remaining
+eighteen are not decisions so much as the cost of the thirteen that are. They are recorded here so that
 nothing in the manifest is unaccounted for.
 
 | Group | Packages | What pulled them in |
 | --- | --- | --- |
-| What shadcn generates against | `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge`, `tw-animate-css` | The copied components import these directly: Radix is the unstyled behaviour underneath them, `cva` expresses a component's variants, and `clsx` with `tailwind-merge` is what `src/lib/classNames.ts` is made of. Choosing shadcn is choosing these; they are listed as direct dependencies because the generated code in `src/components/ui` imports them by name |
+| What shadcn generates against | `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge` | The copied components import these directly: Radix is the unstyled behaviour underneath them, `cva` expresses a component's variants, and `clsx` with `tailwind-merge` is what `src/lib/classNames.ts` is made of. Choosing shadcn is choosing these; they are listed as direct dependencies because the generated code in `src/components/ui` imports them by name |
 | Test tooling | `jsdom`, `@testing-library/dom`, `@testing-library/jest-dom`, `@testing-library/user-event` | `jsdom` is the DOM Vitest renders into, `@testing-library/dom` is the query engine the React adapter is built on, `jest-dom` adds the matchers registered in `vitest.setup.ts`, and `user-event` types and clicks the way a person does rather than dispatching synthetic events |
 | Types | `@types/node`, `@types/react`, `@types/react-dom` | Type definitions for runtimes that ship none |
 | Build and style | `@tailwindcss/postcss` | The PostCSS plugin Tailwind v4 is consumed through |
 | Lint and format | `eslint`, `eslint-config-next`, `eslint-config-prettier`, `prettier` | The Next.js rule set, plus the config that stops the two arguing over formatting |
 
-Nothing is installed that nothing uses, and nothing is used that is not installed. Four are reached
+Nothing is installed that nothing uses, and nothing is used that is not installed. Three are reached
 without an `import ... from`: `server-only` is a bare side-effect import in the nine modules that
-must never reach a browser, `tw-animate-css` is an `@import` in `globals.css`, and the `@types`
-packages and the lint and format configuration are consumed by the compiler and the tooling rather
-than by application code.
+must never reach a browser, `shadcn` is the command line that copies components in rather than a
+library the application calls, and the `@types` packages and the lint and format configuration are
+consumed by the compiler and the tooling rather than by application code.
 
 ---
 
