@@ -39,7 +39,7 @@ others, and nothing else is needed to run the application.
 | --- | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Public, in the browser bundle | The address of the Supabase project the application talks to | Supabase dashboard, Project Settings, Data API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public, in the browser bundle | The anonymous key. It identifies the project, not a person, and grants nothing by itself: every table has Row Level Security and a request carrying only this key matches no policy | Supabase dashboard, API Keys, `anon public` |
-| `SUPABASE_SERVICE_ROLE_KEY` | **Secret, server only** | Bypasses Row Level Security entirely. One server action uses it, to create a tenant's account through the Auth admin API | Supabase dashboard, API Keys, `service_role secret` |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Secret, server only** | Bypasses Row Level Security entirely. Three server actions use it, across two files: to create a tenant's account and reissue its password through the Auth admin API, and to clear the forced-password-change flag | Supabase dashboard, API Keys, `service_role secret` |
 
 Three things about these are worth being able to say out loud.
 

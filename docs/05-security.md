@@ -284,9 +284,10 @@ fields.
 
 No `.env` file with real values is in the repository: `.gitignore` covers `.env`, `.env.local`,
 `.env.test` and `.env*.local`, and the only tracked one is `.env.example`, which lists names and no
-values. The service role client has exactly one caller in the whole codebase,
-`src/actions/tenantAccountActions.ts`, and that action checks that the acting landlord owns the
-lease — by reading it through their own client, so the policies answer — before the admin client is
+values. The service role client has exactly two callers in the whole codebase,
+`src/actions/tenantAccountActions.ts` and `src/actions/authenticationActions.ts`, covered in
+sections 8 and 9. The tenant-account actions check that the acting landlord owns the lease — by
+reading it through their own client, so the policies answer — before the admin client is
 constructed. `src/lib/temporaryPassword.ts` and the authentication helpers carry the same
 `server-only` import.
 

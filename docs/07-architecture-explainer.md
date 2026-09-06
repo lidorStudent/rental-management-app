@@ -49,7 +49,7 @@ sends form values, and nothing else.
 [src/lib/supabase/serverClient.ts](../src/lib/supabase/serverClient.ts) builds a client carrying the
 signed-in user's session, so every query runs as that user and every policy applies. The only
 exception is [src/lib/supabase/adminClient.ts](../src/lib/supabase/adminClient.ts), which bypasses
-policies and has exactly one caller, described in section 3.
+policies and has exactly two callers, described in section 3.
 
 **The proxy is convenience; the database is the boundary.** `src/proxy.ts` sends a tenant out of
 `/landlord` so they do not see a page they cannot use. If it were deleted tomorrow, a tenant asking

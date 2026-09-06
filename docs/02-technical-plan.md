@@ -394,8 +394,12 @@ express "any column except this one".
 
 Creating a tenant's account requires the Supabase Auth admin API, which uses the service role key
 and therefore bypasses RLS entirely. It is confined to `src/lib/supabase/adminClient.ts`, which is
-imported by exactly one server action, `createTenantAccountForLease`, and by nothing else. That
-action verifies the acting user owns the lease before it touches the admin client. The service role
+imported by two files and by nothing else: `src/actions/tenantAccountActions.ts`, for
+`createTenantAccountForLease` and `regenerateTenantPassword`, and
+`src/actions/authenticationActions.ts`, where `changePassword` clears `must_change_password` on a
+row the account's own session may not write. Each of the three verifies the acting user first — the
+two tenant-account actions that the landlord owns the lease, and `changePassword` that the id is the
+one `getSignedInProfile` resolved from the verified session, never a value from the form. The service role
 key is a server-only environment variable and is never prefixed `NEXT_PUBLIC_`.
 
 ## 8. External libraries and services
@@ -648,7 +652,7 @@ rental-management-app/
     │   ├── supabase/
     │   │   ├── environment.ts         the two public values, read with a useful failure
     │   │   ├── serverClient.ts        for server components and server actions
-    │   │   ├── adminClient.ts         service role, one caller only
+    │   │   ├── adminClient.ts         service role, two callers only
     │   │   └── middlewareClient.ts    cookie refresh inside middleware
     │   ├── authentication/
     │   │   ├── authenticationErrors.ts

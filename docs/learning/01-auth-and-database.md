@@ -115,9 +115,11 @@ path can be forgotten. Someone adds a new page, writes a new query, forgets the 
 filter in the database, forgetting it returns their own rows anyway.
 
 The single exception in this codebase is `src/lib/supabase/adminClient.ts`, which uses the service
-role key and bypasses RLS entirely. It exists for one job, creating a tenant's account, and it has
-one caller, `src/actions/tenantAccountActions.ts`, which checks that the acting landlord owns the
-lease before it goes near it. The file starts with `import "server-only"`, so pulling it into a
+role key and bypasses RLS entirely. It exists for the writes a user's own session may not make, and
+it has two callers: `src/actions/tenantAccountActions.ts`, which creates a tenant's account and
+reissues its password, and checks that the acting landlord owns the lease before it goes near it;
+and `src/actions/authenticationActions.ts`, which clears `must_change_password` once the password
+really has been replaced. The file starts with `import "server-only"`, so pulling it into a
 client component is a build error, and the key it reads has no `NEXT_PUBLIC_` prefix, so it is never
 sent to a browser.
 
