@@ -317,6 +317,7 @@ redirect if the page is past the end, render with `PaginatedTable`.
 
 | Document | What it is |
 | --- | --- |
+| [link.md](link.md) | The submission index: every deliverable and where it is, the demo accounts, and a ten-minute path through the running application |
 | [docs/00-course-requirements.md](docs/00-course-requirements.md) | The checklist every phase of this project was audited against |
 | [docs/01-product-specification.md](docs/01-product-specification.md) | The problem, the users, the features, the invariants |
 | [docs/02-technical-plan.md](docs/02-technical-plan.md) | The architecture, the schema, the routes, the decisions taken before any code |
@@ -324,11 +325,11 @@ redirect if the page is past the end, render with `PaginatedTable`.
 | [docs/04-deployment.md](docs/04-deployment.md) | How the deployment is configured and what to look at when it misbehaves |
 | [docs/05-security.md](docs/05-security.md) | What is actually done about authentication, authorisation, validation and secrets, and which risks remain |
 | [docs/06-scale.md](docs/06-scale.md) | How the system behaves at size, measured rather than assumed, and what to change first |
-| [docs/decisions.md](docs/decisions.md) | Every decision worth defending, with its alternatives and its reasoning |
 | [docs/07-architecture-explainer.md](docs/07-architecture-explainer.md) | The internal explainer: the architecture, the key files, every flow traced, the schema, the tests, the decisions |
 | [docs/08-study-guide.md](docs/08-study-guide.md) | One progressive guide to the whole system, with the five concepts and twenty questions with answers |
 | [docs/09-presentation-script.md](docs/09-presentation-script.md) | The slide-by-slide script with timings, and the demo click by click |
 | [docs/presentation.pdf](docs/presentation.pdf) | The deck itself, fifteen slides, built from that script |
+| [docs/decisions.md](docs/decisions.md) | Every decision worth defending, with its alternatives and its reasoning |
 | [docs/learning/01-auth-and-database.md](docs/learning/01-auth-and-database.md) | How the session and the database fit together |
 | [docs/learning/02-business-rules.md](docs/learning/02-business-rules.md) | The derived rules, and why none of them is stored |
 | [docs/learning/03-data-flow.md](docs/learning/03-data-flow.md) | What happens between a click and a row |
