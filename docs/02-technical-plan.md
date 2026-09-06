@@ -1019,9 +1019,12 @@ No action reads an owner identifier from its input. `landlord_id` and `recorded_
 the session, and a parent row's owner is proven by reading that row as the acting user before
 anything is written to it.
 
-Every action can fail in three ways that are therefore not repeated in the tables below: **invalid
-input** returns field errors, **no session or wrong role** is refused before parsing, and **an
-unexpected database error** is logged server-side and returns one generic sentence.
+Every action can fail in four ways that are therefore not repeated in the tables below: **invalid
+input** returns field errors, **no session or wrong role** is refused before parsing, **an account
+that has not yet replaced its landlord-issued password** is refused for the same reason the proxy
+would have redirected it, and **an unexpected database error** is logged server-side and returns one
+generic sentence. The four are the four classes in
+`src/lib/authentication/authenticationErrors.ts`.
 
 A row that belongs to another landlord is invisible to these queries, so it produces the same "not
 found" result as a row that never existed. The two are indistinguishable on purpose: a different
@@ -1064,11 +1067,15 @@ message would confirm that somebody else's record exists.
 
 | Action | Input | Output | Specific failures |
 | --- | --- | --- | --- |
-| `createTenantAccountForLease` | `leaseId`, `tenantFullName`, `tenantEmail` | `ActionResult<{ temporaryPassword: string }>`, shown once and never stored | Lease not owned; lease already has a tenant account; the email already belongs to an account, which is refused rather than silently attached |
-| `regenerateTenantPassword` | `leaseId` | `ActionResult<{ temporaryPassword: string }>` | Lease not owned; lease has no tenant account yet |
+| `createTenantAccountForLease` | `leaseId`, `tenantFullName`, `tenantEmail` | `ActionResult<TemporaryPasswordIssued>`, which is `{ temporaryPassword, tenantEmail }`. The password is shown once and never stored; the address is echoed back so the panel can name the account the landlord has just created | Lease not owned; lease already has a tenant account; the email already belongs to an account, which is refused rather than silently attached |
+| `regenerateTenantPassword` | `leaseId` | `ActionResult<TemporaryPasswordIssued>`. The address comes from the Auth record rather than from the input, since this action is given only a lease | Lease not owned; lease has no tenant account yet |
 
-Both use the admin client. Both set `must_change_password` on the tenant profile, so the tenant is
-forced through `/change-password` on first sign-in. The generated password exists in the action's
+Both use the admin client, and both end with `must_change_password` true on the tenant profile, so
+the tenant is forced through `/change-password` on first sign-in — but they set it differently.
+`createTenantAccountForLease` passes it in the account's metadata and the
+`create_profile_on_auth_user_insert` trigger copies it onto the profile row it creates;
+`regenerateTenantPassword` has a profile already, so it writes the column directly, and writes it
+before the new password rather than after. The generated password exists in the action's
 return value and in the Auth password hash, and nowhere else.
 
 ### 13.7 Rent payments, `src/actions/rentPaymentActions.ts`
