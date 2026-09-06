@@ -290,20 +290,25 @@ demo, so do not rush them.
 
 6. Click **Leases**, then **Record a tenancy**.
 7. Choose the unit **Flat 1 - Rothschild 12**, which is the flat you just looked at.
-8. Set the start date to **2026-12-31** and the end date to **2027-06-30**. Fill the rent with
-   **6500** and leave the due day at 10.
+8. Read the existing tenancy's end date off the lease page you just had open, and set the start date
+   to **that exact day**. Set the end date six months later. Fill the rent with **6500** and leave
+   the due day at 10.
+
+   The seed places its tenancies relative to the day it runs, so these dates move forward a month
+   every month and none of them can be written down here in advance. Take the end date off the
+   screen; it is the only value this step needs.
 9. Click **Record tenancy**.
-   **Expected:** the form refuses, with a message naming the conflict: this unit is already let from
-   2025-12-01 to 2026-12-31, so a new tenancy can start on 2027-01-01 at the earliest. The same
-   explanation appears against the start date and the end date fields.
-   **Say:** "The thirty-first of December is the last day of the existing tenancy, and both endpoints
-   belong to it, so this overlaps by exactly one day and the system says so - and it tells me the
-   first date that would work. Two things refused this. The application checked, so that I could give
-   that message. And underneath, a Postgres exclusion constraint would refuse the insert anyway, which
-   is what makes it true when two requests race. I can show that with a test rather than a race."
-10. Change the start date to **2027-01-01** and stop.
-    **Say:** "With the first of January this is accepted. I am not going to submit it, because this is
-    live demo data."
+   **Expected:** the form refuses, naming the tenancy in the way by its own dates and giving the
+   first day the unit is free, which is the day after that end date. The same explanation appears
+   against the start date and the end date fields.
+   **Say:** "The day I typed is the last day of the existing tenancy, and both endpoints belong to
+   it, so this overlaps by exactly one day and the system says so - and it tells me the first date
+   that would work. Two things refused this. The application checked, so that I could give that
+   message. And underneath, a Postgres exclusion constraint would refuse the insert anyway, which is
+   what makes it true when two requests race. I can show that with a test rather than a race."
+10. Move the start date on by one day, to the first free day the message named, and stop.
+    **Say:** "One day later this is accepted. I am not going to submit it, because this is live demo
+    data."
 
 ### D. Deliberate failure two: one tenant reaching for another's data (0:50)
 
