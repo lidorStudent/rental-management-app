@@ -68,7 +68,7 @@ Password for all of them: `Demo-Rental-2026!`
 | Landlord | `noa.bendavid@example.co.il` | Two buildings, five units, tenancies that are active, ended and upcoming, a ledger holding settled months, a part payment and months in arrears, and repairs in every status |
 | Landlord | `eitan.shapira@example.co.il` | A different building and tenant, and no sight of anything of Noa's. Sign in as both to see the isolation the policies enforce |
 | Tenant | `maya.levi@example.co.il` | An active tenancy of Noa's, in arrears: her ledger stops at the seventh month, so every month charged since reads Overdue. How many that is depends on the day you sign in |
-| Tenant | `yonatan.azoulay@example.co.il` | An active tenancy of Noa's with a part payment against the current month. The month reads **Part paid** while its due day is still ahead and **Overdue** once that day has passed, with the remainder shown beside it either way: past due outranks part paid, because that is what needs chasing |
+| Tenant | `yonatan.azoulay@example.co.il` | An active tenancy of Noa's with a part payment against the current month. The month reads **Part paid** while its due day is still ahead and **Overdue** once it has passed, because past due outranks part paid. Sign in as Noa as well: the landlord's schedule row shows the remainder against that month straight away, while the tenant's Outstanding figure counts only what has been charged so far, and the current month is not charged until its due day. The two disagree before that day and agree after it |
 | Tenant | `shira.mizrahi@example.co.il` | A tenancy that has ended, with its history still readable |
 | Tenant | `dana.peretz@example.co.il` | An active tenancy of Eitan's, with the current month unpaid |
 
