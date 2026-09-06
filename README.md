@@ -150,6 +150,7 @@ One download per machine. Only needed for `npm run test:e2e`.
 | `SUPABASE_SERVICE_ROLE_KEY` | Bypasses Row Level Security. Used by three server actions, to create a tenant's account, reissue its password, and clear the forced-password-change flag, and by the seed and the test suites | Dashboard, Project Settings, API Keys, `service_role secret` | **Secret.** No `NEXT_PUBLIC_` prefix, so it is never sent to a browser, and `src/lib/supabase/adminClient.ts` imports `server-only` so it cannot be pulled into client code | Yes |
 | `SEED_USER_PASSWORD` | Overrides the password the seed gives every demo account | You choose it | Secret in spirit; it is a demo password | No. Defaults to `Demo-Rental-2026!` |
 | `PLAYWRIGHT_BASE_URL` | Points the browser tests at a deployed address instead of the local dev server | The deployed URL | Public | No. Defaults to `http://localhost:3000` |
+| `SLIDE_SHOT_DIRECTORY` | Where `scripts/buildPresentation.mjs` writes the four slide screenshots it takes while building the deck. Build tooling only; the application never reads it | You choose it, with a trailing slash | Neither; it is a local path | No. Defaults to the project root, where `.gitignore` already covers `slide-*.png` |
 
 `CI` and `NODE_ENV` are also read, by the Playwright config and the cookie settings respectively.
 Both are set by the tooling; neither belongs in an environment file.
