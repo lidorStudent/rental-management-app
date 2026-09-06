@@ -1,7 +1,11 @@
 # Test Specification
 
 Written before the tests, so that the tests are held to this document rather than the document to
-the tests.
+the tests. That held for every case here except nine: section 9 records how an audit of this
+document's own traceability found nine INV cases with no assertion behind them, of which six were
+then written to close the gap. Those six were written after the specification and to it, which is
+the order this rule exists to produce, but they were not written before it and the sequence is
+recorded rather than smoothed over.
 
 Every row states one case: what must be true beforehand, what is done, what must happen, where it is
 tested, and why it matters. The last column is the point of the whole exercise. A grader reading
