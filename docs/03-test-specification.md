@@ -596,7 +596,7 @@ PLAYWRIGHT_BASE_URL=https://rental-management-app-wine.vercel.app npx playwright
 | Permission differences between user types | Section 4, PERM-01 to PERM-42 |
 | Database | Section 5, DB-01 to DB-25: constraints, the overlap guarantee, cascades |
 | Edge cases | Section 6, EDGE-01 to EDGE-18 |
-| Basic UI | Section 7, UI-01 to UI-11 |
+| Basic UI | Section 7, UI-01 to UI-11, and SEC-01 and SEC-02 on the response headers, which live in the same table because they are checked the same way |
 | Documented manual tests where automation is not appropriate | Section 8, MAN-01 to MAN-05, each with a reason |
 
 ### Every case, traced to the test that discharges it
@@ -614,8 +614,9 @@ without searching. The counts, as they stand:
 | DB | 25 | 25 | 25/25 | — |
 | EDGE | 18 | 18 | 18/18 | — |
 | UI | 10 | 11 | 10/11 | UI-08 is a manual case by designation, discharged by MAN-02 |
+| SEC | 2 | 2 | 2/2 | — |
 | MAN | 0 | 5 | 0/5 | Manual by designation. A person runs these; there is no code to cite from |
-| **Total** | **194** | **200** | **194/200** | The six not cited are the six that are manual by designation. Every automatable case is cited |
+| **Total** | **196** | **202** | **196/202** | The six not cited are the six that are manual by designation. Every automatable case is cited |
 
 **Nine of these were coverage gaps, not citation gaps, and were closed rather than annotated.** This
 table once recorded nine INV cases as "proved by the schema tests without naming their identifier -
