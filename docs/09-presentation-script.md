@@ -88,8 +88,11 @@ paid - only the landlord records money, because only the landlord received it."
 
 ## Slide 5 - The business value (0:45)
 
-**On screen:** Three lines: Arrears visible without arithmetic. Fewer phone calls. A record of what
-was promised.
+**On screen:** Five goals from the product specification, each against the baseline it replaces:
+what is owed portfolio-wide, 20 to 30 minutes by hand against under 10 seconds; a rent statement,
+half an hour against under a minute; overdue rent, weeks against the same day; tenancies ending
+within sixty days, on the first screen; status questions, every cycle against the portal answering
+them. Closing line: the arithmetic stops being somebody's job.
 
 **Say:** "The value is in those three failures reversed. Arrears are visible at a glance and are
 always current, because they are computed from the ledger and today's date every time you look. The
@@ -175,8 +178,8 @@ Follow the click list below exactly. Speaking notes are inside it.
 
 ## Slide 11 - The tests (1:00)
 
-**On screen:** 361 unit and component. 146 permission and database. 28 end to end. Plus five
-documented manual checks.
+**On screen:** 361 unit and component. 146 permission and database. 28 end to end. 7 deployment
+checks against the live address, response headers included. 5 documented manual checks.
 
 **Say:** "Three suites. Three hundred and sixty-one unit and component tests cover the rules at
 their boundaries - the day a tenancy ends is still occupied, a part payment is partial and not
@@ -194,8 +197,11 @@ pass."
 
 ## Slide 12 - Scale (0:50)
 
-**On screen:** Measured, not assumed. Tens of users: fine. Hundreds: two specific problems, both
-priced. One now fixed.
+**On screen:** Measured, not assumed. Tens of landlords: every page under about 120 ms. Then the two
+problems, each named: a count naming `landlord_id` at 100 ms against 566 ms left to the policy, and
+`lease_rent_summary` grouping before any filter reaches it, 98 ms to 314 ms. Last, already fixed:
+the functions moved from Washington to Frankfurt, 647 to 338 ms. Closing line: what grows is the
+shared tables.
 
 **Say:** "I did not want to guess at this, so I measured it: synthetic portfolios in the test
 project, real queries, timed as a signed-in user. At tens of landlords everything answers in about a
@@ -230,8 +236,9 @@ document rather than left to be discovered."
 
 ## Slide 14 - What I would improve with more time (0:45)
 
-**On screen:** Done: the functions moved to Frankfurt. Next: give the aggregate queries an indexable
-filter. Then: organisations, an audit log, rate limiting.
+**On screen:** One item badged DONE and greyed, the functions moved beside the database. Then three
+numbered and still to do: an indexable filter for two aggregate queries, more than one person on a
+portfolio, an audit log with rate limiting. Closing line: measured effect over risk.
 
 **Say:** "In priority order, and the order is by measured effect over risk. The first one is done:
 moving the deployed functions into the same region as the database was one line, and it was the
