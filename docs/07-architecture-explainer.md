@@ -72,7 +72,7 @@ could drift from the rows it summarises.
 | [src/lib/supabase/serverClient.ts](../src/lib/supabase/serverClient.ts) | The client every page and action uses. Reads and writes the session cookie |
 | [src/lib/supabase/middlewareClient.ts](../src/lib/supabase/middlewareClient.ts) | The same, for the proxy, where cookies go onto a `NextResponse` rather than into `cookies()` |
 | [src/lib/supabase/sessionCookieOptions.ts](../src/lib/supabase/sessionCookieOptions.ts) | The cookie's flags in one place: `httpOnly`, `sameSite=lax`, `secure` in production |
-| [src/lib/supabase/adminClient.ts](../src/lib/supabase/adminClient.ts) | The service-role client. Bypasses every policy. One caller, `tenantAccountActions.ts` |
+| [src/lib/supabase/adminClient.ts](../src/lib/supabase/adminClient.ts) | The service-role client. Bypasses every policy. Two callers, `tenantAccountActions.ts` and `authenticationActions.ts` |
 | [src/lib/authentication/getSignedInProfile.ts](../src/lib/authentication/getSignedInProfile.ts) | The one place the acting user is decided. Verifies the token, then reads the role from `profiles`, never from the token |
 | [src/lib/authentication/requireLandlordProfile.ts](../src/lib/authentication/requireLandlordProfile.ts), [requireTenantProfile.ts](../src/lib/authentication/requireTenantProfile.ts) | Throw unless the acting user has that role. The first line of every action |
 | [src/lib/authentication/redirectDestination.ts](../src/lib/authentication/redirectDestination.ts) | The pure function behind the proxy's routing, so the rules can be unit tested without a request |
