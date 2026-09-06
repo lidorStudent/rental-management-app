@@ -17,9 +17,11 @@ misbehaves and the one on your own machine does not.
 made from a terminal with `vercel deploy --prod`, which is how this project's are usually made,
 because it reports the result rather than leaving it in a browser tab.
 
-**Framework.** `vercel.json` contains one line, `"framework": "nextjs"`. It is there because the
-Vercel project was created from the command line before any code existed, so it defaulted to a
-static site and the first deployment failed on an empty output directory. A committed file says how
+**Framework and region.** `vercel.json` contains two settings. `"framework": "nextjs"` is there
+because the Vercel project was created from the command line before any code existed, so it
+defaulted to a static site and the first deployment failed on an empty output directory.
+`"regions": ["fra1"]` pins the functions to Frankfurt, beside the database; it was added on
+27 August 2026 and section 11 of [docs/06-scale.md](06-scale.md) measures what it was worth. A committed file says how
 the repository is deployed; a setting clicked in a dashboard does not travel with the code.
 
 **Build.** Vercel runs `npm install` and then `npm run build`, which is `next build`. The build type
