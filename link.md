@@ -20,11 +20,16 @@ needs attention rather than on a menu: rent outstanding, problems open, tenancie
 stored. Each is derived from the ledger and today's date, which is why a month moves from part paid
 to overdue on its own.
 
-Then break it on purpose. **Leases → Record a tenancy**, choose **Flat 1**, enter dates inside Maya
-Levi's term. It is refused, naming the tenancy in the way and the first free day:
+Then break it on purpose. Open **Leases**. The list carries a Term column, so Maya Levi's tenancy
+shows the day it ends; that day is the one worth typing, because it still belongs to her. **Record a
+tenancy**, choose **Flat 1**, and set the start date to it. Any end date and rent will do.
 
-> This unit is already let from 2026-01-01 to 2027-01-31. Both of those days belong to that tenancy,
-> so a new one can start on 2027-02-01 at the earliest.
+It is refused, and the refusal explains itself three times over. The banner names the tenancy in the
+way by its own dates and gives the first day the unit is free, which is the day after the one you
+typed. The start date field says until when the unit is occupied and from when it is free; the end
+date field says which tenancy it overlaps. No dates are printed here because the seed places its
+tenancies relative to the day it runs, so every one of them moves forward on the first of each month
+— read them off the screen.
 
 Nothing is written. That rule is a Postgres exclusion constraint rather than a check in application
 code, so two browser tabs cannot race past it.
