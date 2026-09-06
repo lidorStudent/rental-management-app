@@ -213,10 +213,13 @@ and throws before a single test executes.
 | --- | --- | --- |
 | `tests/landlordIsolation.test.ts` | 26 | One landlord reads none of another's properties, units, leases, payments, requests, profiles or aggregate views, changes and deletes none of them, and cannot insert a row into another's portfolio. The last three tests do the whole create, read, update and delete cycle on their own rows, so the policies are not merely refusing everything |
 | `tests/tenantIsolation.test.ts` | 32 | A tenant reads only their own tenancy and its ledger, cannot reach another tenant's anything, and cannot write to leases or payments by any route including confirming another tenant's repair |
-| `tests/anonymousAccess.test.ts` | 12 | The anonymous key, which is in the browser bundle, selects nothing, inserts nothing, updates nothing and deletes nothing anywhere |
-| `tests/serverActions.test.ts` | 15 | Actions refuse the wrong role, answer another landlord's identifier exactly as they answer one that does not exist, and stamp ownership from the session rather than from the payload |
+| `tests/anonymousAccess.test.ts` | 22 | The anonymous key, which is in the browser bundle, selects nothing, inserts nothing, updates nothing and deletes nothing anywhere |
+| `tests/serverActions.test.ts` | 20 | Actions refuse the wrong role, answer another landlord's identifier exactly as they answer one that does not exist, and stamp ownership from the session rather than from the payload |
 | `tests/domainInvariants.test.ts` | 13 | The five domain invariants, including the overlap exclusion constraint that Postgres enforces regardless of application code |
-| `tests/schemaGuarantees.test.ts` | 20 | What the schema refuses with the application out of the way: the check constraints, the per-building uniqueness of a flat label, every cascade and restrict the foreign keys declare, and the two triggers |
+| `tests/schemaGuarantees.test.ts` | 23 | What the schema refuses with the application out of the way: the check constraints, the per-building uniqueness of a flat label, every cascade and restrict the foreign keys declare, and the two triggers |
+| `tests/passwordChange.test.ts` | 3 | Changing a password proves the old one, a tenant can replace the temporary password they were issued, and a throttled attempt is told to wait rather than told the password was wrong |
+| `tests/passwordChangeGuard.test.ts` | 2 | The role guards refuse an account still carrying a landlord-issued password, so the forced change is the application's own rule and not only a redirect the proxy performs |
+| `tests/tenantAccountCreation.test.ts` | 5 | Creating a tenant account attaches it to its lease or removes the account again, a second submission for the same lease cannot take it over, and a reissued password is never reported as set when the forced-change flag was not written |
 
 A refused authorisation and a missing record are deliberately indistinguishable to the caller.
 Actions read through the user's own client, so somebody else's row comes back as no rows, and the
