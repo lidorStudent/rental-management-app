@@ -17,14 +17,15 @@ Ten items must be submitted.
 - [x] 6. Test code.
 - [x] 7. Basic scale document.
 - [x] 8. Basic security document.
-- [x] 9. Local run instructions, including an explanation of every environment variable.
+- [x] 9. Local run instructions, including a brief explanation of the required environment
+      variables.
 - [x] 10. Presentation deck for a 10 to 15 minute presentation.
 
 ## 2. Required Stack
 
 - [x] Next.js.
 - [x] TypeScript.
-- [x] Supabase for database and authentication.
+- [x] Supabase for the database, and optionally for authentication.
 - [x] Vercel for deployment.
 - [x] The application is reachable at a public URL, not only on localhost.
 
@@ -86,7 +87,7 @@ Must cover:
 - [x] How inputs are validated.
 - [x] How API calls are protected.
 - [x] How secrets such as API keys are stored.
-- [x] Which risks remain.
+- [x] Which security risks still exist, and what would be improved going forward.
 
 ## 7. Scale Document
 
@@ -131,7 +132,7 @@ Must cover:
 
 ## 10. Grading Priority
 
-- [x] Quality of thinking is graded above feature count. A small, clear, useful, secure, well-built
-      product beats a large, messy, unstable one.
+- [x] The project is not measured only by the number of features, but by the quality of thinking.
+      A small, clear, useful, secure, well-built product beats a large, messy, unstable one.
 - [x] The student must understand the code deeply enough to explain every library, component,
       method, and technical decision under questioning.
