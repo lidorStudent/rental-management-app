@@ -78,7 +78,7 @@ is gone afterwards and that the protected page redirects.
 
 ---
 
-## 2. The layers, and which one is the boundary
+## 2. How authorisation works: the layers, and which one is the boundary
 
 | Layer | Where | What it does | What it does not do |
 | --- | --- | --- | --- |
@@ -293,6 +293,13 @@ sections 8 and 9. The tenant-account actions check that the acting landlord owns
 reading it through their own client, so the policies answer — before the admin client is
 constructed. `src/lib/temporaryPassword.ts` and the authentication helpers carry the same
 `server-only` import.
+
+---
+
+Sections 1 to 7 answer the questions the brief asks of a security document, and section 12 answers
+the last of them. Sections 8 to 11 go beyond it: they record four things this project had to decide
+or discover for itself, and each was found by attacking the running system rather than by reading
+the code.
 
 ---
 
