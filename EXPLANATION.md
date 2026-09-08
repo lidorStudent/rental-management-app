@@ -78,3 +78,45 @@ signed-in user, so a page that forgot its filter returns nothing rather than som
 `docs/` also holds a deployment note, an explainer, a study guide and a decisions log.
 
 # What was easy and what was hard
+
+**Easier than I expected.** Deriving rent status rather than storing it. I expected that to be the
+fiddly part, and once the rules were plain functions it stopped being a problem. What I did not
+expect was how much it saved elsewhere: no status column, so nothing to go stale and no way for two
+screens to disagree. A whole category of bug never came up. Row Level Security was the same: slow,
+careful work, but once the policies were there the isolation held every time anyone attacked it, and
+every real defect was in the application, not the database.
+
+**The lease boundary.** I had written "exclusive end boundary" without considering it properly, and
+did not notice until the database and my own instructions disagreed. Laid out side by side it was
+clear: the tenant has the flat until the last day. The application check and the database constraint
+have to encode the same rule, or the app accepts a lease Postgres then refuses. What bothered me was
+that two places in my own project disagreed and I had not seen it.
+
+**The region.** I was not looking for it. A performance pass came back with every query at 84 to 102
+ms against a network floor of about 85, so the database was doing almost no work and everything was
+the round trip. I could not believe it was one line in `vercel.json`. Three pairs of queries I had
+batched to save round trips then saved nothing and got reverted. Fixing the latency first decided
+whether the other fix was worth anything.
+
+**The role trigger.** Three fixes, each failing for a different reason, each needing a probe to
+disprove, not an argument. Hardcoding the role would have made every tenant a landlord permanently,
+because the immutability trigger refuses a correction even from the service role: a fix meant to
+remove an escalation would have created one. Detecting the caller was impossible, because a signup
+and an admin call look identical from inside the trigger. And `app_metadata` is written after the
+insert. What stopped me was that every route left meant relaxing the rule that a role never changes.
+
+**Things that were green and wrong.** The security document said the session cookie was HTTP-only.
+It was not: the library leaves it readable for a browser client I was never using, so the document
+asserted a property the app lacked. It was the first time I realised a document could be confidently
+wrong about the one thing it was most sure of. The tests had their own version: an `update({})` with
+an empty payload never gets sent, so the test passed against a database that still had the grant. A
+bad argument you can catch by re-reading it; a test that passes for the wrong reason looks like a
+test that works. The logo check was green three times against a mark that read as half a shape,
+because it measured whether the artwork was clipped rather than whether it was a shape. The screen
+reader too. I had been treating the manual checks as the things not worth automating. They are the
+things a machine cannot see.
+
+**Working this way.** The hard part was not getting code written but judging everything it produced.
+Once it told me a security hole I had asked it to close was not one, and it was right. Eleven times
+something written down did not match the code, and nothing caught it automatically. Checking claims
+against reality one at a time took longer than the building.
