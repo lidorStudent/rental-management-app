@@ -13,8 +13,8 @@ not a payment processor.
 
 ## Signing in
 
-Every account uses the password `Demo-Rental-2026!`. The data is invented: no real person, address
-or tenancy appears in it.
+Every account uses the password `Demo-Rental-2026!`. The data is invented: no real person or tenancy
+appears in it. The streets are real, the buildings on them are not.
 
 | Account | What it shows |
 | --- | --- |
@@ -87,15 +87,17 @@ takes its inputs and returns an answer, reaching for nothing else: no database c
 the clock. Today's date arrives as an argument, which is what makes them testable at their
 boundaries — to ask what happens on the day rent falls due, you pass in that day. What I did not
 expect was how much it saved elsewhere: no status column, nothing to go stale, no two screens
-disagreeing. Row Level Security was the same: slow work, but the isolation held, and every real
-defect was in the application, not the database.
+disagreeing. Row Level Security was the same: slow work, but the isolation held. The one policy that
+was wrong was wrong about width rather than about ownership — `profiles_update_own` let an account
+clear its own `must_change_password`, which made a forced password change a suggestion.
 
 **The lease boundary.** Does a tenancy ending on the 31st conflict with one starting then? A lease
 until 31 May means the tenant has the flat that day, so the next starts 1 June. The application
 check and the database constraint had to give the same answer, because a rule split across two
 places will eventually disagree with itself, and the failure has a shape: the form accepts a tenancy
 that Postgres then refuses. I had written "exclusive end boundary" without considering it properly.
-What bothered me was that two places in my own project disagreed and I had not seen it.
+What bothered me was that the instruction I had written disagreed with the constraint already in the
+database, and I had not seen it.
 
 **The region.** A performance pass put every query at 84 to 102 ms against a network floor of about
 85, so the database did almost no work: the cost was the round trip, not the query. I was not
