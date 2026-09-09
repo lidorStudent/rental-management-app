@@ -92,11 +92,10 @@ defect was in the application, not the database.
 
 **The lease boundary.** Does a tenancy ending on the 31st conflict with one starting then? A lease
 until 31 May means the tenant has the flat that day, so the next starts 1 June. The application
-check and the database constraint had to give the same answer, because a rule split between an
-application check and a database constraint will eventually disagree with itself, and the failure
-has a shape: the form accepts a tenancy that Postgres then refuses. I had written "exclusive end
-boundary" without considering it properly. What bothered me was that two places in my own project
-disagreed and I had not seen it.
+check and the database constraint had to give the same answer, because a rule split across two
+places will eventually disagree with itself, and the failure has a shape: the form accepts a tenancy
+that Postgres then refuses. I had written "exclusive end boundary" without considering it properly.
+What bothered me was that two places in my own project disagreed and I had not seen it.
 
 **The region.** A performance pass put every query at 84 to 102 ms against a network floor of about
 85, so the database did almost no work: the cost was the round trip, not the query. I was not
@@ -109,8 +108,8 @@ disprove, not an argument. Hardcoding the role would have made every tenant a la
 because the immutability trigger refuses a correction even from the service role, the key that
 bypasses every policy: a fix meant to remove an escalation would have created one. What stopped me:
 someone calling the Auth API directly can ask for the landlord role, but what they get is what
-`/register` hands anyone, an account owning nothing, so the finding has no impact, while every route
-left meant relaxing a rule holding against every caller, service role included.
+`/register` hands anyone, an account owning nothing. The finding has no impact, and every route left
+to close it meant relaxing a rule that holds against every caller, service role included.
 
 **Checks that passed and should not have.** The security document said the session cookie was
 HTTP-only, and it was not: the library leaves it readable for a browser client I never used. It was
@@ -125,9 +124,9 @@ assertion can fail on. Each check was correct, and answering a question next to 
 mattered — is it clipped, not is it a shape; is the message present, not is it announced. I had
 treated manual checks as not worth automating. They are the things a machine cannot see.
 
-**Working this way.** Judging it meant knowing the system well enough to tell when it was wrong: I
+**Working this way.** Judging it meant knowing the system well enough to tell when it was wrong. I
 could not have overruled the lease boundary without knowing what a lease term means, nor accepted
-the password gate was no defect without following how Next dispatches a server action to the route
+the password gate was no defect without following how Next dispatches a server action — to the route
 that owns it, not to the URL the browser is on. Once it told me a security hole I had asked it to
 close was not one, and it was right. Twenty times something written down did not match the code, and
 nothing caught it. Checking claims against reality one at a time took longer than the building.
