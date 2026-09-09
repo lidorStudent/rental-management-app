@@ -82,8 +82,8 @@ signed-in user, so a page that forgot its filter returns nothing rather than som
 **Easier than I expected.** Deriving rent status rather than storing it. I expected that to be the
 fiddly part; once the rules were plain functions it stopped being one. What I did not expect was how
 much it saved elsewhere: no status column, so nothing to go stale and no way for two screens to
-disagree. Row Level Security was the same — slow work, but the isolation then held, and every real
-defect was in the application, not the database.
+disagree. Row Level Security was the same — slow work, but the isolation held, and every real defect
+was in the application, not the database.
 
 **The lease boundary.** I had written "exclusive end boundary" without considering it properly, and
 did not notice until the database and my instructions disagreed. Laid out, it was clear: a lease
@@ -93,10 +93,10 @@ had to encode the same thing. What bothered me was that two places in my own pro
 had not seen it.
 
 **The region.** I was not looking for it. A performance pass put every query at 84 to 102 ms against
-a network floor of about 85, which meant the database was doing almost no work: the cost was the
-round trip, not the query. I could not believe it was one line in `vercel.json`. Three pairs of
-queries I had batched to save round trips saved nothing: fixing the latency first decided whether
-the other fix was worth anything.
+a network floor of about 85, so the database was doing almost no work: the cost was the round trip,
+not the query. I could not believe it was one line in `vercel.json`. Three pairs of queries I had
+batched to save round trips saved nothing: fixing the latency first decided whether the other fix
+was worth anything.
 
 **The role trigger.** Three fixes, each failing for a different reason, each needing a probe to
 disprove, not an argument. Hardcoding the role would have made every tenant a landlord permanently,
@@ -107,15 +107,15 @@ meant relaxing a rule that holds against every caller, service role included.
 
 **Things that were green and wrong.** The security document said the session cookie was HTTP-only.
 It was not: the library leaves it readable for a browser client I never used, so it asserted a
-property the app lacked. It was the first time I met a document confidently wrong about the thing it
-was most sure of. The tests had their own: an `update({})` with an empty payload never gets sent, so
-it passed against a database that still had the grant. Nothing about it looked wrong: a test that
-passes for the wrong reason looks like a test that works. The logo check was green three times
-against a mark that read as half a shape: it measured whether the artwork was clipped, not whether
-it was a shape. The screen reader was the same: what was missing was the message's association with
-the input, which no DOM assertion can fail on. Each check was correct, and answering a question next
-to the one that mattered. I had treated the manual checks as not worth automating. They are the
-things a machine cannot see.
+property the app lacked. It was the first time I realised a document could be confidently wrong
+about the thing it was most sure of. The tests had their own: an `update({})` with an empty payload
+never gets sent, so it passed against a database that still had the grant. Nothing about it looked
+wrong: a test that passes for the wrong reason looks like a test that works. The logo check was
+green three times against a mark that read as half a shape: it measured whether the artwork was
+clipped, not whether it was a shape. The screen reader was the same: what was missing was the
+message's association with the input, which no DOM assertion can fail on. Each check was correct,
+and answering a question next to the one that mattered. I had treated the manual checks as not worth
+automating. They are the things a machine cannot see.
 
 **Working this way.** The hard part was not getting code written but judging everything it produced.
 Once it told me a security hole I had asked it to close was not one, and it was right. Eleven times
