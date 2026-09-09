@@ -32,12 +32,11 @@ or tenancy appears in it.
 2. **Follow Rent.** Every tenancy with what it was charged, what arrived, and what is left over. No
    status there is stored; each is worked out from the ledger and today's date, which is why a month
    turns overdue on its own.
-3. **Break it on purpose.** Open **Leases**. The Term column shows the day Maya Levi's tenancy ends,
-   and that day still belongs to her. Choose **Record a tenancy**, pick **Flat 1**, set the start
-   date to it. The application check refuses it before anything is written, three times over: a
-   banner naming the tenancy in the way and the first free day, plus a message against each date
-   field. Underneath, a Postgres exclusion constraint is what holds when two tabs race.
-
+3. **Try to create an overlapping tenancy.** Open **Leases**. The Term column shows the day Maya
+   Levi's tenancy ends, and that day still belongs to her. Choose **Record a tenancy**, pick **Flat
+   1**, set the start date to it. The application check refuses it before anything is written, three
+   times over: a banner naming the tenancy in the way and the first free day, plus a message against
+   each date field. Underneath, a Postgres exclusion constraint is what holds when two tabs race.
 4. **Sign out and in as Maya.** Her own tenancy, ledger and problems, and nothing else. No landlord
    navigation, no way to record a payment; a landlord address returns her to her portal, and another
    tenant's record gives the same "not found" as one that never existed — enforced by the database
@@ -80,19 +79,20 @@ signed-in user, so a page that forgot its filter returns nothing rather than som
 
 # What was easy and what was hard
 
-**Easier than I expected.** Deriving rent status rather than storing it: I expected the fiddly part,
-and plain functions made it stop being one. What I did not expect was how much it saved elsewhere:
-no status column, nothing to go stale, no two screens disagreeing. Row Level Security was the same —
-slow work, but the isolation held, and every real defect was in the application, not the database.
+**Easier than I expected.** Deriving rent status rather than storing it: I expected it to be the
+fiddly part, and plain functions made it stop being one. What I did not expect was how much it saved
+elsewhere: no status column, nothing to go stale, no two screens disagreeing. Row Level Security was
+the same — slow work, but the isolation held, and every real defect was in the application, not the
+database.
 
 **The lease boundary.** Does a tenancy ending on the 31st conflict with one starting then? A lease
 until 31 May means the tenant has the flat that day, so the next starts 1 June. The application
-check and the database constraint had to say so, because a rule split between them eventually
-disagrees. I had written "exclusive end boundary" without considering it properly. What bothered me
-was that two places in my own project disagreed and I had not seen it.
+check and the database constraint had to say so, because a split rule eventually disagrees. I had
+written "exclusive end boundary" without considering it properly. What bothered me was that two
+places in my own project disagreed and I had not seen it.
 
 **The region.** A performance pass put every query at 84 to 102 ms against a network floor of about
-85, so the database was doing almost no work: the cost was the round trip, not the query. I was not
+85, so the database did almost no work: the cost was the round trip, not the query. I was not
 looking for it. I could not believe it was one line in `vercel.json`. Three pairs of queries I
 batched to save round trips saved nothing: fixing the latency first decided whether the other was
 worth anything.
@@ -104,16 +104,16 @@ remove an escalation would have created one. What stopped me: a forged landlord 
 `/register` hands anyone and sees nothing, so the finding has no impact, while every route left
 meant relaxing a rule holding against every caller, service role included.
 
-**Things that were green and wrong.** The security document said the session cookie was HTTP-only,
-and it was not: the library leaves it readable for a browser client I never used. It was the first
-time I realised a document could be confidently wrong about the thing it was most sure of. The tests
-had their own: an `update({})` with an empty payload never reaches the check, so it passed with the
-grant still there. Nothing about it looked wrong: a test that passes for the wrong reason looks like
-a test that works. The logo check was green three times against a mark that read as half a shape,
-measuring whether the artwork was clipped, not whether it was a shape. The screen reader was the
-same: what was missing was the message's association with the input, which no DOM assertion can fail
-on. Each check was correct, and answering a question next to the one that mattered. I had treated
-manual checks as not worth automating. They are the things a machine cannot see.
+**Checks that passed and should not have.** The security document said the session cookie was
+HTTP-only, and it was not: the library leaves it readable for a browser client I never used. It was
+the first time I realised a document could be confidently wrong about the thing it was most sure of.
+The tests had their own version of this: an `update({})` with an empty payload never reaches the
+check, so it passed with the grant intact. Nothing about it looked wrong: a test that passes for the
+wrong reason looks like a test that works. The logo check was green three times against a mark that
+read as half a shape, measuring whether the artwork was clipped, not whether it was one. The screen
+reader was the same: what was missing was the message's association with the input, which no DOM
+assertion fails on. Each check was correct, answering a question next to the one that mattered. I
+had treated manual checks as not worth automating. They are the things a machine cannot see.
 
 **Working this way.** Judging it meant knowing the system well enough to tell when it was wrong: I
 could not have overruled the lease boundary without knowing what a lease term means, nor accepted
