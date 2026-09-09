@@ -34,9 +34,10 @@ or tenancy appears in it.
    turns overdue on its own.
 3. **Break it on purpose.** Open **Leases**. The Term column shows the day Maya Levi's tenancy ends,
    and that day still belongs to her. Choose **Record a tenancy**, pick **Flat 1**, set the start
-   date to it. Refused three times over: a banner naming the tenancy in the way and the first free
-   day, plus a message against each date field. Nothing is written. The rule is a Postgres exclusion
-   constraint rather than a check in application code, so two tabs cannot race past it.
+   date to it. The application check refuses it before anything is written, three times over: a
+   banner naming the tenancy in the way and the first free day, plus a message against each date
+   field. Underneath, a Postgres exclusion constraint is what holds when two tabs race.
+
 4. **Sign out and in as Maya.** Her own tenancy, ledger and problems, and nothing else. No landlord
    navigation, no way to record a payment; a landlord address returns her to her portal, and another
    tenant's record gives the same "not found" as one that never existed — enforced by the database
@@ -106,17 +107,17 @@ meant relaxing a rule holding against every caller, service role included.
 **Things that were green and wrong.** The security document said the session cookie was HTTP-only,
 and it was not: the library leaves it readable for a browser client I never used. It was the first
 time I realised a document could be confidently wrong about the thing it was most sure of. The tests
-had their own: an `update({})` with an empty payload never gets sent, so it passed with the grant
-still there. Nothing about it looked wrong: a test that passes for the wrong reason looks like a
-test that works. The logo check was green three times against a mark that read as half a shape,
-measuring whether the artwork was clipped rather than whether it was a shape. The screen reader was
-the same: what was missing was the message's association with the input, which no DOM assertion can
-fail on. Each check was correct, and answering a question next to the one that mattered. I had
-treated manual checks as not worth automating. They are the things a machine cannot see.
+had their own: an `update({})` with an empty payload never reaches the check, so it passed with the
+grant still there. Nothing about it looked wrong: a test that passes for the wrong reason looks like
+a test that works. The logo check was green three times against a mark that read as half a shape,
+measuring whether the artwork was clipped, not whether it was a shape. The screen reader was the
+same: what was missing was the message's association with the input, which no DOM assertion can fail
+on. Each check was correct, and answering a question next to the one that mattered. I had treated
+manual checks as not worth automating. They are the things a machine cannot see.
 
 **Working this way.** Judging it meant knowing the system well enough to tell when it was wrong: I
 could not have overruled the lease boundary without knowing what a lease term means, nor accepted
 the password gate was no defect without following how Next dispatches a server action to its own
-route. Once it told me a security hole I had asked it to close was not one, and it was right. Eleven
+route. Once it told me a security hole I had asked it to close was not one, and it was right. Twenty
 times something written down did not match the code, and nothing caught it. Checking claims against
 reality one at a time took longer than the building.
