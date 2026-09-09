@@ -84,15 +84,15 @@ and plain functions made it stop being one. What I did not expect was how much i
 no status column, nothing to go stale, no two screens disagreeing. Row Level Security was the same —
 slow work, but the isolation held, and every real defect was in the application, not the database.
 
-**The lease boundary.** I had written "exclusive end boundary" without considering it properly. Laid
-out, it was clear: a lease until 31 May means the tenant has the flat on the 31st, so the next
-starts on 1 June. A rule split between an application check and a database constraint will
-eventually disagree with itself, so both had to encode the same thing. What bothered me was that two
-places in my own project disagreed and I had not seen it.
+**The lease boundary.** Does a tenancy ending on the 31st conflict with one starting then? A lease
+until 31 May means the tenant has the flat that day, so the next starts 1 June. The application
+check and the database constraint had to say so, because a rule split between them eventually
+disagrees. I had written "exclusive end boundary" without considering it properly. What bothered me
+was that two places in my own project disagreed and I had not seen it.
 
-**The region.** I was not looking for it. A performance pass put every query at 84 to 102 ms against
-a network floor of about 85, so the database was doing almost no work: the cost was the round trip,
-not the query. I could not believe it was one line in `vercel.json`. Three pairs of queries I
+**The region.** A performance pass put every query at 84 to 102 ms against a network floor of about
+85, so the database was doing almost no work: the cost was the round trip, not the query. I was not
+looking for it. I could not believe it was one line in `vercel.json`. Three pairs of queries I
 batched to save round trips saved nothing: fixing the latency first decided whether the other was
 worth anything.
 
