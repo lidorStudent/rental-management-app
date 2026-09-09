@@ -36,7 +36,9 @@ or tenancy appears in it.
    Levi's tenancy ends, and that day still belongs to her. Choose **Record a tenancy**, pick **Flat
    1**, set the start date to it. The application check refuses it before anything is written, three
    times over: a banner naming the tenancy in the way and the first free day, plus a message against
-   each date field. Underneath, a Postgres exclusion constraint is what holds when two tabs race.
+   each date field. Underneath, a Postgres exclusion constraint is what holds when two tabs race:
+   both requests can read "no conflict" before either writes, which an application check cannot
+   prevent and a constraint can.
 4. **Sign out and in as Maya.** Her own tenancy, ledger and problems, and nothing else. No landlord
    navigation, no way to record a payment; a landlord address returns her to her portal, and another
    tenant's record gives the same "not found" as one that never existed — enforced by the database
@@ -79,17 +81,22 @@ signed-in user, so a page that forgot its filter returns nothing rather than som
 
 # What was easy and what was hard
 
-**Easier than I expected.** Deriving rent status rather than storing it: I expected it to be the
-fiddly part, and plain functions made it stop being one. What I did not expect was how much it saved
-elsewhere: no status column, nothing to go stale, no two screens disagreeing. Row Level Security was
-the same — slow work, but the isolation held, and every real defect was in the application, not the
-database.
+**Easier than I expected.** Deriving rent status rather than storing it. I expected it to be the
+fiddly part, and writing the rules as plain functions made it stop being one. Plain means each rule
+takes its inputs and returns an answer, reaching for nothing else: no database call, no reading of
+the clock. Today's date arrives as an argument, which is what makes them testable at their
+boundaries — to ask what happens on the day rent falls due, you pass in that day. What I did not
+expect was how much it saved elsewhere: no status column, nothing to go stale, no two screens
+disagreeing. Row Level Security was the same: slow work, but the isolation held, and every real
+defect was in the application, not the database.
 
 **The lease boundary.** Does a tenancy ending on the 31st conflict with one starting then? A lease
 until 31 May means the tenant has the flat that day, so the next starts 1 June. The application
-check and the database constraint had to say so, because a split rule eventually disagrees. I had
-written "exclusive end boundary" without considering it properly. What bothered me was that two
-places in my own project disagreed and I had not seen it.
+check and the database constraint had to give the same answer, because a rule split between an
+application check and a database constraint will eventually disagree with itself, and the failure
+has a shape: the form accepts a tenancy that Postgres then refuses. I had written "exclusive end
+boundary" without considering it properly. What bothered me was that two places in my own project
+disagreed and I had not seen it.
 
 **The region.** A performance pass put every query at 84 to 102 ms against a network floor of about
 85, so the database did almost no work: the cost was the round trip, not the query. I was not
@@ -99,25 +106,28 @@ worth anything.
 
 **The role trigger.** Three fixes, each failing for a different reason, each needing a probe to
 disprove, not an argument. Hardcoding the role would have made every tenant a landlord permanently,
-because the immutability trigger refuses a correction even from the service role: a fix meant to
-remove an escalation would have created one. What stopped me: a forged landlord gets what
-`/register` hands anyone and sees nothing, so the finding has no impact, while every route left
-meant relaxing a rule holding against every caller, service role included.
+because the immutability trigger refuses a correction even from the service role, the key that
+bypasses every policy: a fix meant to remove an escalation would have created one. What stopped me:
+someone calling the Auth API directly can ask for the landlord role, but what they get is what
+`/register` hands anyone, an account owning nothing, so the finding has no impact, while every route
+left meant relaxing a rule holding against every caller, service role included.
 
 **Checks that passed and should not have.** The security document said the session cookie was
 HTTP-only, and it was not: the library leaves it readable for a browser client I never used. It was
 the first time I realised a document could be confidently wrong about the thing it was most sure of.
-The tests had their own version of this: an `update({})` with an empty payload never reaches the
-check, so it passed with the grant intact. Nothing about it looked wrong: a test that passes for the
-wrong reason looks like a test that works. The logo check was green three times against a mark that
-read as half a shape, measuring whether the artwork was clipped, not whether it was one. The screen
+The tests had their own version of this: a test meant to prove the anonymous role cannot write
+called `update({})` with an empty payload, which never reaches the permission check, so it passed
+with the grant still in place. Nothing about it looked wrong: a test that passes for the wrong
+reason looks like a test that works. The logo check was green three times against a mark that read
+as half a shape, measuring whether the artwork was clipped, not whether it was one. The screen
 reader was the same: what was missing was the message's association with the input, which no DOM
-assertion fails on. Each check was correct, answering a question next to the one that mattered. I
-had treated manual checks as not worth automating. They are the things a machine cannot see.
+assertion can fail on. Each check was correct, and answering a question next to the one that
+mattered — is it clipped, not is it a shape; is the message present, not is it announced. I had
+treated manual checks as not worth automating. They are the things a machine cannot see.
 
 **Working this way.** Judging it meant knowing the system well enough to tell when it was wrong: I
 could not have overruled the lease boundary without knowing what a lease term means, nor accepted
-the password gate was no defect without following how Next dispatches a server action to its own
-route. Once it told me a security hole I had asked it to close was not one, and it was right. Twenty
-times something written down did not match the code, and nothing caught it. Checking claims against
-reality one at a time took longer than the building.
+the password gate was no defect without following how Next dispatches a server action to the route
+that owns it, not to the URL the browser is on. Once it told me a security hole I had asked it to
+close was not one, and it was right. Twenty times something written down did not match the code, and
+nothing caught it. Checking claims against reality one at a time took longer than the building.
