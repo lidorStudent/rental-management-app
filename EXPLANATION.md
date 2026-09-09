@@ -79,45 +79,44 @@ signed-in user, so a page that forgot its filter returns nothing rather than som
 
 # What was easy and what was hard
 
-**Easier than I expected.** Deriving rent status rather than storing it. I expected that to be the
-fiddly part; once the rules were plain functions it stopped being one. What I did not expect was how
-much it saved elsewhere: no status column, so nothing to go stale and no way for two screens to
-disagree. Row Level Security was the same — slow work, but the isolation held, and every real defect
-was in the application, not the database.
+**Easier than I expected.** Deriving rent status rather than storing it: I expected the fiddly part,
+and plain functions made it stop being one. What I did not expect was how much it saved elsewhere:
+no status column, nothing to go stale, no two screens disagreeing. Row Level Security was the same —
+slow work, but the isolation held, and every real defect was in the application, not the database.
 
-**The lease boundary.** I had written "exclusive end boundary" without considering it properly, and
-did not notice until the database and my instructions disagreed. Laid out, it was clear: a lease
-until 31 May means the tenant has the flat on the 31st, so the next starts on 1 June. A rule split
-between an application check and a database constraint will eventually disagree with itself, so both
-had to encode the same thing. What bothered me was that two places in my own project disagreed and I
-had not seen it.
+**The lease boundary.** I had written "exclusive end boundary" without considering it properly. Laid
+out, it was clear: a lease until 31 May means the tenant has the flat on the 31st, so the next
+starts on 1 June. A rule split between an application check and a database constraint will
+eventually disagree with itself, so both had to encode the same thing. What bothered me was that two
+places in my own project disagreed and I had not seen it.
 
 **The region.** I was not looking for it. A performance pass put every query at 84 to 102 ms against
 a network floor of about 85, so the database was doing almost no work: the cost was the round trip,
-not the query. I could not believe it was one line in `vercel.json`. Three pairs of queries I had
-batched to save round trips saved nothing: fixing the latency first decided whether the other fix
-was worth anything.
+not the query. I could not believe it was one line in `vercel.json`. Three pairs of queries I
+batched to save round trips saved nothing: fixing the latency first decided whether the other was
+worth anything.
 
 **The role trigger.** Three fixes, each failing for a different reason, each needing a probe to
 disprove, not an argument. Hardcoding the role would have made every tenant a landlord permanently,
 because the immutability trigger refuses a correction even from the service role: a fix meant to
 remove an escalation would have created one. What stopped me: a forged landlord gets what
 `/register` hands anyone and sees nothing, so the finding has no impact, while every route left
-meant relaxing a rule that holds against every caller, service role included.
+meant relaxing a rule holding against every caller, service role included.
 
-**Things that were green and wrong.** The security document said the session cookie was HTTP-only.
-It was not: the library leaves it readable for a browser client I never used, so it asserted a
-property the app lacked. It was the first time I realised a document could be confidently wrong
-about the thing it was most sure of. The tests had their own: an `update({})` with an empty payload
-never gets sent, so it passed against a database that still had the grant. Nothing about it looked
-wrong: a test that passes for the wrong reason looks like a test that works. The logo check was
-green three times against a mark that read as half a shape: it measured whether the artwork was
-clipped, not whether it was a shape. The screen reader was the same: what was missing was the
-message's association with the input, which no DOM assertion can fail on. Each check was correct,
-and answering a question next to the one that mattered. I had treated the manual checks as not worth
-automating. They are the things a machine cannot see.
+**Things that were green and wrong.** The security document said the session cookie was HTTP-only,
+and it was not: the library leaves it readable for a browser client I never used. It was the first
+time I realised a document could be confidently wrong about the thing it was most sure of. The tests
+had their own: an `update({})` with an empty payload never gets sent, so it passed with the grant
+still there. Nothing about it looked wrong: a test that passes for the wrong reason looks like a
+test that works. The logo check was green three times against a mark that read as half a shape,
+measuring whether the artwork was clipped rather than whether it was a shape. The screen reader was
+the same: what was missing was the message's association with the input, which no DOM assertion can
+fail on. Each check was correct, and answering a question next to the one that mattered. I had
+treated manual checks as not worth automating. They are the things a machine cannot see.
 
-**Working this way.** The hard part was not getting code written but judging everything it produced.
-Once it told me a security hole I had asked it to close was not one, and it was right. Eleven times
-something written down did not match the code, and nothing caught it. Checking claims against
+**Working this way.** Judging it meant knowing the system well enough to tell when it was wrong: I
+could not have overruled the lease boundary without knowing what a lease term means, nor accepted
+the password gate was no defect without following how Next dispatches a server action to its own
+route. Once it told me a security hole I had asked it to close was not one, and it was right. Eleven
+times something written down did not match the code, and nothing caught it. Checking claims against
 reality one at a time took longer than the building.
